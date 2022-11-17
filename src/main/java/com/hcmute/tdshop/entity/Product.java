@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -24,6 +25,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", columnDefinition = "BIGINT(19)")
@@ -71,8 +73,11 @@ public class Product {
   private Set<Image> setOfImages;
 
   @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-  private Set<ProductConfiguration> setOfProductConfigurations;
-
-  @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   private Set<ProductAttribute> setOfProductAttributes;
+
+  @ManyToMany
+  @JoinTable(name = "product_configuration",
+      joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
+      @JoinColumn(name = "variation_option_id")})
+  private Set<VariationOption> setOfVariationOptions;
 }
