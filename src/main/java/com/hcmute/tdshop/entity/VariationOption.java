@@ -32,7 +32,4 @@ public class VariationOption {
   @ManyToOne
   @JoinColumn(name = "variation_id", nullable = false)
   private Variation variation;
-
-  @OneToMany(mappedBy = "variationOption", cascade = CascadeType.ALL)
-  private Set<ProductConfiguration> setOfProductConfigurations;
 }
