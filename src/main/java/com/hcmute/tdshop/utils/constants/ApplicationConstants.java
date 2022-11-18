@@ -42,6 +42,9 @@ public class ApplicationConstants {
   public static final String USER_PASSWORD_MANDATORY = "Password is mandatory";
   public static final String USER_PASSWORD_SIZE_INVALID = "Password is too long";
 
+  // ------------------------------ PRODUCT -------------------------------------
+  public static final int PRODUCT_PAGE_SIZE = 5;
+
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
   public static final String JWT_CLAIM_ID = "id";

@@ -37,7 +37,7 @@ public class Product {
   @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false, unique = true)
   private String name;
 
-  @Column(name = "price")
+  @Column(name = "price", nullable = false)
   private double price;
 
   @Column(name = "description", columnDefinition = "TEXT")
