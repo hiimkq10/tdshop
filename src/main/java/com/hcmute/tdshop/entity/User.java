@@ -64,14 +64,14 @@ public class User {
   private String password;
 
   @OneToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "account_id", nullable = false)
+  @JoinColumn(name = "account_id")
   private AccountRole role;
 
   @Column(name = "is_active", nullable = false)
-  private Boolean isActive = true;
+  private Boolean isActive;
 
   @Column(name = "is_verified", nullable = false)
-  private Boolean isVerified = false;
+  private Boolean isVerified;
 
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
