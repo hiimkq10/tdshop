@@ -25,6 +25,28 @@ public class ApplicationConstants {
   public static final String EMAIL_EXISTED = "Email existed";
   public static final String PHONE_EXISTED = "Phone existed";
   public static final String USERNAME_EXISTED = "Username existed";
+  public static final String LOCAL_DATE_TIME_FORMAT_INVALID = "Date time format is invalid";
+  public static final String LOCAL_DATE_FORMAT_INVALID = "Date format is invalid";
+
+  // ------------------------------ AUTH -------------------------------------
+  public static final String CURRENT_PASSWORD_MISSING = "Current password is missing";
+  public static final String CURRENT_PASSWORD_MAX_SIZE_INVALID = "Current password is too long";
+  public static final String CURRENT_PASSWORD_WRONG = "Current password is wrong";
+  public static final String NEW_PASSWORD_MISSING = "New password is missing";
+  public static final String NEW_PASSWORD_MAX_SIZE_INVALID = "New password is too long";
+  public static final String CONFIRM_PASSWORD_MISSING = "Confirm password is missing";
+  public static final String CONFIRM_PASSWORD_NOT_MATCH = "Confirm password does not match new password";
+  public static final String CONFIRM_PASSWORD_MAX_SIZE_INVALID = "Confirm password is too long";
+  public static final String CHANGE_PASSWORD_SUCCESSFULLY = "Change password successfully";
+  public static final String RESET_PASSWORD_SUCCESSFULLY = "Reset password successfully";
+  public static final String TOKEN_MANDATORY = "Token is mandatory";
+  public static final String TOKEN_INVALID = "Token is invalid";
+  public static final String TOKEN_EXPIRED = "Token expired";
+  public static final String TOKEN_WRONG = "Token is wrong";
+  public static final String TOKEN_NOT_CONFIRMED = "Token not confirmed";
+  public static final String TOKEN_USED = "Token has been used";
+  public static final String RESET_PASSWORD_DURATION_OVER = "Reset password time is over!!";
+  public static final String ACCOUNT_ACTIVATED = "Account activated";
 
   // ------------------------------ USER -------------------------------------
   public static final String USER_NOT_FOUND = "User not found";
