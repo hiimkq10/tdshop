@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.utils;
 
 import com.auth0.jwt.algorithms.Algorithm;
+import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +20,7 @@ public class Helper {
   public static final int RESET_PASSWORD_DURATION = 5;
   public static final Algorithm JWT_ALGORITHM = Algorithm.HMAC256(JWT_SECRET.getBytes());
   public static final String dateTimePattern = "yyyy-MM-dd HH:mm";
+  public static final String datePattern = "yyyy-MM-dd";
   public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);
 
   @Autowired
@@ -71,5 +73,9 @@ public class Helper {
 
   public boolean checkIfPhoneExisted(String phone) {
     return userRepository.countByPhone(phone) > 0;
+  }
+
+  public boolean checkIfStringIsBlank(String str) {
+    return str == null || str.isEmpty();
   }
 }

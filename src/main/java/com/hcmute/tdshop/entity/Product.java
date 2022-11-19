@@ -55,7 +55,7 @@ public class Product {
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
-  @Column(name = "deleted_at", nullable = false)
+  @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
   @ManyToOne

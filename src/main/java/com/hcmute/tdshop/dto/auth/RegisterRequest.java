@@ -37,7 +37,7 @@ public class RegisterRequest {
   private String username;
 
   @JsonProperty("Password")
-  @Size(max = 255, message = ApplicationConstants.USER_PASSWORD_SIZE_INVALID)
+  @Size(max = 30, message = ApplicationConstants.USER_PASSWORD_SIZE_INVALID)
   @NotBlank(message = ApplicationConstants.USER_PASSWORD_MANDATORY)
   private String password;
 }
