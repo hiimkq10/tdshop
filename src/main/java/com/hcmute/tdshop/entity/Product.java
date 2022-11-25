@@ -14,6 +14,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,6 +37,9 @@ public class Product {
 
   @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false, unique = true)
   private String name;
+
+  @Column(name = "image_url", nullable = false)
+  private String imageUrl;
 
   @Column(name = "price", nullable = false)
   private double price;
@@ -62,17 +66,17 @@ public class Product {
   @JoinColumn(name = "product_status", nullable = false)
   private ProductStatus status;
 
-  @ManyToMany(mappedBy = "setOfProducts", fetch = FetchType.LAZY)
+  @ManyToMany(mappedBy = "setOfProducts")
   private Set<Category> setOfCategories;
 
   @ManyToOne
   @JoinColumn(name = "brand_id", nullable = false)
   private Brand brand;
 
-  @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
   private Set<Image> setOfImages;
 
-  @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
   private Set<ProductAttribute> setOfProductAttributes;
 
   @ManyToMany
@@ -80,4 +84,7 @@ public class Product {
       joinColumns = {@JoinColumn(name = "product_id")}, inverseJoinColumns = {
       @JoinColumn(name = "variation_option_id")})
   private Set<VariationOption> setOfVariationOptions;
+
+  @OneToOne(mappedBy = "product", fetch = FetchType.EAGER)
+  private ProductPromotion productPromotion;
 }
