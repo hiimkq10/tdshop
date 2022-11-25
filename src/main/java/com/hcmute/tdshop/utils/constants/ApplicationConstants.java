@@ -65,7 +65,7 @@ public class ApplicationConstants {
   public static final String USER_PASSWORD_SIZE_INVALID = "Password is too long";
 
   // ------------------------------ PRODUCT -------------------------------------
-  public static final int PRODUCT_PAGE_SIZE = 5;
+  public static final String PRODUCT_NOT_FOUND = "Product not found";
 
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
