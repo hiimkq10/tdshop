@@ -67,6 +67,11 @@ public class ApplicationConstants {
   // ------------------------------ PRODUCT -------------------------------------
   public static final String PRODUCT_NOT_FOUND = "Product not found";
 
+  // ------------------------------ CART -------------------------------------
+  public static final String ADD_ITEM_SUCCESSFULLY = "Add item successfully";
+  public static final String REMOVE_ITEM_SUCCESSFULLY = "Remove item successfully";
+  public static final String CHANGE_ITEM_QUANTITY_SUCCESSFULLY = "Change item quantity successfully";
+
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
   public static final String JWT_CLAIM_ID = "id";

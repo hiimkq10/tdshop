@@ -1,11 +1,10 @@
-package com.hcmute.tdshop.dto.product;
+package com.hcmute.tdshop.dto.cart;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class ProductPromotionDto {
-
+public class CartProductPromotionDto {
   @JsonProperty("Id")
   private Long id;
 

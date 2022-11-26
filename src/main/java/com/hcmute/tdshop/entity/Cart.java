@@ -31,6 +31,6 @@ public class Cart {
   @JoinColumn(name = "user_id", nullable = false, unique = true)
   private User user;
 
-  @OneToMany(mappedBy = "cart", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "cart", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   private Set<CartItem> setOfCartItems;
 }
