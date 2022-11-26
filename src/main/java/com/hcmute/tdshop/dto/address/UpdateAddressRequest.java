@@ -30,7 +30,7 @@ public class UpdateAddressRequest {
   @JsonProperty("IsDefault")
   private Boolean isDefault;
 
-  @JsonProperty("Wards")
+  @JsonProperty("WardsId")
   @PositiveOrZero(message = ApplicationConstants.ADDRESS_WARDS_ID_INVALID)
   private long wardsId;
 }
