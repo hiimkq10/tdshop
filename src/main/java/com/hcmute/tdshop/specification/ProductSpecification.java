@@ -5,6 +5,10 @@ import com.hcmute.tdshop.enums.ProductStatusEnum;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ProductSpecification {
+  public static Specification<Product> hasId(long id) {
+    return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
+  }
+
   public static Specification<Product> hasName(String name) {
     return ((root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("name"), "%" + name + "%"));
   }

@@ -12,7 +12,6 @@ import com.hcmute.tdshop.service.ProductService;
 import com.hcmute.tdshop.specification.ProductSpecification;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,8 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
-  public DataResponse searchProductsByFilter(long categoryId, double maxPrice, double minPrice, Set<Long> variationOptionIds,
+  public DataResponse searchProductsByFilter(long categoryId, double maxPrice, double minPrice,
+      Set<Long> variationOptionIds,
       Pageable page) {
     Specification<Product> conditions = Specification.where(ProductSpecification.isNotDeleted())
         .and(ProductSpecification.isNotHide());
@@ -96,12 +96,16 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public DataResponse getProductById(long id) {
-    Optional<Product> optionalProduct = productRepository.findById(id);
-    if (optionalProduct.isPresent()) {
-      ProductInfoDto productInfoDto = productMapper.ProductToProductInfoDto(optionalProduct.get());
+    Specification<Product> conditions = Specification.where(ProductSpecification.isNotDeleted())
+        .and(ProductSpecification.isNotHide())
+        .and(ProductSpecification.hasId(id));
+    List<Product> listOfProduct = productRepository.findAll(conditions);
+    if (listOfProduct.size() > 0) {
+      ProductInfoDto productInfoDto = productMapper.ProductToProductInfoDto(listOfProduct.get(0));
       return new DataResponse(productInfoDto);
     }
-    return new DataResponse(ApplicationConstants.NOT_FOUND, ApplicationConstants.PRODUCT_NOT_FOUND, ApplicationConstants.NOT_FOUND_CODE);
+    return new DataResponse(ApplicationConstants.NOT_FOUND, ApplicationConstants.PRODUCT_NOT_FOUND,
+        ApplicationConstants.NOT_FOUND_CODE);
   }
 
   private boolean checkIfProductContainAllVariation(Product product, Set<Long> variationOptionIds) {
