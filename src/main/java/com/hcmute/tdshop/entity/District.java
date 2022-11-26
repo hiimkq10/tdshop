@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -35,8 +36,10 @@ public class District {
 
   @ManyToOne
   @JoinColumn(name = "province_id", nullable = false)
+  @JsonIgnore
   private Province province;
 
   @OneToMany(mappedBy = "district", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @JsonIgnore
   private Set<Wards> setOfWards;
 }
