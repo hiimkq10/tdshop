@@ -38,9 +38,8 @@ public class Address {
   @JsonProperty("Email")
   private String email;
 
-  @Column(name = "phone", columnDefinition = "NVARCHAR(10)", nullable = false)
-  @Email
   @JsonProperty("Phone")
+  @Column(name = "phone", columnDefinition = "NVARCHAR(10)", nullable = false)
   private String phone;
 
   @Column(name = "address_detail", columnDefinition = "NVARCHAR(150)", nullable = false)

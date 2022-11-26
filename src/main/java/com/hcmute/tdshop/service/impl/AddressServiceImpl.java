@@ -118,7 +118,7 @@ public class AddressServiceImpl implements AddressService {
         }
       }
       currentAddress = addressRepository.saveAndFlush(currentAddress);
-      return new DataResponse(ApplicationConstants.ADDRESS_UPDATE_SUCCESSFULLY, currentAddress);
+      return new DataResponse(ApplicationConstants.ADDRESS_UPDATE_SUCCESSFULLY, addressMapper.AddressToAddressResponse(currentAddress));
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ADDRESS_NOT_FOUND,
         ApplicationConstants.BAD_REQUEST_CODE);
