@@ -81,6 +81,12 @@ public class ApplicationConstants {
   public static final String ADDRESS_UPDATE_SUCCESSFULLY = "Update address successfully";
   public static final String ADDRESS_DELETE_SUCCESSFULLY = "Delete address successfully";
 
+  // ------------------------------ PROVINCE -------------------------------------
+  public static final String PROVINCE_NOT_FOUND = "Province not found";
+
+  // ------------------------------ DISTRICT -------------------------------------
+  public static final String DISTRICT_NOT_FOUND = "District not found";
+
   // ------------------------------ WARDS -------------------------------------
   public static final String WARDS_NOT_FOUND = "Wards not found";
 

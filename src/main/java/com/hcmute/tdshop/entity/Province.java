@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Set;
@@ -32,5 +33,6 @@ public class Province {
   private String name;
 
   @OneToMany(mappedBy = "province", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @JsonIgnore
   private Set<District> setOfDistricts;
 }

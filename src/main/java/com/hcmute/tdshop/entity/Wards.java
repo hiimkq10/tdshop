@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,5 +32,6 @@ public class Wards {
 
   @ManyToOne
   @JoinColumn(name = "district_id", nullable = false)
+  @JsonIgnore
   private District district;
 }
