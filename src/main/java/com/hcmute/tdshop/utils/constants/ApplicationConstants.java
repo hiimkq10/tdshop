@@ -64,6 +64,26 @@ public class ApplicationConstants {
   public static final String USER_PASSWORD_MANDATORY = "Password is mandatory";
   public static final String USER_PASSWORD_SIZE_INVALID = "Password is too long";
 
+  // ------------------------------ ADDRESS -------------------------------------
+  public static final String ADDRESS_NOT_FOUND = "Address not found";
+  public static final String ADDRESS_NAME_MISSING = "Name is missing";
+  public static final String ADDRESS_NAME_SIZE_INVALID = "Name is too long";
+  public static final String ADDRESS_EMAIL_MANDATORY = "Email is mandatory";
+  public static final String ADDRESS_EMAIL_SIZE_INVALID = "Email is too long";
+  public static final String ADDRESS_EMAIL_FORMAT_INVALID = "Email format is invalid";
+  public static final String ADDRESS_PHONE_MANDATORY = "Phone is mandatory";
+  public static final String ADDRESS_PHONE_SIZE_INVALID = "Phone is too long";
+  public static final String ADDRESS_DETAIL_MISSING = "Address detail is missing";
+  public static final String ADDRESS_DETAIL_SIZE_INVALID = "Address detail is too long";
+  public static final String ADDRESS_WARDS_ID_INVALID = "Wards id is invalid";
+  public static final String ADDRESS_USER_ID_INVALID = "User id is invalid";
+  public static final String ADDRESS_ADD_SUCCESSFULLY = "Add address successfully";
+  public static final String ADDRESS_UPDATE_SUCCESSFULLY = "Update address successfully";
+  public static final String ADDRESS_DELETE_SUCCESSFULLY = "Delete address successfully";
+
+  // ------------------------------ WARDS -------------------------------------
+  public static final String WARDS_NOT_FOUND = "Wards not found";
+
   // ------------------------------ PRODUCT -------------------------------------
   public static final String PRODUCT_NOT_FOUND = "Product not found";
 
