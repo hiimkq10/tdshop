@@ -19,6 +19,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductPromotion {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", columnDefinition = "BIGINT(19)")
@@ -43,6 +44,6 @@ public class ProductPromotion {
   private LocalDateTime deletedAt;
 
   @OneToOne
-  @JoinColumn(name = "product_id")
+  @JoinColumn(name = "product_id", nullable = false)
   private Product product;
 }

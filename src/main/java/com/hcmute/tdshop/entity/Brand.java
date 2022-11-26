@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,5 +31,6 @@ public class Brand {
   private String logoUrl;
 
   @OneToMany(mappedBy = "brand")
+  @JsonIgnore
   private Set<Product> setOfProducts;
 }
