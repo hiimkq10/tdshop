@@ -24,6 +24,13 @@ public class DataResponse {
     this.status = ApplicationConstants.SUCCESSFUL_CODE;
   }
 
+  public DataResponse(String message, Object data) {
+    this.message = message;
+    this.error = ApplicationConstants.SUCCESSFUL;
+    this.data = data;
+    this.status = ApplicationConstants.SUCCESSFUL_CODE;
+  }
+
   public DataResponse(String error, String message) {
     this.error = error;
     this.message = message;
