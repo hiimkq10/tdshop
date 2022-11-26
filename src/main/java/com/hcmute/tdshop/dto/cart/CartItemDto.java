@@ -9,9 +9,6 @@ public class CartItemDto {
   @JsonProperty("Id")
   private Long id;
 
-  @JsonProperty("Price")
-  private double price;
-
   @JsonProperty("Quantity")
   private int quantity;
 
