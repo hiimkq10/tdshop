@@ -42,5 +42,5 @@ public class OrderDetail {
 
   @ManyToOne
   @JoinColumn(name = "order_id", nullable = false)
-  private ShopOrder shopOrder;
+  private ShopOrder order;
 }

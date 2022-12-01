@@ -31,10 +31,6 @@ public class ShopOrder {
   private LocalDateTime orderedAt;
 
   @ManyToOne
-  @JoinColumn(name = "status_id", nullable = false)
-  private OrderStatus status;
-
-  @ManyToOne
   @JoinColumn(name = "payment_method_id", nullable = false)
   private PaymentMethod paymentMethod;
 
@@ -48,4 +44,15 @@ public class ShopOrder {
   @ManyToOne
   @JoinColumn(name = "order_status_id", nullable = false)
   private OrderStatus orderStatus;
+
+  @ManyToOne
+  @JoinColumn(name = "address_id", nullable = false)
+  private Address address;
+
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
+
+  @OneToMany(mappedBy = "order")
+  private Set<OrderDetail> setOfOrderDetails;
 }
