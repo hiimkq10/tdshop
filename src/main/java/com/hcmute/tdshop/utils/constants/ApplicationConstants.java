@@ -49,6 +49,7 @@ public class ApplicationConstants {
   public static final String ACCOUNT_ACTIVATED = "Account activated";
 
   // ------------------------------ USER -------------------------------------
+  public static final String USER_ID_INVALID = "User id is invalid";
   public static final String USER_NOT_FOUND = "User not found";
   public static final String USER_FIRST_NAME_MANDATORY = "First name is mandatory";
   public static final String USER_FIRST_NAME_SIZE_INVALID = "First name is too long";
@@ -65,6 +66,7 @@ public class ApplicationConstants {
   public static final String USER_PASSWORD_SIZE_INVALID = "Password is too long";
 
   // ------------------------------ ADDRESS -------------------------------------
+  public static final String ADDRESS_ID_INVALID = "Address id is invalid";
   public static final String ADDRESS_NOT_FOUND = "Address not found";
   public static final String ADDRESS_NAME_MISSING = "Name is missing";
   public static final String ADDRESS_NAME_SIZE_INVALID = "Name is too long";
@@ -92,11 +94,30 @@ public class ApplicationConstants {
 
   // ------------------------------ PRODUCT -------------------------------------
   public static final String PRODUCT_NOT_FOUND = "Product not found";
+  public static final String PRODUCT_ID_INVALID = "Product id is invalid";
+  public static final String PRODUCT_QUANTITY_MUST_BIGGER_THAN_0 = "Product quantity must bigger than 0";
+  public static final String PRODUCT_QUANTITY_NOT_ENOUGH = "Sorry, we dont have enough products for your order";
 
   // ------------------------------ CART -------------------------------------
   public static final String ADD_ITEM_SUCCESSFULLY = "Add item successfully";
   public static final String REMOVE_ITEM_SUCCESSFULLY = "Remove item successfully";
   public static final String CHANGE_ITEM_QUANTITY_SUCCESSFULLY = "Change item quantity successfully";
+
+  // ------------------------------ ORDER -------------------------------------
+  public static final String ORDER_PRODUCTS_EMPTY = "You must choose at least 1 product to make order";
+  public static final String ORDER_NOT_FOUND = "Order not found";
+
+  // ------------------------------ ORDER STATUS -------------------------------------
+  public static final String ORDER_STATUS_NOT_FOUND = "Order status not found";
+  public static final String ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_DELETED = "Only awaiting payment order can be deleted";
+
+  // ------------------------------ PAYMENT -------------------------------------
+  public static final String PAYMENT_ID_INVALID = "Payment id invalid";
+  public static final String PAYMENT_NOT_FOUND = "Payment method not found";
+
+  // ------------------------------ SHIP -------------------------------------
+  public static final String SHIP_ID_INVALID = "Ship id invalid";
+  public static final String SHIP_NOT_FOUND = "Ship not found";
 
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
