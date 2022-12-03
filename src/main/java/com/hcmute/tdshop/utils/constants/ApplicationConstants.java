@@ -97,7 +97,7 @@ public class ApplicationConstants {
   public static final String PRODUCT_ID_INVALID = "Product id is invalid";
   public static final String PRODUCT_QUANTITY_MUST_BIGGER_THAN_0 = "Product quantity must bigger than 0";
   public static final String PRODUCT_QUANTITY_NOT_ENOUGH = "Sorry, we dont have enough products for your order";
-  public static final String PRODUCT_NAME_MANDATORY = "Product is mandatory";
+  public static final String PRODUCT_NAME_MANDATORY = "Product name is mandatory";
   public static final String PRODUCT_NAME_SIZE_INVALID = "Product name is too long";
   public static final String PRODUCT_PRICE_INVALID = "Product price is invalid";
   public static final String PRODUCT_DESCRIPTION_MANDATORY = "Product description is mandatory";
@@ -140,6 +140,13 @@ public class ApplicationConstants {
   // ------------------------------ BRAND -------------------------------------
   public static final String BRAND_ID_INVALID = "Brand id is invalid";
   public static final String BRAND_NOT_FOUND = "Brand not found";
+
+  public static final String BRAND_NAME_MANDATORY = "Brand name is mandatory";
+  public static final String BRAND_NAME_SIZE_INVALID = "Brand name is too long";
+  public static final String BRAND_PRODUCT_EXIST = "Can`t delete brand!! Please remove all product of this brand before delete";
+  public static final String BRAND_ADD_SUCCESSFULLY = "Add brand successfully";
+  public static final String BRAND_UPDATE_SUCCESSFULLY = "Update brand successfully";
+  public static final String BRAND_DELETE_SUCCESSFULLY = "Delete brand successfully";
 
   // ------------------------------ CATEGORY -------------------------------------
   public static final String CATEGORY_NOT_FOUND = "Category not found";
