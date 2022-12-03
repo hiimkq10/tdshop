@@ -1,11 +1,16 @@
 package com.hcmute.tdshop.service.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.hcmute.tdshop.dto.product.AddProductRequest;
+import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.ProductInfoDto;
 import com.hcmute.tdshop.dto.product.SimpleProductDto;
+import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.entity.Attribute;
 import com.hcmute.tdshop.entity.Brand;
 import com.hcmute.tdshop.entity.Category;
+import com.hcmute.tdshop.entity.Image;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductAttribute;
 import com.hcmute.tdshop.entity.ProductStatus;
@@ -23,15 +28,21 @@ import com.hcmute.tdshop.repository.VariationOptionRepository;
 import com.hcmute.tdshop.service.ProductService;
 import com.hcmute.tdshop.specification.ProductSpecification;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +52,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+
+  @Value("${cloudinaryUrl}")
+  private String cloudinaryURL;
+
+  @Value("${cloudinaryProductImagePath}")
+  private String imagePath;
+
+  private Cloudinary cloudinary;
 
   @Autowired
   private ProductRepository productRepository;
@@ -65,6 +84,12 @@ public class ProductServiceImpl implements ProductService {
 
   @Autowired
   private ProductStatusRepository productStatusRepository;
+
+  @PostConstruct
+  private void postConstruct() {
+    this.cloudinary = new Cloudinary(cloudinaryURL);
+    this.cloudinary.config.secure = true;
+  }
 
   @Override
   public DataResponse getAllProducts(Pageable page) {
@@ -145,7 +170,8 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
-  public DataResponse insertProduct(AddProductRequest request, List<MultipartFile> images) {
+  @Transactional
+  public DataResponse insertProduct(AddProductRequest request, MultipartFile mainImage, List<MultipartFile> images) {
     Product product = productMapper.AddProductRequestToProduct(request);
     Optional<Brand> optionalBrand = brandRepository.findById(request.getBrandId());
     if (optionalBrand.isPresent()) {
@@ -154,39 +180,270 @@ public class ProductServiceImpl implements ProductService {
       product.setBrand(brand);
       product.setSetOfCategories(new HashSet<>(listOfCaregories));
       product.setSku(UUID.randomUUID().toString());
-      product.setImageUrl("http://abc");
       product.setSelAmount(0);
       product.setCreatedAt(LocalDateTime.now());
       product.setStatus(productStatusRepository.findById(ProductStatusEnum.HIDE.getId()).get());
-      setProductAttribute(product, request.getMapOfProductAttributes());
-      setProductVariation(product, request.getSetOfVariationIds());
-      productRepository.save(product);
-      return DataResponse.SUCCESSFUL;
+
+      // Upload first image
+      String imageUrl = uploadProductImage(mainImage);
+      if (imageUrl == null) {
+        return new DataResponse(ApplicationConstants.FAILED, ApplicationConstants.IMAGE_UPLOAD_FAILED, ApplicationConstants.FAILED_CODE);
+      }
+      product.setImageUrl(imageUrl);
+
+      // Add Attribute
+      Map<Long, String> mapOfProductAttributes = request.getMapOfProductAttributes();
+      if (mapOfProductAttributes != null) {
+        List<Attribute> attributes = attributeRepository.findAllById(mapOfProductAttributes.keySet());
+        product.setSetOfProductAttributes(new HashSet<>());
+        for (Attribute attribute : attributes) {
+          product.getSetOfProductAttributes()
+              .add(new ProductAttribute(null, mapOfProductAttributes.get(attribute.getId()), attribute, product));
+        }
+      }
+
+      // Add Variation
+      Set<Long> setOfVariationIds = request.getSetOfVariationIds();
+      if (setOfVariationIds != null) {
+        List<VariationOption> variationOptions = variationOptionRepository.findAllById(setOfVariationIds);
+        product.setSetOfVariationOptions(new HashSet<>());
+        for (VariationOption variationOption : variationOptions) {
+          product.getSetOfVariationOptions().add(variationOption);
+        }
+      }
+
+      product = productRepository.save(product);
+
+      // Upload the rest image to server
+      if (images.size() > 0) {
+        product.setSetOfImages(new HashSet<>());
+        Product finalProduct = product;
+        Thread thread = new Thread(new Runnable() {
+          @Override
+          public void run() {
+            String url;
+            for (MultipartFile image : images) {
+              url = uploadProductImage(image);
+              if (url != null) {
+                finalProduct.getSetOfImages().add(new Image(null, url, null, finalProduct));
+              }
+            }
+            productRepository.saveAndFlush(finalProduct);
+          }
+        });
+        thread.start();
+      }
+
+      return new DataResponse(ApplicationConstants.PRODUCT_ADD_SUCCESSFULLY,
+          productMapper.ProductToProductInfoDto(product));
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.BRAND_NOT_FOUND,
         ApplicationConstants.BAD_REQUEST_CODE);
   }
 
-  private void setProductAttribute(Product product, Map<Long, String> mapOfProductAttributes) {
-    if (mapOfProductAttributes == null) {
-      return;
+  @Override
+  @Transactional
+  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage, List<MultipartFile> images) {
+    Product productToUpdate = productMapper.UpdateProductRequestToProduct(request);
+    Optional<Product> optionalProduct = productRepository.findById(id);
+    if (optionalProduct.isPresent()) {
+      Product currentProduct = optionalProduct.get();
+      if (productToUpdate.getName() != null) {
+        currentProduct.setName(productToUpdate.getName());
+      }
+      if (productToUpdate.getPrice() > 1000) {
+        currentProduct.setPrice(productToUpdate.getPrice());
+      }
+      currentProduct.setDescription(productToUpdate.getDescription());
+      currentProduct.setShortDescription(productToUpdate.getShortDescription());
+      if (productToUpdate.getTotal() >= 0) {
+        currentProduct.setTotal(productToUpdate.getTotal());
+      }
+      if (request.getBrandId() > 0) {
+        Optional<Brand> optionalBrand = brandRepository.findById(request.getBrandId());
+        optionalBrand.ifPresent(currentProduct::setBrand);
+      }
+      if (request.getProductStatus() > 0) {
+        Optional<ProductStatus> optionalProductStatus = productStatusRepository.findById(request.getProductStatus());
+        optionalProductStatus.ifPresent(currentProduct::setStatus);
+      }
+
+      // Update categories
+      Set<Long> categoryIds = request.getSetOfCategoryIds();
+      Iterator<Category> categoryIterator = currentProduct.getSetOfCategories().iterator();
+      Category category;
+      while (categoryIterator.hasNext()) {
+        category = categoryIterator.next();
+        if (categoryIds.contains(category.getId())) {
+          categoryIds.remove(category.getId());
+        } else {
+          categoryIterator.remove();
+        }
+      }
+      if (categoryIds.size() > 0) {
+        List<Category> categories = categoryRepository.findAllById(categoryIds);
+        currentProduct.getSetOfCategories().addAll(categories);
+      }
+
+      // Update attributes
+      Map<Long, String> mapOfProductAttributes = request.getMapOfProductAttributes();
+      Set<Long> attributeIds = mapOfProductAttributes.keySet();
+      Iterator<ProductAttribute> productAttributeIterator = currentProduct.getSetOfProductAttributes().iterator();
+      ProductAttribute productAttribute;
+      while (productAttributeIterator.hasNext()) {
+        productAttribute = productAttributeIterator.next();
+        if (attributeIds.contains(productAttribute.getAttribute().getId())) {
+          attributeIds.remove(productAttribute.getAttribute().getId());
+        } else {
+          productAttributeIterator.remove();
+        }
+      }
+      if (attributeIds.size() > 0) {
+        List<Attribute> attributes = attributeRepository.findAllById(attributeIds);
+        for (Attribute attribute : attributes) {
+          currentProduct.getSetOfProductAttributes()
+              .add(new ProductAttribute(
+                  null,
+                  mapOfProductAttributes.get(attribute.getId()),
+                  attribute,
+                  currentProduct
+              ));
+        }
+      }
+
+      // Update variation option
+      Set<Long> variationOptionIds = request.getSetOfVariationIds();
+      Iterator<VariationOption> variationOptionIterator = currentProduct.getSetOfVariationOptions().iterator();
+      VariationOption variationOption;
+      while (variationOptionIterator.hasNext()) {
+        variationOption = variationOptionIterator.next();
+        if (variationOptionIds.contains(variationOption.getId())) {
+          variationOptionIds.remove(variationOption.getId());
+        } else {
+          variationOptionIterator.remove();
+        }
+      }
+      if (variationOptionIds.size() > 0) {
+        List<VariationOption> variationOptions = variationOptionRepository.findAllById(variationOptionIds);
+        currentProduct.getSetOfVariationOptions().addAll(variationOptions);
+      }
+      // Handler update image
+      List<String> listOfDeletedImageUrls = request.getListOfDeletedImageUrls();
+      currentProduct.getSetOfImages().removeIf(image -> listOfDeletedImageUrls.contains(image.getUrl()));
+
+      currentProduct = productRepository.saveAndFlush(currentProduct);
+
+
+      Product finalProduct = currentProduct;
+      Thread thread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          if (mainImage != null) {
+            updateProductImage(mainImage, finalProduct.getImageUrl());
+          }
+          String url;
+          for (MultipartFile image : images) {
+            url = uploadProductImage(image);
+            if (url != null) {
+              finalProduct.getSetOfImages().add(new Image(null, url, null, finalProduct));
+            }
+          }
+          productRepository.saveAndFlush(finalProduct);
+        }
+      });
+      thread.start();
+
+      return new DataResponse(ApplicationConstants.PRODUCT_UPDATE_SUCCESSFULLY,
+          productMapper.ProductToProductInfoDto(currentProduct));
     }
-    List<Attribute> attributes = attributeRepository.findAllById(mapOfProductAttributes.keySet());
-    product.setSetOfProductAttributes(new HashSet<>());
-    for (Attribute attribute : attributes) {
-      product.getSetOfProductAttributes()
-          .add(new ProductAttribute(null, mapOfProductAttributes.get(attribute.getId()), attribute, product));
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_NOT_FOUND,
+        ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  @Override
+  public DataResponse deleteProduct(long id) {
+    Optional<Product> optionalProduct = productRepository.findById(id);
+    if (optionalProduct.isPresent()) {
+      Product product = optionalProduct.get();
+      product.setDeletedAt(LocalDateTime.now());
+      productRepository.saveAndFlush(product);
+      return new DataResponse(ApplicationConstants.PRODUCT_DELETE_SUCCESSFULLY, true);
+    }
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_NOT_FOUND,
+        ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  @Override
+  public DataResponse changeProductStatus(ChangeProductStatusRequest request) {
+    long productId = request.getProductId();
+    long statusId = request.getStatusId();
+    String message = "";
+    Optional<Product> optionalProduct = productRepository.findById(productId);
+    if (optionalProduct.isPresent()) {
+      Optional<ProductStatus> optionalProductStatus = productStatusRepository.findById(statusId);
+      if (optionalProductStatus.isPresent()) {
+        Product product = optionalProduct.get();
+        product.setStatus(optionalProductStatus.get());
+        product = productRepository.saveAndFlush(product);
+        return new DataResponse(ApplicationConstants.PRODUCT_UPDATE_SUCCESSFULLY, product);
+      } else {
+        message = ApplicationConstants.PRODUCT_STATUS_NOT_FOUND;
+      }
+    } else {
+      message = ApplicationConstants.PRODUCT_NOT_FOUND;
+    }
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, message, ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  private String uploadProductImage(MultipartFile image) {
+    try {
+      String originalFilename = image.getOriginalFilename();
+      String fileName = generateFileName(originalFilename, 1);
+      Map params = ObjectUtils.asMap(
+          "use_filename", true,
+          "unique_filename", true,
+          "overwrite", false,
+          "resource_type", "raw",
+          "public_id", imagePath + "/" + fileName
+      );
+      Map result = cloudinary.uploader().upload(image.getBytes(), params);
+      return result.get("secure_url").toString();
+    }
+    catch (IOException exception) {
+      return null;
     }
   }
 
-  private void setProductVariation(Product product, Set<Long> setOfVariationIds) {
-    if (setOfVariationIds == null) {
-      return;
+  private String updateProductImage(MultipartFile image, String imageUrl) {
+    String publicId = findImagePublicId(imageUrl);
+    try {
+      String originalFilename = image.getOriginalFilename();
+      if (originalFilename == null) {
+        return null;
+      }
+      String fileName = generateFileName(originalFilename, 1);
+      Map params = ObjectUtils.asMap(
+          "use_filename", true,
+          "unique_filename", true,
+          "overwrite", true,
+          "resource_type", "raw",
+          "public_id", imagePath + "/" + publicId
+      );
+      Map result = cloudinary.uploader().upload(image.getBytes(), params);
+      return result.get("secure_url").toString();
     }
-    List<VariationOption> variationOptions = variationOptionRepository.findAllById(setOfVariationIds);
-    product.setSetOfVariationOptions(new HashSet<>());
-    for (VariationOption variationOption : variationOptions) {
-      product.getSetOfVariationOptions().add(variationOption);
+    catch (IOException exception) {
+      return null;
+    }
+  }
+
+  private void deleteProductImage(String imageUrl) {
+    String publicId = findImagePublicId(imageUrl);
+    try {
+      cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+    }
+    catch (IOException exception) {
+
     }
   }
 
@@ -200,5 +457,19 @@ public class ProductServiceImpl implements ProductService {
     Set<Long> setOfIds = product.getSetOfCategories().stream().map(Category::getId)
         .collect(Collectors.toSet());
     return setOfIds.contains(categoryId);
+  }
+
+  private String generateFileName(String orginalFileName, int offset) {
+    LocalDateTime now = LocalDateTime.now();
+    String dateTimePattern = "yyyyMMddHHmmss";
+    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);
+    String[] arrOfOriginalFileName = orginalFileName.split("\\.");
+    String fileName = arrOfOriginalFileName[0];
+    String fileSuffix = arrOfOriginalFileName[1];
+    return fileName + "_" + now.format(dateTimeFormatter) + "_" + String.valueOf(offset) + "." + fileSuffix;
+  }
+
+  private String findImagePublicId(String url) {
+    return url.substring(url.indexOf(imagePath));
   }
 }

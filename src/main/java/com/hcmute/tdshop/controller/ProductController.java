@@ -1,19 +1,26 @@
 package com.hcmute.tdshop.controller;
 
 import com.hcmute.tdshop.dto.product.AddProductRequest;
+import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
+import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.ProductService;
+import java.util.List;
 import java.util.Set;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/product")
@@ -50,7 +57,29 @@ public class ProductController {
   }
 
   @PostMapping("/add")
-  public DataResponse insertProduct(@RequestBody @Valid AddProductRequest request) {
-    return productService.insertProduct(request, null);
+  public DataResponse insertProduct(
+      @RequestPart(value = "ProductInfo") @Valid AddProductRequest request,
+      @RequestPart(value = "MainImage") MultipartFile mainImage,
+      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
+    return productService.insertProduct(request, mainImage, images);
+  }
+
+  @PutMapping("/update/{id}")
+  public DataResponse updateProduct(
+      @PathVariable(name = "id") long id,
+      @RequestPart(value = "ProductInfo") @Valid UpdateProductRequest request,
+      @RequestPart(value = "MainImage") MultipartFile mainImage,
+      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
+    return productService.updateProduct(id, request, mainImage, images);
+  }
+
+  @DeleteMapping("/delete/{id}")
+  public DataResponse deleteProduct(@PathVariable(name = "id") long id) {
+    return productService.deleteProduct(id);
+  }
+
+  @PostMapping("/change-status")
+  public DataResponse changeProductStatus(@RequestBody @Valid ChangeProductStatusRequest request) {
+    return productService.changeProductStatus(request);
   }
 }

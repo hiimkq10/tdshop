@@ -22,7 +22,7 @@ public class ProductSpecification {
   }
 
   public static Specification<Product> isNotDeleted() {
-    return (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("status").get("id"), ProductStatusEnum.DELETED.getId());
+    return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("deletedAt"), null);
   }
 
   public static Specification<Product> isNotHide() {

@@ -1,6 +1,8 @@
 package com.hcmute.tdshop.service;
 
 import com.hcmute.tdshop.dto.product.AddProductRequest;
+import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
+import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import java.util.List;
 import java.util.Set;
@@ -12,5 +14,8 @@ public interface ProductService {
   public DataResponse searchProductsByFilter(long categoryId, double maxPrice, double minPrice, Set<Long> variationOptionIds, Pageable page);
   public DataResponse searchProductsByKeyword(String keyword, Pageable page);
   public DataResponse getProductById(long id);
-  public DataResponse insertProduct(AddProductRequest request, List<MultipartFile> images);
+  public DataResponse insertProduct(AddProductRequest request, MultipartFile mainImage, List<MultipartFile> images);
+  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage, List<MultipartFile> images);
+  public DataResponse deleteProduct(long id);
+  public DataResponse changeProductStatus(ChangeProductStatusRequest request);
 }

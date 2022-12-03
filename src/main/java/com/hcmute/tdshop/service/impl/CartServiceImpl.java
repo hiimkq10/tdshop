@@ -63,8 +63,8 @@ public class CartServiceImpl implements CartService {
     long productId = request.getProductId();
     Optional<User> optionalUser = userRepository.findById(userId);
     if (optionalUser.isPresent()) {
-      Optional<Product> optionalProduct = productRepository.findByIdAndStatus_IdNotIn(productId,
-          new Long[]{ProductStatusEnum.HIDE.getId(), ProductStatusEnum.DELETED.getId()});
+      Optional<Product> optionalProduct = productRepository.findByIdAndStatus_IdNotInAndDeletedAtNull(productId,
+          new Long[]{ProductStatusEnum.HIDE.getId()});
       if (optionalProduct.isPresent()) {
         User user = optionalUser.get();
         Product product = optionalProduct.get();
@@ -106,8 +106,8 @@ public class CartServiceImpl implements CartService {
     int quantity = request.getQuantity();
     Optional<User> optionalUser = userRepository.findById(userId);
     if (optionalUser.isPresent()) {
-      if (productRepository.existsByIdAndStatus_IdNotIn(productId,
-          new Long[]{ProductStatusEnum.HIDE.getId(), ProductStatusEnum.DELETED.getId()})) {
+      if (productRepository.existsByIdAndStatus_IdNotInAndDeletedAtNull(productId,
+          new Long[]{ProductStatusEnum.HIDE.getId()})) {
         User user = optionalUser.get();
         Optional<Cart> optionalCart = cartRepository.findByUser_Id(userId);
         Cart cart;
@@ -145,8 +145,8 @@ public class CartServiceImpl implements CartService {
     long productId = request.getProductId();
     Optional<User> optionalUser = userRepository.findById(userId);
     if (optionalUser.isPresent()) {
-      if (productRepository.existsByIdAndStatus_IdNotIn(productId,
-          new Long[]{ProductStatusEnum.HIDE.getId(), ProductStatusEnum.DELETED.getId()})) {
+      if (productRepository.existsByIdAndStatus_IdNotInAndDeletedAtNull(productId,
+          new Long[]{ProductStatusEnum.HIDE.getId()})) {
         User user = optionalUser.get();
         Optional<Cart> optionalCart = cartRepository.findByUser_Id(userId);
         Cart cart;
