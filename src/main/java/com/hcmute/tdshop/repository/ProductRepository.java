@@ -12,4 +12,5 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
   Optional<Product> findByIdAndStatus_IdNotInAndDeletedAtNull(Long id, Long[] ids);
   boolean existsByIdAndStatus_IdNotInAndDeletedAtNull(Long id, Long[] ids);
   Set<Product> findByIdIn(Set<Long> ids);
+  long countByBrand_Id(Long id);
 }
