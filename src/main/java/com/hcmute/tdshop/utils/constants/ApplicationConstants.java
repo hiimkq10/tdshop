@@ -97,6 +97,24 @@ public class ApplicationConstants {
   public static final String PRODUCT_ID_INVALID = "Product id is invalid";
   public static final String PRODUCT_QUANTITY_MUST_BIGGER_THAN_0 = "Product quantity must bigger than 0";
   public static final String PRODUCT_QUANTITY_NOT_ENOUGH = "Sorry, we dont have enough products for your order";
+  public static final String PRODUCT_NAME_MANDATORY = "Product is mandatory";
+  public static final String PRODUCT_NAME_SIZE_INVALID = "Product name is too long";
+  public static final String PRODUCT_PRICE_INVALID = "Product price is invalid";
+  public static final String PRODUCT_DESCRIPTION_MANDATORY = "Product description is mandatory";
+  public static final String PRODUCT_DESCRIPTION_SIZE_INVALID = "Product description is too long";
+  public static final String PRODUCT_SHORT_DESCRIPTION_MANDATORY = "Product short description is mandatory";
+  public static final String PRODUCT_SHORT_DESCRIPTION_SIZE_INVALID = "Product short description is too long";
+  public static final String PRODUCT_TOTAL_INVALID = "Product total is invalid";
+  public static final String PRODUCT_MUST_BELONGS_TO_ONE_CATEGORY = "Product must at least belongs to one category";
+  public static final String PRODUCT_ADD_SUCCESSFULLY = "Add product successfully";
+  public static final String PRODUCT_UPDATE_SUCCESSFULLY = "Update product successfully";
+  public static final String PRODUCT_DELETE_SUCCESSFULLY = "Delete product successfully";
+
+  public static final String PRODUCT_STATUS_INVALID = "Product status invalid";
+  public static final String PRODUCT_STATUS_NOT_FOUND = "Product status not found";
+
+  // ------------------------------ CART -------------------------------------
+  public static final String IMAGE_UPLOAD_FAILED = "Failed to save image!! Please check your network and try again";
 
   // ------------------------------ CART -------------------------------------
   public static final String ADD_ITEM_SUCCESSFULLY = "Add item successfully";
@@ -120,6 +138,7 @@ public class ApplicationConstants {
   public static final String SHIP_NOT_FOUND = "Ship not found";
 
   // ------------------------------ BRAND -------------------------------------
+  public static final String BRAND_ID_INVALID = "Brand id is invalid";
   public static final String BRAND_NOT_FOUND = "Brand not found";
 
   // ------------------------------ CATEGORY -------------------------------------

@@ -7,6 +7,7 @@ import com.hcmute.tdshop.dto.product.ProductInfoDto;
 import com.hcmute.tdshop.dto.product.ProductPromotionDto;
 import com.hcmute.tdshop.dto.product.ProductVariationOptionDto;
 import com.hcmute.tdshop.dto.product.SimpleProductDto;
+import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductAttribute;
@@ -52,4 +53,6 @@ public abstract class ProductMapper {
   public abstract ProductPromotionDto ProductPromotionToProductPromotionDto(ProductPromotion productPromotion);
 
   public abstract Product AddProductRequestToProduct(AddProductRequest request);
+
+  public abstract Product UpdateProductRequestToProduct(UpdateProductRequest request);
 }
