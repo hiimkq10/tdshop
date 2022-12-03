@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.mapper;
 
+import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ProductAttributeDto;
 import com.hcmute.tdshop.dto.product.ProductCategoryDto;
 import com.hcmute.tdshop.dto.product.ProductInfoDto;
@@ -49,4 +50,6 @@ public abstract class ProductMapper {
   }
 
   public abstract ProductPromotionDto ProductPromotionToProductPromotionDto(ProductPromotion productPromotion);
+
+  public abstract Product AddProductRequestToProduct(AddProductRequest request);
 }

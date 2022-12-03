@@ -66,7 +66,7 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public DataResponse getUserOrder(long userId, Pageable page) {
-    Page<ShopOrder> pageOfOrders = orderRepository.findByUser_Id(userId);
+    Page<ShopOrder> pageOfOrders = orderRepository.findByUser_Id(userId, page);
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
         page,

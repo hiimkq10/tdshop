@@ -119,6 +119,12 @@ public class ApplicationConstants {
   public static final String SHIP_ID_INVALID = "Ship id invalid";
   public static final String SHIP_NOT_FOUND = "Ship not found";
 
+  // ------------------------------ BRAND -------------------------------------
+  public static final String BRAND_NOT_FOUND = "Brand not found";
+
+  // ------------------------------ CATEGORY -------------------------------------
+  public static final String CATEGORY_NOT_FOUND = "Category not found";
+
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
   public static final String JWT_CLAIM_ID = "id";
