@@ -67,6 +67,9 @@ public class BrandServiceImpl implements BrandService {
   @Override
   public DataResponse insertBrand(AddBrandRequest request, MultipartFile logo) {
     Brand brand = brandMapper.AddBrandRequestToBrand(request);
+    if (checkIfNameExisted(brand.getName())) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.BRAND_NAME_EXISTED, ApplicationConstants.BAD_REQUEST_CODE);
+    }
     if (logo != null) {
       String url = uploadBrandImage(logo);
       if (url != null) {
@@ -84,7 +87,9 @@ public class BrandServiceImpl implements BrandService {
     if (optionalBrand.isPresent()) {
       Brand currentBrand = optionalBrand.get();
       if (brandToUpdate.getName() != null) {
-        currentBrand.setName(brandToUpdate.getName());
+        if (!checkIfNameExisted(brandToUpdate.getName())) {
+          currentBrand.setName(brandToUpdate.getName());
+        }
       }
       if (logo != null) {
         String url;
@@ -182,5 +187,9 @@ public class BrandServiceImpl implements BrandService {
 
   private String findImagePublicId(String url) {
     return url.substring(url.indexOf(imagePath));
+  }
+
+  private boolean checkIfNameExisted(String name) {
+    return brandRepository.existsByNameIgnoreCase(name);
   }
 }

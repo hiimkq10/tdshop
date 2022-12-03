@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -33,8 +34,10 @@ public class MasterCategory {
   private LocalDateTime createdAt;
 
   @OneToMany(mappedBy = "masterCategory", fetch = FetchType.EAGER)
+  @JsonIgnore
   private Set<Category> setOfCategories;
 
   @OneToMany(mappedBy = "masterCategory")
+  @JsonIgnore
   private Set<Variation> setOfVariations;
 }
