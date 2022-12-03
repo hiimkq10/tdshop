@@ -140,13 +140,23 @@ public class ApplicationConstants {
   // ------------------------------ BRAND -------------------------------------
   public static final String BRAND_ID_INVALID = "Brand id is invalid";
   public static final String BRAND_NOT_FOUND = "Brand not found";
-
+  public static final String BRAND_NAME_EXISTED = "Brand name existed";
   public static final String BRAND_NAME_MANDATORY = "Brand name is mandatory";
   public static final String BRAND_NAME_SIZE_INVALID = "Brand name is too long";
   public static final String BRAND_PRODUCT_EXIST = "Can`t delete brand!! Please remove all product of this brand before delete";
   public static final String BRAND_ADD_SUCCESSFULLY = "Add brand successfully";
   public static final String BRAND_UPDATE_SUCCESSFULLY = "Update brand successfully";
   public static final String BRAND_DELETE_SUCCESSFULLY = "Delete brand successfully";
+
+  // ------------------------------ MASTER CATEGORY -------------------------------------
+  public static final String MASTER_CATEGORY_NOT_FOUND = "Master category not found";
+  public static final String MASTER_CATEGORY_NAME_EXISTED = "Master category name existed";
+  public static final String MASTER_CATEGORY_NAME_MANDATORY = "Master category name is mandatory";
+  public static final String MASTER_CATEGORY_NAME_SIZE_INVALID = "Master category name is too long";
+  public static final String MASTER_CATEGORY_RELATED_EXIST = "Can`t delete master category!! Please remove all category and variation related to this master category before delete";
+  public static final String MASTER_CATEGORY_ADD_SUCCESSFULLY = "Add master category successfully";
+  public static final String MASTER_CATEGORY_UPDATE_SUCCESSFULLY = "Update master category successfully";
+  public static final String MASTER_CATEGORY_DELETE_SUCCESSFULLY = "Delete master category successfully";
 
   // ------------------------------ CATEGORY -------------------------------------
   public static final String CATEGORY_NOT_FOUND = "Category not found";
