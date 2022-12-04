@@ -149,6 +149,7 @@ public class ApplicationConstants {
   public static final String BRAND_DELETE_SUCCESSFULLY = "Delete brand successfully";
 
   // ------------------------------ MASTER CATEGORY -------------------------------------
+  public static final String MASTER_CATEGORY_ID_INVALID = "Master category is invalid";
   public static final String MASTER_CATEGORY_NOT_FOUND = "Master category not found";
   public static final String MASTER_CATEGORY_NAME_EXISTED = "Master category name existed";
   public static final String MASTER_CATEGORY_NAME_MANDATORY = "Master category name is mandatory";
@@ -160,6 +161,15 @@ public class ApplicationConstants {
 
   // ------------------------------ CATEGORY -------------------------------------
   public static final String CATEGORY_NOT_FOUND = "Category not found";
+  public static final String PARENT_CATEGORY_ID_INVALID = "Parent category is invalid";
+  public static final String CATEGORY_NAME_EXISTED = "Category name existed";
+  public static final String CATEGORY_NAME_MANDATORY = "Category name is mandatory";
+  public static final String CATEGORY_NAME_SIZE_INVALID = "Category name is too long";
+  public static final String CATEGORY_RELATED_EXIST = "Can`t delete category!! Please remove all product or child category related to this category before delete";
+  public static final String CATEGORY_TWO_LEVEL_ERROR = "You can only have 2 level category";
+  public static final String CATEGORY_ADD_SUCCESSFULLY = "Add category successfully";
+  public static final String CATEGORY_UPDATE_SUCCESSFULLY = "Update category successfully";
+  public static final String CATEGORY_DELETE_SUCCESSFULLY = "Delete category successfully";
 
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
