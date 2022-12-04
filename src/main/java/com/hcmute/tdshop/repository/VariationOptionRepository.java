@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VariationOptionRepository extends JpaRepository<VariationOption, Long> {
-
+  boolean existsByVariation_Id(Long id);
 }

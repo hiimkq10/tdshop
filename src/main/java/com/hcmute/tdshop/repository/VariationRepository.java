@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VariationRepository extends JpaRepository<Variation, Long> {
-  long countByMasterCategory_Id(long id);
+  long countByMasterCategory_Id(Long id);
+  boolean existsByNameIgnoreCaseAndMasterCategory_Id(String name, Long id);
 }
