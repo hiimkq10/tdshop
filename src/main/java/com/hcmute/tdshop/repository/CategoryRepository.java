@@ -6,5 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
-  long countByMasterCategory_Id(long id);
+  long countByMasterCategory_Id(Long id);
+  boolean existsByNameIgnoreCase(String name);
+  boolean existsByParent_Id(Long id);
 }
