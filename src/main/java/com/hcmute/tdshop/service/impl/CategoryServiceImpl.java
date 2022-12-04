@@ -5,6 +5,7 @@ import com.hcmute.tdshop.dto.category.CategoryResponse;
 import com.hcmute.tdshop.dto.category.UpdateCategoryRequest;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.MasterCategory;
+import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.mapper.CategoryMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.CategoryRepository;
@@ -117,11 +118,17 @@ public class CategoryServiceImpl implements CategoryService {
 
   @Override
   public DataResponse deleteCategory(long id) {
-    if (productRepository.existsByCategory_Id(id) || categoryRepository.existsByParent_Id(id)) {
+    Optional<Category> optionalCategory = categoryRepository.findById(id);
+    if (!optionalCategory.isPresent()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NOT_FOUND,
+          ApplicationConstants.BAD_REQUEST_CODE);
+    }
+    Category category = optionalCategory.get();
+    if (productRepository.existsBySetOfCategoriesContains(category) || categoryRepository.existsByParent_Id(id)) {
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_RELATED_EXIST,
           ApplicationConstants.BAD_REQUEST_CODE);
     }
-    categoryRepository.deleteById(id);
+    categoryRepository.delete(category);
     return new DataResponse(ApplicationConstants.CATEGORY_DELETE_SUCCESSFULLY, true);
   }
 
