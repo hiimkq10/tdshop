@@ -171,6 +171,16 @@ public class ApplicationConstants {
   public static final String CATEGORY_UPDATE_SUCCESSFULLY = "Update category successfully";
   public static final String CATEGORY_DELETE_SUCCESSFULLY = "Delete category successfully";
 
+  // ------------------------------ VARIATION -------------------------------------
+  public static final String VARIATION_NOT_FOUND = "Variation not found";
+  public static final String VARIATION_NAME_EXISTED = "Variation name existed";
+  public static final String VARIATION_NAME_MANDATORY = "Variation name is mandatory";
+  public static final String VARIATION_NAME_SIZE_INVALID = "Variation name is too long";
+  public static final String VARIATION_ADD_SUCCESSFULLY = "Add variation successfully";
+  public static final String VARIATION_UPDATE_SUCCESSFULLY = "Update variation successfully";
+  public static final String VARIATION_DELETE_SUCCESSFULLY = "Delete variation successfully";
+  public static final String VARIATION_RELATED_EXIST = "Can`t delete variation!! Please remove all variation options related to this category before delete";
+
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
   public static final String JWT_CLAIM_ID = "id";
