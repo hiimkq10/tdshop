@@ -9,4 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AttributeRepository extends JpaRepository<Attribute, Long> {
   long countById(Long id);
+  boolean existsByAttributeSet_Id(Long id);
+
+  List<Attribute> findByAttributeSet_Id(Long id);
 }

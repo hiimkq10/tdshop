@@ -181,6 +181,23 @@ public class ApplicationConstants {
   public static final String VARIATION_DELETE_SUCCESSFULLY = "Delete variation successfully";
   public static final String VARIATION_RELATED_EXIST = "Can`t delete variation!! Please remove all variation options related to this category before delete";
 
+  // ------------------------------ ATTRIBUTE_SET -------------------------------------
+  public static final String ATTRIBUTE_SET_NOT_FOUND = "Attribute set not found";
+  public static final String ATTRIBUTE_SET_NAME_EXISTED = "Attribute set name existed";
+  public static final String ATTRIBUTE_SET_NAME_MANDATORY = "Attribute set name is mandatory";
+  public static final String ATTRIBUTE_SET_NAME_SIZE_INVALID = "Attribute set name is too long";
+  public static final String ATTRIBUTE_SET_ADD_SUCCESSFULLY = "Add variation successfully";
+  public static final String ATTRIBUTE_SET_UPDATE_SUCCESSFULLY = "Update variation successfully";
+  public static final String ATTRIBUTE_SET_DELETE_SUCCESSFULLY = "Delete variation successfully";
+  public static final String ATTRIBUTE_SET_RELATED_EXIST = "Can`t delete attribute set!! Please remove all attribute related to this category before delete";
+
+
+  // ------------------------------ ATTRIBUTE -------------------------------------
+  public static final String ATTRIBUTE_PRIORITY_INVALID = "Attribute priority is invalid";
+  public static final String ATTRIBUTE_NAME_EXISTED = "Attribute name existed";
+  public static final String ATTRIBUTE_NAME_MANDATORY = "Attribute name is mandatory";
+  public static final String ATTRIBUTE_NAME_SIZE_INVALID = "Attribute name is too long";
+
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
   public static final String JWT_CLAIM_ID = "id";

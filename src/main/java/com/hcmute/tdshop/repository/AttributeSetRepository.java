@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AttributeSetRepository extends JpaRepository<AttributeSet, Long> {
-
+  boolean existsByNameIgnoreCase(String name);
 }
