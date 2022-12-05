@@ -15,4 +15,5 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
   Set<Product> findByIdIn(Set<Long> ids);
   long countByBrand_Id(Long id);
   boolean existsBySetOfCategoriesContains(Category category);
+//  boolean existsByAttribute_AttributeSet_Id(Long id);
 }

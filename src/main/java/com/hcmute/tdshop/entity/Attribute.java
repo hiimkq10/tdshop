@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PreRemove;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,7 +35,7 @@ public class Attribute {
   private int priority = 0;
 
   @ManyToOne
-  @JoinColumn(name = "attribute_set_id", nullable = false)
+  @JoinColumn(name = "attribute_set_id")
   private AttributeSet attributeSet;
 
   @OneToMany(mappedBy = "attribute", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
