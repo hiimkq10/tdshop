@@ -66,4 +66,16 @@ public class UserServiceImpl implements UserService {
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND,
         ApplicationConstants.BAD_REQUEST_CODE);
   }
+
+  @Override
+  public DataResponse banUser(long id) {
+    Optional<User> optionalUser = userRepository.findById(id);
+    if (optionalUser.isPresent()) {
+      User user = optionalUser.get();
+      user.setIsActive(false);
+      userRepository.saveAndFlush(user);
+      return new DataResponse(ApplicationConstants.SUCCESSFUL, ApplicationConstants.USER_BAN_SUCCESSFULLY, ApplicationConstants.SUCCESSFUL_CODE);
+    }
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+  }
 }
