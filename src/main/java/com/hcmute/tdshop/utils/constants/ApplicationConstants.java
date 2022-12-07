@@ -65,6 +65,12 @@ public class ApplicationConstants {
   public static final String USER_PASSWORD_MANDATORY = "Password is mandatory";
   public static final String USER_PASSWORD_SIZE_INVALID = "Password is too long";
 
+  public static final String USER_SALARY_INVALID = "Salary is invalid";
+  public static final String USER_ADD_SUCCESSFULLY = "Add user successfully";
+  public static final String USER_UPDATE_SUCCESSFULLY = "Update user successfully";
+  public static final String USER_BAN_SUCCESSFULLY = "Ban user successfully";
+  public static final String USER_ADD_FAILED = "Add user failed";
+
   // ------------------------------ ADDRESS -------------------------------------
   public static final String ADDRESS_ID_INVALID = "Address id is invalid";
   public static final String ADDRESS_NOT_FOUND = "Address not found";

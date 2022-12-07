@@ -7,4 +7,5 @@ public interface UserService {
 
   DataResponse getUserInfo(long id);
   DataResponse updateUserInfo(long id, UpdateUserInfoRequest request);
+  DataResponse banUser(long id);
 }
