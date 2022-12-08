@@ -1,0 +1,7 @@
+image: rtest123/debian-git
+
+pipelines:
+  default:
+    - step:
+        script:
+          - git push https://heroku:c26f2263-84b3-436a-8eba-e2f283b264dc@git.heroku.com/tdshop.git HEAD
