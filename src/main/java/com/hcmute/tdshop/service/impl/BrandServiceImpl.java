@@ -130,6 +130,8 @@ public class BrandServiceImpl implements BrandService {
   }
 
   private String uploadBrandImage(MultipartFile image) {
+    this.cloudinary = new Cloudinary(cloudinaryURL);
+    this.cloudinary.config.secure = true;
     try {
       String originalFilename = image.getOriginalFilename();
       String fileName = generateFileName(originalFilename, 1);
@@ -148,6 +150,8 @@ public class BrandServiceImpl implements BrandService {
   }
 
   private String updateBrandImage(MultipartFile image, String imageUrl) {
+    this.cloudinary = new Cloudinary(cloudinaryURL);
+    this.cloudinary.config.secure = true;
     String publicId = findImagePublicId(imageUrl);
     try {
       String originalFilename = image.getOriginalFilename();
@@ -170,6 +174,8 @@ public class BrandServiceImpl implements BrandService {
   }
 
   private void deleteBrandImage(String imageUrl) {
+    this.cloudinary = new Cloudinary(cloudinaryURL);
+    this.cloudinary.config.secure = true;
     String publicId = findImagePublicId(imageUrl);
     try {
       cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());

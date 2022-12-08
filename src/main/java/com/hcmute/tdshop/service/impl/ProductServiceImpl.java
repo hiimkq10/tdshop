@@ -85,11 +85,11 @@ public class ProductServiceImpl implements ProductService {
   @Autowired
   private ProductStatusRepository productStatusRepository;
 
-  @PostConstruct
-  private void postConstruct() {
+//  @PostConstruct
+//  private void postConstruct() {
 //    this.cloudinary = new Cloudinary(cloudinaryURL);
 //    this.cloudinary.config.secure = true;
-  }
+//  }
 
   @Override
   public DataResponse getAllProducts(Pageable page) {
@@ -396,6 +396,8 @@ public class ProductServiceImpl implements ProductService {
   }
 
   private String uploadProductImage(MultipartFile image) {
+    this.cloudinary = new Cloudinary(cloudinaryURL);
+    this.cloudinary.config.secure = true;
     try {
       String originalFilename = image.getOriginalFilename();
       String fileName = generateFileName(originalFilename, 1);
@@ -415,6 +417,8 @@ public class ProductServiceImpl implements ProductService {
   }
 
   private String updateProductImage(MultipartFile image, String imageUrl) {
+    this.cloudinary = new Cloudinary(cloudinaryURL);
+    this.cloudinary.config.secure = true;
     String publicId = findImagePublicId(imageUrl);
     try {
       String originalFilename = image.getOriginalFilename();
@@ -438,6 +442,8 @@ public class ProductServiceImpl implements ProductService {
   }
 
   private void deleteProductImage(String imageUrl) {
+    this.cloudinary = new Cloudinary(cloudinaryURL);
+    this.cloudinary.config.secure = true;
     String publicId = findImagePublicId(imageUrl);
     try {
       cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
