@@ -23,8 +23,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   // url that ignored by spring security
-  private final String[] publicUrlPatterns = {"/v3/api-docs/**", "/swagger-ui/**", "/account/reset-password**",
-      "/account/reset-password-verification**", "/email/send-reset-password-verification**"};
+  private final String[] publicUrlPatterns = {"/v3/api-docs/**", "/swagger-ui/**", "/auth/reset-password**",
+      "/auth/reset-password-verification**", "/email/send-reset-password-verification**", "/auth/register**",
+      "/email/send-forgot-password-email**", "/email/send-activate-account-email/**",
+      "/auth/activate/**"};
   @Autowired
   CustomUserDetailsService customUserDetailsService;
 

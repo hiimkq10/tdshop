@@ -17,7 +17,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AccountRole {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", columnDefinition = "BIGINT(19)")
   private Long id;
 

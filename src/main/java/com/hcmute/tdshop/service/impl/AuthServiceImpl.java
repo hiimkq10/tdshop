@@ -6,8 +6,11 @@ import com.hcmute.tdshop.dto.auth.ResetPasswordRequest;
 import com.hcmute.tdshop.dto.auth.ResetPasswordVerificationRequest;
 import com.hcmute.tdshop.entity.Token;
 import com.hcmute.tdshop.entity.User;
+import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.mapper.AuthMapper;
+import com.hcmute.tdshop.mapper.UserMapper;
 import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.repository.AccountRoleRepository;
 import com.hcmute.tdshop.repository.TokenRepository;
 import com.hcmute.tdshop.repository.UserRepository;
 import com.hcmute.tdshop.service.AuthService;
@@ -17,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,6 +30,9 @@ public class AuthServiceImpl implements AuthService {
   private UserRepository userRepository;
 
   @Autowired
+  private AccountRoleRepository accountRoleRepository;
+
+  @Autowired
   private TokenRepository tokenRepository;
 
   @Autowired
@@ -33,6 +40,12 @@ public class AuthServiceImpl implements AuthService {
 
   @Autowired
   private Helper helper;
+
+  @Autowired
+  private PasswordEncoder passwordEncoder;
+
+  @Autowired
+  private UserMapper userMapper;
 
   @Override
   public DataResponse register(RegisterRequest request) {
@@ -50,11 +63,13 @@ public class AuthServiceImpl implements AuthService {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PHONE_EXISTED,
             ApplicationConstants.BAD_REQUEST_CODE);
       }
+      user.setPassword(encode(user.getPassword()));
+      user.setRole(accountRoleRepository.findById(AccountRoleEnum.ROLE_USER.getId()).get());
       user.setIsActive(true);
       user.setIsVerified(false);
       user.setCreatedAt(LocalDateTime.now());
       user = userRepository.save(user);
-      return new DataResponse(user);
+      return new DataResponse(userMapper.UserToUserResponse(user));
     }
     return DataResponse.BAD_REQUEST;
   }
@@ -67,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
       String currentPassword = request.getCurrentPassword();
       String newPassword = request.getNewPassword();
       String confirmPassword = request.getConfirmPassword();
-      if (!user.getPassword().equals(currentPassword)) {
+      if (!checkIfCurrentPasswordCorrent(currentPassword, user.getPassword())) {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CURRENT_PASSWORD_WRONG,
             ApplicationConstants.BAD_REQUEST_CODE);
       }
@@ -75,9 +90,9 @@ public class AuthServiceImpl implements AuthService {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CONFIRM_PASSWORD_NOT_MATCH,
             ApplicationConstants.BAD_REQUEST_CODE);
       }
-      user.setPassword(newPassword);
+      user.setPassword(encode(newPassword));
       userRepository.saveAndFlush(user);
-      return new DataResponse(ApplicationConstants.CHANGE_PASSWORD_SUCCESSFULLY);
+      return new DataResponse(ApplicationConstants.CHANGE_PASSWORD_SUCCESSFULLY, true);
     }
     return new DataResponse(ApplicationConstants.NOT_FOUND, ApplicationConstants.USER_NOT_FOUND,
         ApplicationConstants.NOT_FOUND_CODE);
@@ -100,10 +115,10 @@ public class AuthServiceImpl implements AuthService {
           String newPassword = request.getNewPassword();
           String confirmPassword = request.getConfirmPassword();
           if (newPassword.equals(confirmPassword)) {
-            user.setPassword(newPassword);
+            user.setPassword(encode(newPassword));
             tokenRepository.delete(confirmToken);
             userRepository.saveAndFlush(user);
-            return new DataResponse(ApplicationConstants.RESET_PASSWORD_SUCCESSFULLY);
+            return new DataResponse(ApplicationConstants.RESET_PASSWORD_SUCCESSFULLY, true);
           }
           else {
             message = ApplicationConstants.CONFIRM_PASSWORD_NOT_MATCH;
@@ -140,7 +155,7 @@ public class AuthServiceImpl implements AuthService {
           if (token.equals(confirmToken.getCode())) {
             confirmToken.setConfirmedAt(now);
             tokenRepository.saveAndFlush(confirmToken);
-            return DataResponse.SUCCESSFUL;
+            return new DataResponse(ApplicationConstants.SUCCESSFUL, true);
           } else {
             message = ApplicationConstants.TOKEN_WRONG;
           }
@@ -178,7 +193,7 @@ public class AuthServiceImpl implements AuthService {
               user.setIsVerified(true);
               tokenRepository.delete(confirmToken);
               userRepository.saveAndFlush(user);
-              return new DataResponse(ApplicationConstants.ACCOUNT_ACTIVATED);
+              return new DataResponse(ApplicationConstants.ACCOUNT_ACTIVATED, true);
             }
             else {
               message = ApplicationConstants.TOKEN_USED;
@@ -199,5 +214,12 @@ public class AuthServiceImpl implements AuthService {
       message = ApplicationConstants.USER_NOT_FOUND;
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, message, ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  private boolean checkIfCurrentPasswordCorrent(String currentPassword, String encodedPassword) {
+    return passwordEncoder.matches(currentPassword, encodedPassword);
+  }
+  private String encode(String str) {
+    return passwordEncoder.encode(str);
   }
 }

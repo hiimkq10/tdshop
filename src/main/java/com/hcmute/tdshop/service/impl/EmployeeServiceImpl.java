@@ -9,6 +9,7 @@ import com.hcmute.tdshop.service.EmployeeService;
 import com.hcmute.tdshop.utils.Helper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,6 +23,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
   @Autowired
   private Helper helper;
+
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
   @Override
   public DataResponse insertEmployee(AddEmployeeRequest request) {
@@ -39,9 +43,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PHONE_EXISTED,
             ApplicationConstants.BAD_REQUEST_CODE);
       }
+      employee.getUserInfo().setPassword(encode(employee.getUserInfo().getPassword()));
       employee = employeeRepository.save(employee);
       return new DataResponse(ApplicationConstants.SUCCESSFUL, ApplicationConstants.USER_ADD_SUCCESSFULLY, ApplicationConstants.SUCCESSFUL_CODE);
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_ADD_FAILED, ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  private String encode(String str) {
+    return passwordEncoder.encode(str);
   }
 }
