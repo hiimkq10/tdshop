@@ -87,8 +87,8 @@ public class ProductServiceImpl implements ProductService {
 
   @PostConstruct
   private void postConstruct() {
-    this.cloudinary = new Cloudinary(cloudinaryURL);
-    this.cloudinary.config.secure = true;
+//    this.cloudinary = new Cloudinary(cloudinaryURL);
+//    this.cloudinary.config.secure = true;
   }
 
   @Override
