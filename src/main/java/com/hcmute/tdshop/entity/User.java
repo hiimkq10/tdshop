@@ -34,20 +34,20 @@ public class User {
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "first_name", columnDefinition = "NVARCHAR(50)", nullable = false)
+  @Column(name = "first_name", columnDefinition = "VARCHAR(50)", nullable = false)
   @JsonProperty("FirstName")
   private String firstName;
 
-  @Column(name = "last_name", columnDefinition = "NVARCHAR(50)", nullable = false)
+  @Column(name = "last_name", columnDefinition = "VARCHAR(50)", nullable = false)
   @JsonProperty("LastName")
   private String lastName;
 
-  @Column(name = "email", columnDefinition = "NVARCHAR(100)", nullable = false, unique = true)
+  @Column(name = "email", columnDefinition = "VARCHAR(100)", nullable = false, unique = true)
   @Email
   @JsonProperty("Email")
   private String email;
 
-  @Column(name = "phone", columnDefinition = "NVARCHAR(10)", unique = true)
+  @Column(name = "phone", columnDefinition = "VARCHAR(10)", unique = true)
   @JsonProperty("Phone")
   private String phone;
 
@@ -57,7 +57,7 @@ public class User {
   @Column(name = "gender")
   private Boolean gender;
 
-  @Column(name = "username", columnDefinition = "NVARCHAR(50)", nullable = false, unique = true)
+  @Column(name = "username", columnDefinition = "VARCHAR(50)", nullable = false, unique = true)
   @JsonProperty("Username")
   private String username;
 

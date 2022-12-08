@@ -26,7 +26,7 @@ public class AttributeSet {
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
+  @Column(name = "name", columnDefinition = "VARCHAR(100)", nullable = false)
   private String name;
 
   @OneToMany(mappedBy = "attributeSet", fetch = FetchType.EAGER, cascade = {CascadeType.ALL})

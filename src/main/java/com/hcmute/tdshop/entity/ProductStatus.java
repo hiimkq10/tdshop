@@ -23,7 +23,7 @@ public class ProductStatus {
   @JsonProperty("Id")
   private Long id;
 
-  @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false, unique = true)
+  @Column(name = "name", columnDefinition = "VARCHAR(100)", nullable = false, unique = true)
   @JsonProperty("Name")
   private String name;
 

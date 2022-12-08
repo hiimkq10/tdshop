@@ -28,7 +28,7 @@ public class Attribute {
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
+  @Column(name = "name", columnDefinition = "VARCHAR(100)", nullable = false)
   private String name;
 
   @Column(name = "priority", nullable = false)

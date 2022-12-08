@@ -25,7 +25,7 @@ public class Brand {
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false, unique = true)
+  @Column(name = "name", columnDefinition = "VARCHAR(100)", nullable = false, unique = true)
   private String name;
 
   @Column(name = "logo", unique = true)

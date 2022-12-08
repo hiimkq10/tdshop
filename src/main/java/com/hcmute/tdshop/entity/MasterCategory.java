@@ -27,7 +27,7 @@ public class MasterCategory {
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "name", columnDefinition = "NVARCHAR(50)", nullable = false, unique = true)
+  @Column(name = "name", columnDefinition = "VARCHAR(50)", nullable = false, unique = true)
   private String name;
 
   @Column(name = "created_at", nullable = false)

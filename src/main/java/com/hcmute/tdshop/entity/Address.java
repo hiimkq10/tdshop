@@ -31,20 +31,20 @@ public class Address {
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
+  @Column(name = "name", columnDefinition = "VARCHAR(100)", nullable = false)
   @JsonProperty("Name")
   private String name;
 
-  @Column(name = "email", columnDefinition = "NVARCHAR(100)", nullable = false)
+  @Column(name = "email", columnDefinition = "VARCHAR(100)", nullable = false)
   @Email
   @JsonProperty("Email")
   private String email;
 
   @JsonProperty("Phone")
-  @Column(name = "phone", columnDefinition = "NVARCHAR(10)", nullable = false)
+  @Column(name = "phone", columnDefinition = "VARCHAR(10)", nullable = false)
   private String phone;
 
-  @Column(name = "address_detail", columnDefinition = "NVARCHAR(150)", nullable = false)
+  @Column(name = "address_detail", columnDefinition = "VARCHAR(150)", nullable = false)
   @JsonProperty("AddressDetail")
   private String addressDetail;
 

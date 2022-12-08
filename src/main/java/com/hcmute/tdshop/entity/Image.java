@@ -26,7 +26,7 @@ public class Image {
   @Column(name = "logo", nullable = false, unique = true)
   private String url;
 
-  @Column(name = "label", columnDefinition = "NVARCHAR(100)")
+  @Column(name = "label", columnDefinition = "VARCHAR(100)")
   private String label;
 
   @ManyToOne
