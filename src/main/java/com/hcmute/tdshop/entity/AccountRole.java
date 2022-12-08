@@ -19,7 +19,7 @@ import lombok.Setter;
 @Table(name = "\"roles\"")
 public class AccountRole {
   @Id
-  @Column(name = "id", columnDefinition = "BIGINT(19)")
+  @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
   @Column(name = "name", columnDefinition = "VARCHAR(50)", unique = true, nullable = false)
