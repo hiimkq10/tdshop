@@ -19,7 +19,7 @@ public class OrderStatus {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", columnDefinition = "BIGINT(19)")
+  @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
   @Column(name = "name")

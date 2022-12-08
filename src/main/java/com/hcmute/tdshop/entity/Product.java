@@ -29,7 +29,7 @@ public class Product {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", columnDefinition = "BIGINT(19)")
+  @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
   @Column(name = "sku", columnDefinition = "NVARCHAR(100)", nullable = false, unique = true)

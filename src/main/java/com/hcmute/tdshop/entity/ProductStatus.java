@@ -19,7 +19,7 @@ import lombok.Setter;
 public class ProductStatus {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", columnDefinition = "BIGINT(19)")
+  @Column(name = "id", columnDefinition = "BIGINT")
   @JsonProperty("Id")
   private Long id;
 

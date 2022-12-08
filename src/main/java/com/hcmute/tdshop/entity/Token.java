@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class Token {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", columnDefinition = "BIGINT(19)")
+  @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
   @Column(name = "code", nullable = false)

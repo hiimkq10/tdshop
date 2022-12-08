@@ -21,7 +21,7 @@ import lombok.Setter;
 public class Review {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", columnDefinition = "BIGINT(19)")
+  @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
   @Column(name = "rating_value", nullable = false)
