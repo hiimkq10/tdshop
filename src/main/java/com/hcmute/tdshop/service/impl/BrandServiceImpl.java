@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Slf4j
 public class BrandServiceImpl implements BrandService {
 
   @Value("${cloudinaryUrl}")
@@ -46,6 +48,7 @@ public class BrandServiceImpl implements BrandService {
 
   @PostConstruct
   private void postConstruct() {
+    log.error(cloudinaryURL);
     this.cloudinary = new Cloudinary(cloudinaryURL);
     this.cloudinary.config.secure = true;
   }
