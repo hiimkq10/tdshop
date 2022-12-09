@@ -106,8 +106,8 @@ public class ProductServiceImpl implements ProductService {
   public DataResponse searchProductsByFilter(long categoryId, double maxPrice, double minPrice,
       Set<Long> variationOptionIds,
       Pageable page) {
-    Specification<Product> conditions = Specification.where(ProductSpecification.isNotDeleted())
-        .and(ProductSpecification.isNotHide());
+    Specification<Product> conditions = Specification.where(ProductSpecification.isNotDeleted());
+//        .and(ProductSpecification.isNotHide());
     if (maxPrice > 0) {
       conditions = conditions.and(ProductSpecification.hasPriceLessThanOrEqualTo(maxPrice));
     }
