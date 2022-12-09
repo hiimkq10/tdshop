@@ -26,7 +26,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final String[] publicUrlPatterns = {"/v3/api-docs/**", "/swagger-ui/**", "/auth/reset-password**",
       "/auth/reset-password-verification**", "/email/send-reset-password-verification**", "/auth/register**",
       "/email/send-forgot-password-email**", "/email/send-activate-account-email/**",
-      "/auth/activate/**"};
+      "/auth/activate/**", "/product/**"};
   @Autowired
   CustomUserDetailsService customUserDetailsService;
 
@@ -53,7 +53,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     http.authorizeRequests().antMatchers("/login").permitAll();
     http.authorizeRequests().antMatchers("/token/refresh").permitAll();
-    http.authorizeRequests().antMatchers("/product/**").permitAll();
     http.authorizeRequests().anyRequest().authenticated();
     http.addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManagerBean()));
     http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
