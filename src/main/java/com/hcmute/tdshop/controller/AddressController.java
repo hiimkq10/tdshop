@@ -21,9 +21,9 @@ public class AddressController {
   @Autowired
   private AddressService addressService;
 
-  @GetMapping("/{id}")
-  public DataResponse getAddressByUserId(@PathVariable(name = "id") long id) {
-    return addressService.getAddressByUserId(id);
+  @GetMapping("/my-address")
+  public DataResponse getAddressByUserId() {
+    return addressService.getAddressByUser();
   }
 
   @PostMapping("/add")

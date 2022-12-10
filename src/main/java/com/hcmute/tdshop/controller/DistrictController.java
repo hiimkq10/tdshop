@@ -15,7 +15,7 @@ public class DistrictController {
   @Autowired
   private DistrictService districtService;
 
-  @GetMapping("/")
+  @GetMapping("/get-all")
   public DataResponse getAllDistrict() {
     return districtService.getAllDistrict();
   }

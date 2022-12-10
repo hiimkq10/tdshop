@@ -15,7 +15,7 @@ public class WardsController {
   @Autowired
   private WardsService wardsService;
 
-  @GetMapping("/")
+  @GetMapping("/get-all")
   public DataResponse getAllWards() {
     return wardsService.getAllWards();
   }

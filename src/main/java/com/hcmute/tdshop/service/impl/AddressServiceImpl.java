@@ -12,12 +12,14 @@ import com.hcmute.tdshop.repository.AddressRepository;
 import com.hcmute.tdshop.repository.UserRepository;
 import com.hcmute.tdshop.repository.WardsRepository;
 import com.hcmute.tdshop.service.AddressService;
+import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,7 +38,8 @@ public class AddressServiceImpl implements AddressService {
   private WardsRepository wardsRepository;
 
   @Override
-  public DataResponse getAddressByUserId(long id) {
+  public DataResponse getAddressByUser() {
+    long id = AuthenticationHelper.getCurrentLoggedInUserId();
     if (userRepository.existsById(id)) {
       List<Address> listOfAddresses = addressRepository.findByUser_Id(id);
       List<AddressResponse> listOfAddressResponses = listOfAddresses.stream()
@@ -52,7 +55,7 @@ public class AddressServiceImpl implements AddressService {
   @Transactional
   public DataResponse insertAddress(AddAddressRequest request) {
     Address address = addressMapper.AddAddressRequestToAddress(request);
-    long userId = request.getUserId();
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     long wardsId = request.getWardsId();
     Optional<User> optionalUser = userRepository.findById(userId);
     if (optionalUser.isPresent()) {
@@ -63,9 +66,14 @@ public class AddressServiceImpl implements AddressService {
         address.setUser(user);
         address.setWards(wards);
         if (address.getIsDefault()) {
-          List<Address> listOfAddresses = addressRepository.findByIsDefault(true);
+          List<Address> listOfAddresses = addressRepository.findByIsDefaultAndUser_Id(true, userId);
           listOfAddresses.forEach(addressToUpdate -> addressToUpdate.setIsDefault(false));
           addressRepository.saveAllAndFlush(listOfAddresses);
+        }
+        else {
+          if (!addressRepository.existsByIsDefaultAndUser_Id(true, userId)) {
+            address.setIsDefault(true);
+          }
         }
         address = addressRepository.save(address);
         AddressResponse addressResponse = addressMapper.AddressToAddressResponse(address);
@@ -81,9 +89,10 @@ public class AddressServiceImpl implements AddressService {
   @Override
   @Transactional
   public DataResponse updateAddress(long id, UpdateAddressRequest request) {
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     Address addressToUpdate = addressMapper.UpdateAddressRequestToAddress(request);
     long wardsId = request.getWardsId();
-    Optional<Address> optionalAddress = addressRepository.findById(id);
+    Optional<Address> optionalAddress = addressRepository.findByIdAndUser_Id(id, userId);
     if (optionalAddress.isPresent()) {
       Address currentAddress = optionalAddress.get();
       if (addressToUpdate.getName() != null) {
@@ -103,7 +112,7 @@ public class AddressServiceImpl implements AddressService {
         Boolean currentIsDefault = currentAddress.getIsDefault();
         if (newIsDafault) {
           if (!currentIsDefault) {
-            List<Address> listOfAddresses = addressRepository.findByIsDefault(true);
+            List<Address> listOfAddresses = addressRepository.findByIsDefaultAndUser_Id(true, userId);
             listOfAddresses.forEach(address -> address.setIsDefault(false));
             addressRepository.saveAllAndFlush(listOfAddresses);
             currentAddress.setIsDefault(newIsDafault);
@@ -125,8 +134,19 @@ public class AddressServiceImpl implements AddressService {
   }
 
   @Override
+  @Transactional
   public DataResponse deleteAddress(long id) {
-    if (addressRepository.existsById(id)) {
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
+    Optional<Address> optionalAddress = addressRepository.findByIdAndUser_Id(id, userId);
+    if (optionalAddress.isPresent()) {
+      Address address = optionalAddress.get();
+      if (address.getIsDefault()) {
+        List<Address> addresses = addressRepository.findByIsDefaultAndUser_Id(false, userId);
+        if (addresses.size() > 0) {
+          addresses.get(0).setIsDefault(true);
+          addressRepository.saveAndFlush(addresses.get(0));
+        }
+      }
       addressRepository.deleteById(id);
       return new DataResponse(ApplicationConstants.ADDRESS_DELETE_SUCCESSFULLY, true);
     }
