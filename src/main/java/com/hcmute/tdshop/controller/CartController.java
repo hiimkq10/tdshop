@@ -5,6 +5,7 @@ import com.hcmute.tdshop.dto.cart.ChangeProductQuantityRequest;
 import com.hcmute.tdshop.dto.cart.RemoveProductFromCartRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.CartService;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,23 +20,23 @@ public class CartController {
   @Autowired
   private CartService cartService;
 
-  @GetMapping("/{id}")
-  public DataResponse getCartByUserId(@PathVariable(name = "id") long id) {
-    return cartService.getCartByUserId(id);
+  @GetMapping("/my-cart")
+  public DataResponse getCartByUserId() {
+    return cartService.getCartByUserId();
   }
 
   @PostMapping("/add")
-  public DataResponse addProductToCart(@RequestBody AddProductToCartRequest request) {
+  public DataResponse addProductToCart(@RequestBody @Valid AddProductToCartRequest request) {
     return cartService.addProductToCart(request);
   }
 
   @PostMapping("/change-quantity")
-  public DataResponse changeProductQuantity(@RequestBody ChangeProductQuantityRequest request) {
+  public DataResponse changeProductQuantity(@RequestBody @Valid ChangeProductQuantityRequest request) {
     return cartService.changeProductQuantity(request);
   }
 
   @PostMapping("/remove")
-  public DataResponse removeProductFromCart(@RequestBody RemoveProductFromCartRequest request) {
+  public DataResponse removeProductFromCart(@RequestBody @Valid RemoveProductFromCartRequest request) {
     return cartService.removeProductFromCart(request);
   }
 }

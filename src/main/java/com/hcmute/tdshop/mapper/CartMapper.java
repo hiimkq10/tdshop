@@ -8,6 +8,7 @@ import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductPromotion;
+import java.math.BigDecimal;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
@@ -16,4 +17,7 @@ public abstract class CartMapper {
   public abstract CartItemDto CartItemToCartItemDto(CartItem cartItem);
   public abstract CartProductDto ProductToCartProductDto(Product product);
   public abstract CartProductPromotionDto ProductPromotionToCartProductPromotionDto(ProductPromotion productPromotion);
+  public String doubleToString(double d) {
+    return new BigDecimal(d).toPlainString();
+  }
 }

@@ -19,7 +19,7 @@ public class CartProductDto {
   private String imageUrl;
 
   @JsonProperty("Price")
-  private double price;
+  private String price;
 
   @JsonProperty("Discount")
   private CartProductPromotionDto productPromotion;
