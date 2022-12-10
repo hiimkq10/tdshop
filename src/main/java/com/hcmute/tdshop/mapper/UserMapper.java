@@ -7,6 +7,7 @@ import com.hcmute.tdshop.entity.Employee;
 import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.repository.AccountRoleRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,5 +38,12 @@ public abstract class UserMapper {
     employee.getUserInfo().setIsActive(true);
 
     return employee;
+  }
+
+  public LocalDate StringToLocalDate(String date) {
+    if (date == null) {
+      return null;
+    }
+    return LocalDate.parse(date);
   }
 }

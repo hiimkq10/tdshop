@@ -6,6 +6,6 @@ import com.hcmute.tdshop.model.DataResponse;
 public interface UserService {
 
   DataResponse getUserInfo();
-  DataResponse updateUserInfo(long id, UpdateUserInfoRequest request);
+  DataResponse updateUserInfo(UpdateUserInfoRequest request);
   DataResponse banUser(long id);
 }

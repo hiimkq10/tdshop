@@ -40,7 +40,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public DataResponse updateUserInfo(long id, UpdateUserInfoRequest request) {
+  public DataResponse updateUserInfo(UpdateUserInfoRequest request) {
+    long id = AuthenticationHelper.getCurrentLoggedInUserId();
     Optional<User> optionalUser = userRepository.findById(id);
     if (optionalUser.isPresent()) {
       User currentUser = optionalUser.get();
