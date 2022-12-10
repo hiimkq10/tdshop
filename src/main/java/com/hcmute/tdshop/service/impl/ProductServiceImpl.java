@@ -103,6 +103,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public DataResponse searchProductsByFilter(String keyword, long categoryId, double maxPrice, double minPrice,
+      String brand,
       Set<Long> variationOptionIds,
       Pageable page) {
     List<Specification<Product>> specifications = createSpecificationsBaseOnLoggedInUser();
@@ -120,6 +121,11 @@ public class ProductServiceImpl implements ProductService {
     if (minPrice > 0) {
       specifications.add(ProductSpecification.hasPriceGreaterThanOrEqualTo(minPrice));
     }
+
+    if (brand != null) {
+      specifications.add(ProductSpecification.hasBrand(brand));
+    }
+
     Specification<Product> conditions = SpecificationHelper.and(specifications);
     Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
     List<Product> listOfProducts = pageOfProducts.getContent();
