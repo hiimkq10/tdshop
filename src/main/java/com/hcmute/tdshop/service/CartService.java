@@ -6,7 +6,7 @@ import com.hcmute.tdshop.dto.cart.RemoveProductFromCartRequest;
 import com.hcmute.tdshop.model.DataResponse;
 
 public interface CartService {
-  public DataResponse getCartByUserId(long id);
+  public DataResponse getCartByUserId();
   public DataResponse addProductToCart(AddProductToCartRequest request);
   public DataResponse changeProductQuantity(ChangeProductQuantityRequest request);
   public DataResponse removeProductFromCart(RemoveProductFromCartRequest request);

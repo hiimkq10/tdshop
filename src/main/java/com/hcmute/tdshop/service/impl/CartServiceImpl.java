@@ -15,6 +15,7 @@ import com.hcmute.tdshop.repository.CartRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.UserRepository;
 import com.hcmute.tdshop.service.CartService;
+import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.Helper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.HashSet;
@@ -45,7 +46,8 @@ public class CartServiceImpl implements CartService {
   private Helper helper;
 
   @Override
-  public DataResponse getCartByUserId(long id) {
+  public DataResponse getCartByUserId() {
+    long id = AuthenticationHelper.getCurrentLoggedInUserId();
     Optional<User> optionalUser = userRepository.findById(id);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
@@ -59,7 +61,7 @@ public class CartServiceImpl implements CartService {
 
   @Override
   public DataResponse addProductToCart(AddProductToCartRequest request) {
-    long userId = request.getUserId();
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     long productId = request.getProductId();
     Optional<User> optionalUser = userRepository.findById(userId);
     if (optionalUser.isPresent()) {
@@ -69,24 +71,17 @@ public class CartServiceImpl implements CartService {
         User user = optionalUser.get();
         Product product = optionalProduct.get();
         Optional<Cart> optionalCart = cartRepository.findByUser_Id(userId);
-        Cart cart;
-        if (optionalCart.isPresent()) {
-          cart = optionalCart.get();
-          boolean found = false;
-          for (CartItem item : cart.getSetOfCartItems()) {
-            if (item.getProduct().getId() == productId) {
-              found = true;
-              item.setQuantity(item.getQuantity() + 1);
-            }
+        Cart cart = optionalCart.orElseGet(() -> new Cart(null, user, new HashSet<>()));
+        boolean found = false;
+        for (CartItem item : cart.getSetOfCartItems()) {
+          if (item.getProduct().getId() == productId) {
+            found = true;
+            item.setQuantity(item.getQuantity() + 1);
           }
-          if (!found) {
-            CartItem item = new CartItem(null, 1, cart, product);
-            cart.getSetOfCartItems().add(item);
-          }
-        } else {
-          cart = new Cart(null, user, new HashSet<>());
-          CartItem cartItem = new CartItem(null, 1, cart, product);
-          cart.getSetOfCartItems().add(cartItem);
+        }
+        if (!found) {
+          CartItem item = new CartItem(null, 1, cart, product);
+          cart.getSetOfCartItems().add(item);
         }
         cart = cartRepository.save(cart);
         return new DataResponse(ApplicationConstants.ADD_ITEM_SUCCESSFULLY, cartMapper.CartToCartDto(cart));
@@ -101,7 +96,7 @@ public class CartServiceImpl implements CartService {
 
   @Override
   public DataResponse changeProductQuantity(ChangeProductQuantityRequest request) {
-    long userId = request.getUserId();
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     long productId = request.getProductId();
     int quantity = request.getQuantity();
     Optional<User> optionalUser = userRepository.findById(userId);
@@ -141,7 +136,7 @@ public class CartServiceImpl implements CartService {
 
   @Override
   public DataResponse removeProductFromCart(RemoveProductFromCartRequest request) {
-    long userId = request.getUserId();
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     long productId = request.getProductId();
     Optional<User> optionalUser = userRepository.findById(userId);
     if (optionalUser.isPresent()) {
