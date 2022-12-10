@@ -7,6 +7,7 @@ import com.hcmute.tdshop.mapper.UserMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.UserRepository;
 import com.hcmute.tdshop.service.UserService;
+import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.Helper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.Optional;
@@ -26,7 +27,8 @@ public class UserServiceImpl implements UserService {
   private Helper helper;
 
   @Override
-  public DataResponse getUserInfo(long id) {
+  public DataResponse getUserInfo() {
+    long id = AuthenticationHelper.getCurrentLoggedInUserId();
     Optional<User> optionalUser = userRepository.findById(id);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
@@ -69,6 +71,10 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public DataResponse banUser(long id) {
+    long adminId = AuthenticationHelper.getCurrentLoggedInUserId();
+    if (adminId == id) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_BAN_THEMSELF, ApplicationConstants.BAD_REQUEST_CODE);
+    }
     Optional<User> optionalUser = userRepository.findById(id);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();

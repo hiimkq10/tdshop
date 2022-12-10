@@ -47,6 +47,8 @@ public class ApplicationConstants {
   public static final String TOKEN_USED = "Token has been used";
   public static final String RESET_PASSWORD_DURATION_OVER = "Reset password time is over!!";
   public static final String ACCOUNT_ACTIVATED = "Account activated";
+  public static final String USER_NOT_LOGIN = "Please log in to use this function";
+  public static final String USER_BAN_THEMSELF = "You can not ban your account";
 
   // ------------------------------ USER -------------------------------------
   public static final String USER_ID_INVALID = "User id is invalid";
