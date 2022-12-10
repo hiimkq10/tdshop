@@ -15,7 +15,7 @@ public class ProvinceController {
   @Autowired
   private ProvinceService provinceService;
 
-  @GetMapping("/")
+  @GetMapping("/get-all")
   public DataResponse getAllProvince() {
     return provinceService.getAllProvince();
   }
