@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -56,10 +57,13 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
       errorMessage = ApplicationConstants.ACCOUNT_INACTIVE;
     } catch (BadCredentialsException ex) {
       errorMessage = ApplicationConstants.USERNAME_OR_PASSWORD_INCORRECT;
+    } catch (LockedException ex) {
+      errorMessage = ApplicationConstants.ACCOUNT_BANNED;
     } catch (IOException ex) {
       errorMessage = ApplicationConstants.UNEXPECTED_ERROR;
       log.error("Error logging in: {}", ex.getMessage());
     }
+
 
     try {
       objectMapper.writeValue(

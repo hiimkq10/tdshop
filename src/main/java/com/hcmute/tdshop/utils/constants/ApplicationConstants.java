@@ -214,6 +214,7 @@ public class ApplicationConstants {
   public static final String USERNAME_OR_PASSWORD_INCORRECT = "Login failed: username or password is incorrect";
   public static final String USERNAME_OR_PASSWORD_MISSING = "Login failed: username or password is missing";
   public static final String ACCOUNT_INACTIVE = "Login failed: your account has not been activated";
+  public static final String ACCOUNT_BANNED = "Login failed: your account has been banned";
   public static final String UNEXPECTED_ERROR = "Something wrong happened please try again later!";
 
   // ------------------------------ EMAIL -------------------------------------
