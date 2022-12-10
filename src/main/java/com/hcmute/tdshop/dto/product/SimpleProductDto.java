@@ -16,7 +16,7 @@ public class SimpleProductDto {
   private String name;
 
   @JsonProperty("Price")
-  private double price;
+  private String price;
 
   @JsonProperty("ImageUrl")
   private String imageUrl;

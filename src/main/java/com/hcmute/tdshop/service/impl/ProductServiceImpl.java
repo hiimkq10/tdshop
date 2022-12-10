@@ -15,6 +15,7 @@ import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductAttribute;
 import com.hcmute.tdshop.entity.ProductStatus;
 import com.hcmute.tdshop.entity.VariationOption;
+import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.enums.ProductStatusEnum;
 import com.hcmute.tdshop.mapper.ProductMapper;
 import com.hcmute.tdshop.model.DataResponse;
@@ -27,10 +28,13 @@ import com.hcmute.tdshop.repository.ProductStatusRepository;
 import com.hcmute.tdshop.repository.VariationOptionRepository;
 import com.hcmute.tdshop.service.ProductService;
 import com.hcmute.tdshop.specification.ProductSpecification;
+import com.hcmute.tdshop.utils.AuthenticationHelper;
+import com.hcmute.tdshop.utils.SpecificationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +43,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,15 +88,11 @@ public class ProductServiceImpl implements ProductService {
   @Autowired
   private ProductStatusRepository productStatusRepository;
 
-//  @PostConstruct
-//  private void postConstruct() {
-//    this.cloudinary = new Cloudinary(cloudinaryURL);
-//    this.cloudinary.config.secure = true;
-//  }
-
   @Override
   public DataResponse getAllProducts(Pageable page) {
-    Page<Product> pageOfProducts = productRepository.findAll(page);
+    List<Specification<Product>> specifications = createSpecificationsBaseOnLoggedInUser();
+    Specification<Product> conditions = SpecificationHelper.and(specifications);
+    Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
     Page<SimpleProductDto> pageOfSimpleProducts = new PageImpl<SimpleProductDto>(
         pageOfProducts.getContent().stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()),
         page,
@@ -106,15 +105,14 @@ public class ProductServiceImpl implements ProductService {
   public DataResponse searchProductsByFilter(long categoryId, double maxPrice, double minPrice,
       Set<Long> variationOptionIds,
       Pageable page) {
-    Specification<Product> conditions = Specification.where(ProductSpecification.isNotDeleted());
-//        .and(ProductSpecification.isNotHide());
+    List<Specification<Product>> specifications = createSpecificationsBaseOnLoggedInUser();
     if (maxPrice > 0) {
-      conditions = conditions.and(ProductSpecification.hasPriceLessThanOrEqualTo(maxPrice));
+      specifications.add(ProductSpecification.hasPriceLessThanOrEqualTo(maxPrice));
     }
     if (minPrice > 0) {
-      conditions = conditions.and(ProductSpecification.hasPriceGreaterThanOrEqualTo(minPrice));
+      specifications.add(ProductSpecification.hasPriceGreaterThanOrEqualTo(minPrice));
     }
-
+    Specification<Product> conditions = SpecificationHelper.and(specifications);
     Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
     List<Product> listOfProducts = pageOfProducts.getContent();
 
@@ -141,11 +139,15 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public DataResponse searchProductsByKeyword(String keyword, Pageable page) {
-    Specification<Product> conditions = Specification.where(ProductSpecification.isNotDeleted())
-        .and(ProductSpecification.isNotHide());
+    List<Specification<Product>> specifications = createSpecificationsBaseOnLoggedInUser();
     if (keyword != null) {
-      conditions = conditions.and(ProductSpecification.hasName(keyword));
+      List<Specification<Product>> ors = new ArrayList<>();
+      ors.add(ProductSpecification.hasSku(keyword));
+      ors.add(ProductSpecification.hasName(keyword));
+      ors.add(ProductSpecification.hasBrand(keyword));
+      specifications.add(SpecificationHelper.or(ors));
     }
+    Specification<Product> conditions = SpecificationHelper.and(specifications);
     Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
     Page<SimpleProductDto> pageOfSimpleProducts = new PageImpl<SimpleProductDto>(
         pageOfProducts.getContent().stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()),
@@ -157,9 +159,9 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public DataResponse getProductById(long id) {
-    Specification<Product> conditions = Specification.where(ProductSpecification.isNotDeleted())
-        .and(ProductSpecification.isNotHide())
-        .and(ProductSpecification.hasId(id));
+    List<Specification<Product>> specifications = createSpecificationsBaseOnLoggedInUser();
+    specifications.add(ProductSpecification.hasId(id));
+    Specification<Product> conditions = SpecificationHelper.and(specifications);
     List<Product> listOfProduct = productRepository.findAll(conditions);
     if (listOfProduct.size() > 0) {
       ProductInfoDto productInfoDto = productMapper.ProductToProductInfoDto(listOfProduct.get(0));
@@ -187,7 +189,8 @@ public class ProductServiceImpl implements ProductService {
       // Upload first image
       String imageUrl = uploadProductImage(mainImage);
       if (imageUrl == null) {
-        return new DataResponse(ApplicationConstants.FAILED, ApplicationConstants.IMAGE_UPLOAD_FAILED, ApplicationConstants.FAILED_CODE);
+        return new DataResponse(ApplicationConstants.FAILED, ApplicationConstants.IMAGE_UPLOAD_FAILED,
+            ApplicationConstants.FAILED_CODE);
       }
       product.setImageUrl(imageUrl);
 
@@ -243,7 +246,8 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional
-  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage, List<MultipartFile> images) {
+  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage,
+      List<MultipartFile> images) {
     Product productToUpdate = productMapper.UpdateProductRequestToProduct(request);
     Optional<Product> optionalProduct = productRepository.findById(id);
     if (optionalProduct.isPresent()) {
@@ -333,7 +337,6 @@ public class ProductServiceImpl implements ProductService {
 
       currentProduct = productRepository.saveAndFlush(currentProduct);
 
-
       Product finalProduct = currentProduct;
       Thread thread = new Thread(new Runnable() {
         @Override
@@ -410,8 +413,7 @@ public class ProductServiceImpl implements ProductService {
       );
       Map result = cloudinary.uploader().upload(image.getBytes(), params);
       return result.get("secure_url").toString();
-    }
-    catch (IOException exception) {
+    } catch (IOException exception) {
       return null;
     }
   }
@@ -435,8 +437,7 @@ public class ProductServiceImpl implements ProductService {
       );
       Map result = cloudinary.uploader().upload(image.getBytes(), params);
       return result.get("secure_url").toString();
-    }
-    catch (IOException exception) {
+    } catch (IOException exception) {
       return null;
     }
   }
@@ -447,8 +448,7 @@ public class ProductServiceImpl implements ProductService {
     String publicId = findImagePublicId(imageUrl);
     try {
       cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-    }
-    catch (IOException exception) {
+    } catch (IOException exception) {
 
     }
   }
@@ -477,5 +477,16 @@ public class ProductServiceImpl implements ProductService {
 
   private String findImagePublicId(String url) {
     return url.substring(url.indexOf(imagePath));
+  }
+
+  private List<Specification<Product>> createSpecificationsBaseOnLoggedInUser() {
+    String role = AuthenticationHelper.getCurrentLoggedInUserRole();
+    List<Specification<Product>> specifications = new ArrayList<>();
+    specifications.add(ProductSpecification.isNotDeleted());
+    if (role != null && role.equals(AccountRoleEnum.ROLE_ADMIN.getName())) {
+      return specifications;
+    }
+//    specifications.add(ProductSpecification.isNotHide());
+    return specifications;
   }
 }

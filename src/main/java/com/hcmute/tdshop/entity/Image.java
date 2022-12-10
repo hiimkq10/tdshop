@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -31,5 +32,6 @@ public class Image {
 
   @ManyToOne
   @JoinColumn(name = "product_id", nullable = false)
+  @JsonIgnore
   private Product product;
 }

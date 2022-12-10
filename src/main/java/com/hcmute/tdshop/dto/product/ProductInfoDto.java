@@ -25,7 +25,7 @@ public class ProductInfoDto {
   private String imageUrl;
 
   @JsonProperty("Price")
-  private double price;
+  private String price;
 
   @JsonProperty("Description")
   private String description;

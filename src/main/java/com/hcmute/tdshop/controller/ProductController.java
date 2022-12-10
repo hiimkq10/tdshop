@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,6 +58,7 @@ public class ProductController {
   }
 
   @PostMapping("/add")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse insertProduct(
       @RequestPart(value = "ProductInfo") @Valid AddProductRequest request,
       @RequestPart(value = "MainImage") MultipartFile mainImage,
@@ -65,6 +67,7 @@ public class ProductController {
   }
 
   @PutMapping("/update/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse updateProduct(
       @PathVariable(name = "id") long id,
       @RequestPart(value = "ProductInfo") @Valid UpdateProductRequest request,
@@ -74,11 +77,13 @@ public class ProductController {
   }
 
   @DeleteMapping("/delete/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse deleteProduct(@PathVariable(name = "id") long id) {
     return productService.deleteProduct(id);
   }
 
   @PostMapping("/change-status")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse changeProductStatus(@RequestBody @Valid ChangeProductStatusRequest request) {
     return productService.changeProductStatus(request);
   }
