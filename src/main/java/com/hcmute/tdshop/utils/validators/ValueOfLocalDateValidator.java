@@ -13,7 +13,7 @@ public class ValueOfLocalDateValidator implements ConstraintValidator<ValueOfLoc
   @Override
   public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
     if (s != null) {
-      DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Helper.dateTimePattern);
+      DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Helper.datePattern);
       try {
         LocalDate.parse(s, dateTimeFormatter);
       } catch (DateTimeParseException e) {

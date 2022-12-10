@@ -29,9 +29,8 @@ public class UpdateUserInfoRequest {
   private String phone;
 
   @JsonProperty("Birthdate")
-  @Size(max = 50, message = ApplicationConstants.USER_FIRST_NAME_SIZE_INVALID)
   @ValueOfLocalDate()
-  private LocalDate birthdate;
+  private String birthdate;
 
   @JsonProperty("Gender")
   private Boolean gender;
