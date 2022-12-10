@@ -8,7 +8,14 @@ public class AuthenticationHelper {
 
   public static long getCurrentLoggedInUserId() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return ((UserInfo) authentication.getPrincipal()).getId();
+    if (authentication == null) {
+      return 0;
+    }
+    Object principal = authentication.getPrincipal();
+    if (principal == null) {
+      return 0;
+    }
+    return ((UserInfo) principal).getId();
   }
 
   public static String getCurrentLoggedInUserRole() {
