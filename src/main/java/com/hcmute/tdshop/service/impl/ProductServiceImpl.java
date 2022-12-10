@@ -102,10 +102,18 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
-  public DataResponse searchProductsByFilter(long categoryId, double maxPrice, double minPrice,
+  public DataResponse searchProductsByFilter(String keyword, long categoryId, double maxPrice, double minPrice,
       Set<Long> variationOptionIds,
       Pageable page) {
     List<Specification<Product>> specifications = createSpecificationsBaseOnLoggedInUser();
+    if (keyword != null) {
+      List<Specification<Product>> ors = new ArrayList<>();
+      ors.add(ProductSpecification.hasSku(keyword));
+      ors.add(ProductSpecification.hasName(keyword));
+      ors.add(ProductSpecification.hasBrand(keyword));
+      specifications.add(SpecificationHelper.or(ors));
+    }
+
     if (maxPrice > 0) {
       specifications.add(ProductSpecification.hasPriceLessThanOrEqualTo(maxPrice));
     }

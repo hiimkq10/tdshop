@@ -35,22 +35,23 @@ public class ProductController {
     return productService.getAllProducts(pageable);
   }
 
-  @GetMapping("/filter")
+  @GetMapping("/search")
   public DataResponse searchProductsByFilter(
+      @RequestParam(name = "keyword", required = false) String keyword,
       @RequestParam(name = "category-id", required = false, defaultValue = "0") long categoryId,
       @RequestParam(name = "max-price", required = false, defaultValue = "0") double maxPrice,
       @RequestParam(name = "min-price", required = false, defaultValue = "0") double minPrice,
       @RequestParam(name = "variations", required = false) Set<Long> ids,
       Pageable pageable) {
-    return productService.searchProductsByFilter(categoryId, maxPrice, minPrice, ids, pageable);
+    return productService.searchProductsByFilter(keyword, categoryId, maxPrice, minPrice, ids, pageable);
   }
 
-  @GetMapping("/search")
-  public DataResponse searchProductsByKeyword(
-      @RequestParam(name = "keyword", required = false) String keyword,
-      Pageable pageable) {
-    return productService.searchProductsByKeyword(keyword, pageable);
-  }
+//  @GetMapping("/search")
+//  public DataResponse searchProductsByKeyword(
+//      @RequestParam(name = "keyword", required = false) String keyword,
+//      Pageable pageable) {
+//    return productService.searchProductsByKeyword(keyword, pageable);
+//  }
 
   @GetMapping("/get/{id}")
   public DataResponse getProductById(@PathVariable(name = "id") Long id) {
