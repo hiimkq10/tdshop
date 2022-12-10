@@ -1,9 +1,9 @@
 package com.hcmute.tdshop.enums;
 
 public enum AccountRoleEnum {
-  ROLE_ADMIN(1, "Admin"),
-  ROLE_EMPLOYEE(2,"Employee"),
-  ROLE_USER(3, "User");
+  ROLE_ADMIN(1, "ROLE_ADMIN"),
+  ROLE_EMPLOYEE(2,"ROLE_EMPLOYEE"),
+  ROLE_USER(3, "ROLE_USER");
 
   private final long id;
   private final String name;

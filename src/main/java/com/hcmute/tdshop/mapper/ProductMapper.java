@@ -9,18 +9,68 @@ import com.hcmute.tdshop.dto.product.ProductVariationOptionDto;
 import com.hcmute.tdshop.dto.product.SimpleProductDto;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.entity.Category;
+import com.hcmute.tdshop.entity.Image;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductAttribute;
 import com.hcmute.tdshop.entity.ProductPromotion;
 import com.hcmute.tdshop.entity.VariationOption;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public abstract class ProductMapper {
 
-  public abstract SimpleProductDto ProductToSimpleProductDto(Product product);
+  public SimpleProductDto ProductToSimpleProductDto(Product product) {
+    if ( product == null ) {
+      return null;
+    }
 
-  public abstract ProductInfoDto ProductToProductInfoDto(Product product);
+    SimpleProductDto simpleProductDto = new SimpleProductDto();
+
+    simpleProductDto.setId( product.getId() );
+    simpleProductDto.setSku( product.getSku() );
+    simpleProductDto.setName( product.getName() );
+    simpleProductDto.setPrice( new BigDecimal(product.getPrice()).toPlainString() );
+    simpleProductDto.setImageUrl( product.getImageUrl() );
+    simpleProductDto.setProductPromotion( ProductPromotionToProductPromotionDto( product.getProductPromotion() ) );
+
+    return simpleProductDto;
+  }
+
+  public ProductInfoDto ProductToProductInfoDto(Product product) {
+    if ( product == null ) {
+      return null;
+    }
+
+    ProductInfoDto productInfoDto = new ProductInfoDto();
+
+    productInfoDto.setId( product.getId() );
+    productInfoDto.setSku( product.getSku() );
+    productInfoDto.setName( product.getName() );
+    productInfoDto.setImageUrl( product.getImageUrl() );
+    productInfoDto.setPrice( new BigDecimal(product.getPrice()).toPlainString() );
+    productInfoDto.setDescription( product.getDescription() );
+    productInfoDto.setShortDescription( product.getShortDescription() );
+    productInfoDto.setTotal( product.getTotal() );
+    productInfoDto.setSelAmount( product.getSelAmount() );
+    productInfoDto.setCreatedAt( product.getCreatedAt() );
+    productInfoDto.setDeletedAt( product.getDeletedAt() );
+    productInfoDto.setStatus( product.getStatus() );
+    productInfoDto.setSetOfCategories( categorySetToProductCategoryDtoSet( product.getSetOfCategories() ) );
+    productInfoDto.setBrand( product.getBrand() );
+    Set<Image> set1 = product.getSetOfImages();
+    if ( set1 != null ) {
+      productInfoDto.setSetOfImages( new LinkedHashSet<Image>( set1 ) );
+    }
+    productInfoDto.setSetOfProductAttributes( productAttributeSetToProductAttributeDtoSet( product.getSetOfProductAttributes() ) );
+    productInfoDto.setSetOfVariationOptions( variationOptionSetToProductVariationOptionDtoSet( product.getSetOfVariationOptions() ) );
+    productInfoDto.setProductPromotion( ProductPromotionToProductPromotionDto( product.getProductPromotion() ) );
+
+    return productInfoDto;
+  }
 
   public abstract ProductCategoryDto CategoryToProductCategoryDto(Category category);
 
@@ -55,4 +105,10 @@ public abstract class ProductMapper {
   public abstract Product AddProductRequestToProduct(AddProductRequest request);
 
   public abstract Product UpdateProductRequestToProduct(UpdateProductRequest request);
+
+  public abstract Set<ProductCategoryDto> categorySetToProductCategoryDtoSet(Set<Category> set);
+
+  public abstract Set<ProductAttributeDto> productAttributeSetToProductAttributeDtoSet(Set<ProductAttribute> set);
+
+  public abstract Set<ProductVariationOptionDto> variationOptionSetToProductVariationOptionDtoSet(Set<VariationOption> set);
 }

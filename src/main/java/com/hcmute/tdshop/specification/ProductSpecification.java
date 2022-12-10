@@ -9,8 +9,16 @@ public class ProductSpecification {
     return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
   }
 
+  public static Specification<Product> hasSku(String sku) {
+    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("sku")), "%" + sku.toLowerCase() + "%"));
+  }
+
   public static Specification<Product> hasName(String name) {
-    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("name"), "%" + name + "%"));
+    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+  }
+
+  public static Specification<Product> hasBrand(String brand) {
+    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("brand").get("name")), "%" + brand.toLowerCase() + "%"));
   }
 
   public static Specification<Product> hasPriceLessThanOrEqualTo(double maxPrice) {
@@ -22,7 +30,7 @@ public class ProductSpecification {
   }
 
   public static Specification<Product> isNotDeleted() {
-    return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("deletedAt"), null);
+    return (root, query, criteriaBuilder) -> criteriaBuilder.isNull(root.get("deletedAt"));
   }
 
   public static Specification<Product> isNotHide() {
