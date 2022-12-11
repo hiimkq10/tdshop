@@ -9,13 +9,13 @@ public class OrderDetailDto {
   private Long id;
 
   @JsonProperty("Price")
-  private double price;
+  private String price;
 
   @JsonProperty("DiscountRate")
   private double discountRate;
 
   @JsonProperty("FinalRate")
-  private double finalPrice;
+  private String finalPrice;
 
   @JsonProperty("Quantity")
   private int quantity;

@@ -132,6 +132,8 @@ public class ApplicationConstants {
   // ------------------------------ ORDER -------------------------------------
   public static final String ORDER_PRODUCTS_EMPTY = "You must choose at least 1 product to make order";
   public static final String ORDER_NOT_FOUND = "Order not found";
+  public static final String ORDER_SUCCESSFULLY = "Order successfully";
+  public static final String ORDER_CANCEL_SUCCESSFULLY = "Cancel order successfully";
 
   // ------------------------------ ORDER STATUS -------------------------------------
   public static final String ORDER_STATUS_NOT_FOUND = "Order status not found";

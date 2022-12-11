@@ -18,6 +18,7 @@ import com.hcmute.tdshop.repository.OrderStatusRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShopOrderRepository;
 import com.hcmute.tdshop.service.OrderService;
+import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -65,7 +66,8 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public DataResponse getUserOrder(long userId, Pageable page) {
+  public DataResponse getUserOrder(Pageable page) {
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     Page<ShopOrder> pageOfOrders = orderRepository.findByUser_Id(userId, page);
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
@@ -78,6 +80,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional
   public DataResponse insertOrder(AddOrderRequest request) {
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     ShopOrder order = orderMapper.AddOrderRequestToOrder(request);
     Set<OrderDetail> setOfOrderDetails = order.getSetOfOrderDetails();
     List<Product> listOfProducts = new ArrayList<>();
@@ -93,7 +96,7 @@ public class OrderServiceImpl implements OrderService {
     }
     productRepository.saveAllAndFlush(listOfProducts);
 
-    Cart cart = cartRepository.findByUser_Id(request.getUserId()).get();
+    Cart cart = cartRepository.findByUser_Id(userId).get();
     Set<CartItem> setOfCartItems = cart.getSetOfCartItems();
     setOfCartItems = setOfCartItems.stream().filter(cartItem -> {
       for (Product product : listOfProducts) {
@@ -103,15 +106,16 @@ public class OrderServiceImpl implements OrderService {
       }
       return false;
     }).collect(Collectors.toSet());
+    cart.getSetOfCartItems().removeAll(setOfCartItems);
     cartItemRepository.deleteAll(setOfCartItems);
 
-    if (!(order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId())) {
+    if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
       order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.PROCCESSING.getId()).get());
     } else {
       order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.AWAITINGPAYMENT.getId()).get());
     }
     order = orderRepository.save(order);
-    return new DataResponse(orderMapper.OrderToOrderResponse(order));
+    return new DataResponse(ApplicationConstants.ORDER_SUCCESSFULLY, orderMapper.OrderToOrderResponse(order));
   }
 
   @Override
@@ -134,14 +138,14 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public DataResponse cancelOrder(long orderId) {
-    Optional<ShopOrder> optionalShopOrder = orderRepository.findById(orderId);
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
+    Optional<ShopOrder> optionalShopOrder = orderRepository.findByIdAndUser_Id(orderId, userId);
     if (optionalShopOrder.isPresent()) {
       ShopOrder order = optionalShopOrder.get();
       if (order.getOrderStatus().getId().equals(OrderStatusEnum.AWAITINGPAYMENT.getId())) {
         order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.CANCELED.getId()).get());
-        order.setDeletedAt(LocalDateTime.now());
         order = orderRepository.saveAndFlush(order);
-        return new DataResponse(orderMapper.OrderToOrderResponse(order));
+        return new DataResponse(ApplicationConstants.ORDER_CANCEL_SUCCESSFULLY, orderMapper.OrderToOrderResponse(order));
       }
       else {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_DELETED, ApplicationConstants.BAD_REQUEST_CODE);

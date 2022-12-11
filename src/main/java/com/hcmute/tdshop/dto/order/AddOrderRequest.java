@@ -12,9 +12,6 @@ import lombok.Data;
 
 @Data
 public class AddOrderRequest {
-  @JsonProperty("UserId")
-  @Positive(message = ApplicationConstants.USER_ID_INVALID)
-  private long userId;
 
   @JsonProperty("Products")
   @NotNull(message = ApplicationConstants.ORDER_PRODUCTS_EMPTY)
