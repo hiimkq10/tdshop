@@ -25,7 +25,7 @@ public class MasterCategoryController {
   }
 
   @GetMapping("/get/{id}")
-  public DataResponse getById(long id) {
+  public DataResponse getById(@PathVariable(name = "id") long id) {
     return masterCategoryService.getById(id);
   }
 
