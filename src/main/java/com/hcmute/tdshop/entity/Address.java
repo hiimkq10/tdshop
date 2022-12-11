@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import javax.persistence.Column;
@@ -57,5 +58,6 @@ public class Address {
 
   @ManyToOne
   @JoinColumn(name = "user_id", nullable = false)
+  @JsonIgnore
   private User user;
 }

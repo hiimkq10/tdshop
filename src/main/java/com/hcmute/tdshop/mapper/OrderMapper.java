@@ -16,7 +16,9 @@ import com.hcmute.tdshop.repository.PaymentMethodRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShipRepository;
 import com.hcmute.tdshop.repository.UserRepository;
+import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,8 +50,9 @@ public abstract class OrderMapper {
     if (request == null) {
       return null;
     }
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     ShopOrder order = new ShopOrder();
-    User user = userRepository.findById(request.getUserId())
+    User user = userRepository.findById(userId)
         .orElseThrow(() -> new RuntimeException(ApplicationConstants.USER_NOT_FOUND));
     PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId())
         .orElseThrow(() -> new RuntimeException(ApplicationConstants.PAYMENT_NOT_FOUND));
@@ -69,15 +72,19 @@ public abstract class OrderMapper {
     }
 
     Set<OrderDetail> setOfOrderDetails = new HashSet<>();
+    double discountRate = 0;
     for (Product product : setOfProduct) {
+      if (product.getProductPromotion() != null) {
+        discountRate = product.getProductPromotion().getDiscountRate();
+      }
       setOfOrderDetails.add(new OrderDetail(
           null,
           product.getPrice(),
-          product.getProductPromotion().getDiscountRate(),
-          product.getPrice() * (1 - product.getProductPromotion().getDiscountRate()),
+          discountRate,
+          product.getPrice() * (1 - discountRate),
           productQuantity.get(product.getId()),
           product,
-          null
+          order
       ));
     }
 
@@ -126,9 +133,9 @@ public abstract class OrderMapper {
     }
     OrderDetailDto orderDetailDto = new OrderDetailDto();
     orderDetailDto.setId(orderDetail.getId());
-    orderDetailDto.setPrice(orderDetail.getPrice());
+    orderDetailDto.setPrice(DoubleToString(orderDetail.getPrice()));
     orderDetailDto.setDiscountRate(orderDetail.getDiscountRate());
-    orderDetailDto.setFinalPrice(orderDetail.getFinalPrice());
+    orderDetailDto.setFinalPrice(DoubleToString(orderDetail.getFinalPrice()));
     orderDetailDto.setQuantity(orderDetail.getQuantity());
     orderDetailDto.setProductId(orderDetail.getProduct().getId());
     orderDetailDto.setSku(orderDetail.getProduct().getSku());
@@ -136,5 +143,9 @@ public abstract class OrderMapper {
     orderDetailDto.setImageUrl(orderDetail.getProduct().getImageUrl());
 
     return orderDetailDto;
+  }
+
+  public String DoubleToString(Double d) {
+    return new BigDecimal(d).toPlainString();
   }
 }

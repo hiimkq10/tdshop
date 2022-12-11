@@ -6,12 +6,14 @@ import com.hcmute.tdshop.service.OrderService;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,14 +23,15 @@ public class OrderController {
   @Autowired
   private OrderService orderService;
 
-  @GetMapping("/")
+  @GetMapping("/get-all")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse getOrder(Pageable page) {
     return orderService.getOrder(page);
   }
 
-  @GetMapping("/{userId}")
-  public DataResponse getUserOrder(@PathVariable(name = "userId") long id, Pageable page) {
-    return orderService.getUserOrder(id, page);
+  @GetMapping("/my-order")
+  public DataResponse getUserOrder(Pageable page) {
+    return orderService.getUserOrder(page);
   }
 
   @PostMapping("/add")
@@ -37,7 +40,7 @@ public class OrderController {
   }
 
   @DeleteMapping("/cancel")
-  public DataResponse cancelOrder(@RequestBody long orderId) {
+  public DataResponse cancelOrder(@RequestParam(name = "order") long orderId) {
     return orderService.cancelOrder(orderId);
   }
 }
