@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -31,5 +32,6 @@ public class VariationOption {
 
   @ManyToOne
   @JoinColumn(name = "variation_id", nullable = false)
+  @JsonIgnore
   private Variation variation;
 }

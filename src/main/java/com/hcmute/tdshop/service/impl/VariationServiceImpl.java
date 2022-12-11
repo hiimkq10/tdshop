@@ -13,10 +13,12 @@ import com.hcmute.tdshop.repository.VariationRepository;
 import com.hcmute.tdshop.service.VariationService;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -37,12 +39,14 @@ public class VariationServiceImpl implements VariationService {
 
   @Override
   public DataResponse getAll(Pageable pageable) {
-    return null;
+    Page<Variation> pageOfVariations = variationRepository.findAll(pageable);
+    return new DataResponse(pageOfVariations);
   }
 
   @Override
   public DataResponse getByMasterCategory(long id) {
-    return null;
+    List<Variation> listOfVariations = variationRepository.findByMasterCategory_Id(id);
+    return new DataResponse(listOfVariations);
   }
 
   @Override

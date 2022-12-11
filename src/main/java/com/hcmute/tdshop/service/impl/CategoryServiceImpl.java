@@ -15,6 +15,7 @@ import com.hcmute.tdshop.service.CategoryService;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -55,6 +56,13 @@ public class CategoryServiceImpl implements CategoryService {
       return new DataResponse(categoryMapper.CategoryToCategoryResponse(category));
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  @Override
+  public DataResponse getByMasterCategoryId(long id) {
+    List<Category> listOfCategories = categoryRepository.findByMasterCategory_IdAndParentIsNull(id);
+    List<CategoryResponse> listOfCategoryResponses = listOfCategories.stream().map(categoryMapper::CategoryToCategoryResponse).collect(Collectors.toList());
+    return new DataResponse(listOfCategoryResponses);
   }
 
   @Override
