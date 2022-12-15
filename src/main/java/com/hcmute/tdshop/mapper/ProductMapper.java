@@ -35,6 +35,8 @@ public abstract class ProductMapper {
     simpleProductDto.setName( product.getName() );
     simpleProductDto.setPrice( new BigDecimal(product.getPrice()).toPlainString() );
     simpleProductDto.setImageUrl( product.getImageUrl() );
+    simpleProductDto.setBrand(product.getBrand());
+    simpleProductDto.setSelAmount(product.getSelAmount());
     simpleProductDto.setProductPromotion( ProductPromotionToProductPromotionDto( product.getProductPromotion() ) );
 
     return simpleProductDto;

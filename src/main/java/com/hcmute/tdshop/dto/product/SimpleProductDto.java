@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hcmute.tdshop.entity.Brand;
 import lombok.Data;
 
 @Data
@@ -20,6 +21,12 @@ public class SimpleProductDto {
 
   @JsonProperty("ImageUrl")
   private String imageUrl;
+
+  @JsonProperty("Brand")
+  private Brand brand;
+
+  @JsonProperty("SelAmount")
+  private int selAmount;
 
   @JsonProperty("Discount")
   private ProductPromotionDto productPromotion;
