@@ -85,6 +85,7 @@ public class OrderServiceImpl implements OrderService {
       Product product = orderDetail.getProduct();
       if (product.getTotal() >= orderDetail.getQuantity()) {
         product.setTotal(product.getTotal() - orderDetail.getQuantity());
+        product.setSelAmount(product.getSelAmount() + orderDetail.getQuantity());
         listOfProducts.add(product);
       } else {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_QUANTITY_NOT_ENOUGH,
