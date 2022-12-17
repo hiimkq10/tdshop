@@ -1,7 +1,17 @@
 package com.hcmute.tdshop.specification;
 
+import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Product;
+import com.hcmute.tdshop.entity.Variation;
+import com.hcmute.tdshop.entity.VariationOption;
 import com.hcmute.tdshop.enums.ProductStatusEnum;
+import java.util.Set;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ProductSpecification {
@@ -35,5 +45,31 @@ public class ProductSpecification {
 
   public static Specification<Product> isNotHide() {
     return (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("status").get("id"), ProductStatusEnum.HIDE.getId());
+  }
+
+  public static Specification<Product> hasVariations(Set<Long> setOfVariationIds) {
+    return ((root, query, criteriaBuilder) -> {
+      Subquery<Long> selectedProductIDsSubquery = query.subquery(Long.class);
+      Root<Product> selectedProductIDs = selectedProductIDsSubquery.from(Product.class);
+      Join<VariationOption, Product> productVariationOptionJoin = selectedProductIDs.join("setOfVariationOptions");
+      selectedProductIDsSubquery
+          .select(selectedProductIDs.get("id"))
+          .where(productVariationOptionJoin.get("id").in(setOfVariationIds))
+          .groupBy(selectedProductIDs.get("id"))
+          .having(criteriaBuilder.equal(criteriaBuilder.count(selectedProductIDs), setOfVariationIds.size()));
+      return root.get("id").in(selectedProductIDsSubquery);
+    });
+  }
+
+  public static Specification<Product> hasCategory(Long categoryId) {
+    return ((root, query, criteriaBuilder) -> {
+      Subquery<Long> selectedProductIDsSubquery = query.subquery(Long.class);
+      Root<Product> selectedProductIDs = selectedProductIDsSubquery.from(Product.class);
+      Join<Category, Product> productCategoryJoin = selectedProductIDs.join("setOfCategories");
+      selectedProductIDsSubquery
+          .select(selectedProductIDs.get("id"))
+          .where(criteriaBuilder.equal(productCategoryJoin.get("id"), categoryId));
+      return root.get("id").in(selectedProductIDsSubquery);
+    });
   }
 }

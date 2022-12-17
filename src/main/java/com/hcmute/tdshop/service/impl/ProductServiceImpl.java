@@ -115,6 +115,16 @@ public class ProductServiceImpl implements ProductService {
       specifications.add(SpecificationHelper.or(ors));
     }
 
+    // Filter by variation
+    if (variationOptionIds != null) {
+      specifications.add(ProductSpecification.hasVariations(variationOptionIds));
+    }
+
+    // Filter by category
+    if (categoryId > 0) {
+      specifications.add(ProductSpecification.hasCategory(categoryId));
+    }
+
     if (maxPrice > 0) {
       specifications.add(ProductSpecification.hasPriceLessThanOrEqualTo(maxPrice));
     }
@@ -131,17 +141,17 @@ public class ProductServiceImpl implements ProductService {
     List<Product> listOfProducts = pageOfProducts.getContent();
 
     // Filter by category
-    if (categoryId > 0) {
-      listOfProducts = listOfProducts.stream().filter(product -> checkIfProductHasCategory(product, categoryId))
-          .collect(Collectors.toList());
-    }
+//    if (categoryId > 0) {
+//      listOfProducts = listOfProducts.stream().filter(product -> checkIfProductHasCategory(product, categoryId))
+//          .collect(Collectors.toList());
+//    }
 
     // Filter by variation
-    if (variationOptionIds != null) {
-      listOfProducts = listOfProducts.stream()
-          .filter(product -> checkIfProductContainAllVariation(product, variationOptionIds)).collect(
-              Collectors.toList());
-    }
+//    if (variationOptionIds != null) {
+//      listOfProducts = listOfProducts.stream()
+//          .filter(product -> checkIfProductContainAllVariation(product, variationOptionIds)).collect(
+//              Collectors.toList());
+//    }
 
     Page<SimpleProductDto> pageOfSimpleProducts = new PageImpl<SimpleProductDto>(
         listOfProducts.stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()),
