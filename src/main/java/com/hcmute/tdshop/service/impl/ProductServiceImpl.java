@@ -287,10 +287,10 @@ public class ProductServiceImpl implements ProductService {
       if (productToUpdate.getTotal() >= 0) {
         currentProduct.setTotal(productToUpdate.getTotal());
       }
-      if (request.getBrandId() > 0) {
-        Optional<Brand> optionalBrand = brandRepository.findById(request.getBrandId());
-        optionalBrand.ifPresent(currentProduct::setBrand);
-      }
+
+      Optional<Brand> optionalBrand = brandRepository.findById(request.getBrandId());
+      currentProduct.setBrand(optionalBrand.orElse(null));
+
       if (request.getProductStatus() > 0) {
         Optional<ProductStatus> optionalProductStatus = productStatusRepository.findById(request.getProductStatus());
         optionalProductStatus.ifPresent(currentProduct::setStatus);

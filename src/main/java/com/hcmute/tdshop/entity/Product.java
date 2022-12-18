@@ -70,7 +70,7 @@ public class Product {
   private Set<Category> setOfCategories;
 
   @ManyToOne
-  @JoinColumn(name = "brand_id", nullable = false)
+  @JoinColumn(name = "brand_id")
   private Brand brand;
 
   @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)

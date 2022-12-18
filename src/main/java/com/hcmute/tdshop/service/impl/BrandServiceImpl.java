@@ -118,10 +118,6 @@ public class BrandServiceImpl implements BrandService {
       if (currentBrand.getLogoUrl() != null) {
         deleteBrandImage(currentBrand.getLogoUrl());
       }
-      if (productRepository.countByBrand_Id(id) > 0) {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.BRAND_PRODUCT_EXIST,
-            ApplicationConstants.BAD_REQUEST_CODE);
-      }
       brandRepository.delete(currentBrand);
       return new DataResponse(ApplicationConstants.BRAND_DELETE_SUCCESSFULLY, true);
     }
