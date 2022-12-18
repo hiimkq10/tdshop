@@ -14,6 +14,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PreRemove;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,18 +39,25 @@ public class Category {
   @JoinColumn(name = "parent_id", referencedColumnName = "id")
   private Category parent;
 
-  @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "parent", cascade = CascadeType.PERSIST)
   private List<Category> children;
 
   @ManyToOne
   @JoinColumn(name = "master_category_id", nullable = false)
   private MasterCategory masterCategory;
 
-  @ManyToMany(fetch = FetchType.LAZY)
+  @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
   @JoinTable(name = "product_category",
       joinColumns = {@JoinColumn(name = "category_id")}, inverseJoinColumns = {@JoinColumn(name = "product_id")})
   private Set<Product> setOfProducts;
 
-  @ManyToMany(mappedBy = "setOfCategories", fetch = FetchType.LAZY)
+  @ManyToMany(mappedBy = "setOfCategories", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
   private Set<Promotion> setOfPromotions;
+
+  @PreRemove
+  private void preRemove() {
+    children.forEach(child -> child.setParent(null));
+    setOfProducts.forEach(product -> product.getSetOfCategories().remove(this));
+    setOfPromotions.forEach(promotion -> promotion.getSetOfCategories().remove(this));
+  }
 }

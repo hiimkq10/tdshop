@@ -9,8 +9,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PreRemove;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,4 +36,13 @@ public class VariationOption {
   @JoinColumn(name = "variation_id", nullable = false)
   @JsonIgnore
   private Variation variation;
+
+  @ManyToMany(mappedBy = "setOfVariationOptions", cascade = CascadeType.PERSIST)
+  @JsonIgnore
+  private Set<Product> setOfProducts;
+
+  @PreRemove
+  private void preRemove() {
+    setOfProducts.forEach(product -> product.getSetOfVariationOptions().remove(this));
+  }
 }

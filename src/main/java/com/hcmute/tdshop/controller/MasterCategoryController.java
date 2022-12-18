@@ -6,6 +6,7 @@ import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.MasterCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,16 +31,19 @@ public class MasterCategoryController {
   }
 
   @PostMapping("/add")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse insertMasterCategory(AddMasterCategoryRequest request) {
     return masterCategoryService.insertMasterCategory(request);
   }
 
   @PutMapping("/update/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse updateMasterCategory(@PathVariable(name = "id") long id, UpdateMasterCategoryRequest request) {
     return masterCategoryService.updateMasterCategory(id, request);
   }
 
   @PostMapping("/delete/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse deleteMasterCategory(@PathVariable(name = "id") long id) {
     return masterCategoryService.deleteMasterCategory(id);
   }
