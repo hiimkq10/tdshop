@@ -16,7 +16,7 @@ public abstract class VariationMapper {
     variation.setName(request.getName());
     variation.setSetOfVariationOptions(new HashSet<>());
     for (String value : request.getSetOfVarirationOptionValues()) {
-      variation.getSetOfVariationOptions().add(new VariationOption(null, value, variation));
+      variation.getSetOfVariationOptions().add(new VariationOption(null, value, variation, null));
     }
 
     return variation;

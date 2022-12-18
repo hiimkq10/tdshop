@@ -91,7 +91,7 @@ public class VariationServiceImpl implements VariationService {
         }
       }
       for (String value : setOfVariationOptionValues) {
-        currentVariation.getSetOfVariationOptions().add(new VariationOption(null, value, currentVariation));
+        currentVariation.getSetOfVariationOptions().add(new VariationOption(null, value, currentVariation, null));
       }
       variationRepository.saveAndFlush(currentVariation);
       return DataResponse.SUCCESSFUL;
@@ -102,10 +102,6 @@ public class VariationServiceImpl implements VariationService {
 
   @Override
   public DataResponse deleteVariation(long id) {
-    if (variationOptionRepository.existsByVariation_Id(id)) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.VARIATION_RELATED_EXIST,
-          ApplicationConstants.BAD_REQUEST_CODE);
-    }
     variationRepository.deleteById(id);
     return new DataResponse(ApplicationConstants.VARIATION_DELETE_SUCCESSFULLY, true);
   }

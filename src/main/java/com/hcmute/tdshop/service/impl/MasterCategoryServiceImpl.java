@@ -80,10 +80,6 @@ public class MasterCategoryServiceImpl implements MasterCategoryService {
   @Override
   public DataResponse deleteMasterCategory(long id) {
     if (masterCategoryRepository.existsById(id)) {
-      if (categoryRepository.countByMasterCategory_Id(id) > 0 || variationRepository.countByMasterCategory_Id(id) > 0) {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.MASTER_CATEGORY_RELATED_EXIST,
-            ApplicationConstants.BAD_REQUEST_CODE);
-      }
       masterCategoryRepository.deleteById(id);
       return new DataResponse(ApplicationConstants.MASTER_CATEGORY_DELETE_SUCCESSFULLY, true);
     }

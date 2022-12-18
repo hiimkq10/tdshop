@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.util.Set;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.PreRemove;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,11 +35,11 @@ public class MasterCategory {
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
-  @OneToMany(mappedBy = "masterCategory", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "masterCategory", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   @JsonIgnore
   private Set<Category> setOfCategories;
 
-  @OneToMany(mappedBy = "masterCategory")
+  @OneToMany(mappedBy = "masterCategory", cascade = CascadeType.ALL)
   @JsonIgnore
   private Set<Variation> setOfVariations;
 }
