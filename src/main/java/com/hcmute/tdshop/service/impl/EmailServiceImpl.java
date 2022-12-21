@@ -67,7 +67,7 @@ public class EmailServiceImpl implements EmailService {
       if (!user.getIsVerified()) {
         String code = getRandomString();
         createToken(user, code);
-        return sendEmail(user, String.format("http://localhost:8080/api/v1/auth/activate/%d?token=%s", id, code),
+        return sendEmail(user, String.format("https://tdshop.herokuapp.com/api/v1/auth/activate/%d?token=%s", id, code),
             "activate_account_email_template.ftl");
       }
       else {

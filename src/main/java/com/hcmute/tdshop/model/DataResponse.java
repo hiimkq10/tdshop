@@ -41,7 +41,6 @@ public class DataResponse {
     this.message = message;
     this.status = status;
   }
-
   public static final DataResponse SUCCESSFUL = new DataResponse(ApplicationConstants.SUCCESSFUL, "SUCCESSFUL");
   public static final DataResponse NOT_FOUND = new DataResponse(ApplicationConstants.NOT_FOUND, "NOT_FOUND");
   public static final DataResponse BAD_REQUEST = new DataResponse(ApplicationConstants.BAD_REQUEST,

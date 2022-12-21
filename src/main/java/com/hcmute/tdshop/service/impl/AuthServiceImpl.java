@@ -4,6 +4,8 @@ import com.hcmute.tdshop.dto.auth.ChangePasswordRequest;
 import com.hcmute.tdshop.dto.auth.RegisterRequest;
 import com.hcmute.tdshop.dto.auth.ResetPasswordRequest;
 import com.hcmute.tdshop.dto.auth.ResetPasswordVerificationRequest;
+import com.hcmute.tdshop.dto.security.LoginResponse;
+import com.hcmute.tdshop.dto.security.UserInfo;
 import com.hcmute.tdshop.entity.Token;
 import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.enums.AccountRoleEnum;
@@ -13,11 +15,15 @@ import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.AccountRoleRepository;
 import com.hcmute.tdshop.repository.TokenRepository;
 import com.hcmute.tdshop.repository.UserRepository;
+import com.hcmute.tdshop.security.jwt.JwtTokenProvider;
+import com.hcmute.tdshop.security.model.CustomUserDetails;
 import com.hcmute.tdshop.service.AuthService;
 import com.hcmute.tdshop.utils.Helper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -82,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
       String currentPassword = request.getCurrentPassword();
       String newPassword = request.getNewPassword();
       String confirmPassword = request.getConfirmPassword();
-      if (!checkIfCurrentPasswordCorrent(currentPassword, user.getPassword())) {
+      if (!checkIfCurrentPasswordCorrect(currentPassword, user.getPassword())) {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CURRENT_PASSWORD_WRONG,
             ApplicationConstants.BAD_REQUEST_CODE);
       }
@@ -175,7 +181,9 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  public DataResponse activateAccount(Long id, String token) {
+  public DataResponse activateAccount(Long id, String token, HttpServletRequest request, HttpServletResponse response) {
+    response.setHeader("Location", "https://td-shop.vercel.app/");
+    response.setStatus(302);
     Optional<User> optionalUser = userRepository.findById(id);
     String message = "";
     if (optionalUser.isPresent()) {
@@ -193,7 +201,11 @@ public class AuthServiceImpl implements AuthService {
               user.setIsVerified(true);
               tokenRepository.delete(confirmToken);
               userRepository.saveAndFlush(user);
-              return new DataResponse(ApplicationConstants.ACCOUNT_ACTIVATED, true);
+              UserInfo userInfo = CustomUserDetailsToUserInfo(new CustomUserDetails(user));
+              String accessToken = JwtTokenProvider.generateAccessToken(new CustomUserDetails(user), request);
+              String refreshToken = JwtTokenProvider.generateRefreshToken(new CustomUserDetails(user), request);
+              LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, userInfo);
+              return new DataResponse(ApplicationConstants.ACCOUNT_ACTIVATED, loginResponse);
             }
             else {
               message = ApplicationConstants.TOKEN_USED;
@@ -216,10 +228,26 @@ public class AuthServiceImpl implements AuthService {
     return new DataResponse(ApplicationConstants.BAD_REQUEST, message, ApplicationConstants.BAD_REQUEST_CODE);
   }
 
-  private boolean checkIfCurrentPasswordCorrent(String currentPassword, String encodedPassword) {
+  private boolean checkIfCurrentPasswordCorrect(String currentPassword, String encodedPassword) {
     return passwordEncoder.matches(currentPassword, encodedPassword);
   }
   private String encode(String str) {
     return passwordEncoder.encode(str);
+  }
+
+  private UserInfo CustomUserDetailsToUserInfo(CustomUserDetails userDetails) {
+    if (userDetails == null) {
+      return null;
+    }
+
+    UserInfo userInfo = new UserInfo();
+    userInfo.setId(userDetails.getUser().getId());
+    userInfo.setFirstName(userDetails.getUser().getFirstName());
+    userInfo.setLastName(userDetails.getUser().getLastName());
+    userInfo.setEmail(userDetails.getUser().getEmail());
+    userInfo.setUsername(userDetails.getUser().getUsername());
+    userInfo.setRole(userDetails.getUser().getRole().getName());
+
+    return userInfo;
   }
 }

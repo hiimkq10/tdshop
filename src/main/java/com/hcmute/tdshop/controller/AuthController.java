@@ -6,6 +6,8 @@ import com.hcmute.tdshop.dto.auth.ResetPasswordRequest;
 import com.hcmute.tdshop.dto.auth.ResetPasswordVerificationRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.AuthService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -46,7 +49,12 @@ public class AuthController {
   }
 
   @GetMapping("/activate/{id}")
-  public DataResponse activateAccount(@PathVariable(name = "id") long id, @RequestParam(name = "token") String token) {
-    return authService.activateAccount(id, token);
+  @ResponseBody
+  public DataResponse activateAccount(
+      @PathVariable(name = "id") long id,
+      @RequestParam(name = "token") String token,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    return authService.activateAccount(id, token, request, response);
   }
 }
