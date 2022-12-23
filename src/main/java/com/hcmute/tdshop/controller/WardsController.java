@@ -20,8 +20,8 @@ public class WardsController {
     return wardsService.getAllWards();
   }
 
-  @GetMapping("/get-by-district/{wards-id}")
-  public DataResponse getWardsByDistrictId(@PathVariable(name = "wards-id") long id) {
+  @GetMapping("/get-by-district/{district-id}")
+  public DataResponse getWardsByDistrictId(@PathVariable(name = "district-id") long id) {
     return wardsService.getWardsByDistrictId(id);
   }
 }

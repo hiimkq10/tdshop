@@ -26,7 +26,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final String[] publicUrlPatterns = {"/v3/api-docs/**", "/swagger-ui/**", "/auth/reset-password**",
       "/auth/reset-password-verification**", "/email/send-reset-password-verification**", "/auth/register**",
       "/email/send-forgot-password-email**", "/email/send-activate-account-email/**",
-      "/auth/activate/**", "/product/**", "/province/**", "/district/**", "/wards/**,",
+      "/auth/activate/**", "/product/**", "/province/**", "/district/**", "/wards/**",
       "/master-category/get-all**", "/master-category/get/**",
       "/category/get**", "/variation/get**", "/ship/**", "/payment-method/**"};
   @Autowired
