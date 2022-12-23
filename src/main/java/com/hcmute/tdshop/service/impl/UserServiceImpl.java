@@ -46,6 +46,7 @@ public class UserServiceImpl implements UserService {
     if (optionalUser.isPresent()) {
       User currentUser = optionalUser.get();
       User userToUpdate = userMapper.UpdateUserInfoRequestToUser(request);
+      System.out.println(userToUpdate.getPhone());
       if (!helper.checkIfStringIsBlank(userToUpdate.getFirstName())) {
         currentUser.setFirstName(userToUpdate.getFirstName());
       }
@@ -55,7 +56,7 @@ public class UserServiceImpl implements UserService {
       if (!helper.checkIfStringIsBlank(userToUpdate.getEmail())) {
         currentUser.setEmail(userToUpdate.getEmail());
       }
-      if (helper.checkIfStringIsBlank(userToUpdate.getPhone())) {
+      if (!helper.checkIfStringIsBlank(userToUpdate.getPhone())) {
         currentUser.setPhone(userToUpdate.getPhone());
       }
       if (userToUpdate.getBirthdate() != null) {
@@ -63,6 +64,9 @@ public class UserServiceImpl implements UserService {
       }
       if (userToUpdate.getIsActive() != null) {
         currentUser.setIsActive(userToUpdate.getIsActive());
+      }
+      if (userToUpdate.getGender() != null) {
+        currentUser.setGender(userToUpdate.getGender());
       }
       return new DataResponse(userMapper.UserToUserResponse(userRepository.saveAndFlush(currentUser)));
     }
