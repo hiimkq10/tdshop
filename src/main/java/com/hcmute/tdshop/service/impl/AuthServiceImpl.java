@@ -18,6 +18,7 @@ import com.hcmute.tdshop.repository.UserRepository;
 import com.hcmute.tdshop.security.jwt.JwtTokenProvider;
 import com.hcmute.tdshop.security.model.CustomUserDetails;
 import com.hcmute.tdshop.service.AuthService;
+import com.hcmute.tdshop.service.EmailService;
 import com.hcmute.tdshop.utils.Helper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.LocalDateTime;
@@ -53,6 +54,9 @@ public class AuthServiceImpl implements AuthService {
   @Autowired
   private UserMapper userMapper;
 
+  @Autowired
+  private EmailService emailService;
+
   @Override
   public DataResponse register(RegisterRequest request) {
     User user = authMapper.RegisterRequestToUser(request);
@@ -75,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
       user.setIsVerified(false);
       user.setCreatedAt(LocalDateTime.now());
       user = userRepository.save(user);
+      emailService.sendActivateAccountEmail(user.getId());
       return new DataResponse(userMapper.UserToUserResponse(user));
     }
     return DataResponse.BAD_REQUEST;
