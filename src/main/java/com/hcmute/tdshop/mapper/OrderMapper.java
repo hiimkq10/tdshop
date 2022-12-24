@@ -64,7 +64,7 @@ public abstract class OrderMapper {
     if (setOfProduct.size() != request.getSetOfProducts().size()) {
       throw new RuntimeException(ApplicationConstants.PRODUCT_NOT_FOUND);
     }
-    Address address = addressRepository.findById(request.getAddressId())
+    Address address = addressRepository.findByIdAndUser_IdAndDeletedAtIsNull(request.getAddressId(), userId)
         .orElseThrow(() -> new RuntimeException(ApplicationConstants.ADDRESS_NOT_FOUND));
 
     HashMap<Long, Integer> productQuantity = new HashMap<>();
