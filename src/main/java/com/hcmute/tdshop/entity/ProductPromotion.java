@@ -7,7 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,7 +43,7 @@ public class ProductPromotion {
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "product_id", nullable = false)
   private Product product;
 }

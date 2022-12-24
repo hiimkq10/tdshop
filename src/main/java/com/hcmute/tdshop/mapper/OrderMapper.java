@@ -8,6 +8,7 @@ import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.PaymentMethod;
 import com.hcmute.tdshop.entity.Product;
+import com.hcmute.tdshop.entity.ProductPromotion;
 import com.hcmute.tdshop.entity.Ship;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.entity.User;
@@ -73,9 +74,12 @@ public abstract class OrderMapper {
 
     Set<OrderDetail> setOfOrderDetails = new HashSet<>();
     double discountRate = 0;
+    LocalDateTime now = LocalDateTime.now();
     for (Product product : setOfProduct) {
-      if (product.getProductPromotion() != null) {
-        discountRate = product.getProductPromotion().getDiscountRate();
+      for (ProductPromotion productPromotion : product.getSetOfProductPromotions()) {
+        if (isBeforeOrEqual(productPromotion.getStartDate(), now) && isAfterOrEqual(productPromotion.getEndDate(), now)) {
+          discountRate = productPromotion.getDiscountRate();
+        }
       }
       setOfOrderDetails.add(new OrderDetail(
           null,
@@ -147,5 +151,13 @@ public abstract class OrderMapper {
 
   public String DoubleToString(Double d) {
     return new BigDecimal(d).toPlainString();
+  }
+
+  private boolean isBeforeOrEqual(LocalDateTime date1, LocalDateTime date2){
+    return date1.isBefore(date2) || date1.isEqual(date2);
+  }
+
+  private boolean isAfterOrEqual(LocalDateTime date1, LocalDateTime date2){
+    return date1.isAfter(date2) || date1.isEqual(date2);
   }
 }

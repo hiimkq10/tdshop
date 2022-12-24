@@ -208,6 +208,18 @@ public class ApplicationConstants {
   public static final String ATTRIBUTE_NAME_MANDATORY = "Attribute name is mandatory";
   public static final String ATTRIBUTE_NAME_SIZE_INVALID = "Attribute name is too long";
 
+  // ------------------------------ PROMOTION -------------------------------------
+  public static final String PROMOTION_NOT_FOUND = "Promotion not found";
+  public static final String PROMOTION_START_DATE_NOT_BEFORE_END_DATE = "Start date must befor end date";
+  public static final String PROMOTION_NAME_MANDATORY = "Promotion name is mandatory";
+  public static final String PROMOTION_NAME_SIZE_INVALID = "Promotion name is too long";
+  public static final String PROMOTION_DESCRIPTION_MANDATORY = "Promotion description is mandatory";
+  public static final String PROMOTION_DESCRIPTION_SIZE_INVALID = "Promotion description is too long";
+  public static final String PROMOTION_DISCOUNT_RATE_SMALLER_THAN_0 = "Promotion discount rate must bigger than 0";
+  public static final String PROMOTION_ADD_SUCCESSFULLY = "Add promotion successfully";
+  public static final String PROMOTION_UPDATE_SUCCESSFULLY = "Update promotion successfully";
+  public static final String PROMOTION_DELETE_SUCCESSFULLY = "Delete promotion successfully";
+
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
   public static final String JWT_CLAIM_ID = "id";

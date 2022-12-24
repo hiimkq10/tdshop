@@ -79,4 +79,16 @@ public class ProductSpecification {
       return root.get("id").in(selectedProductIDsSubquery);
     });
   }
+
+  public static Specification<Product> hasCategory(Set<Long> categoryIds) {
+    return ((root, query, criteriaBuilder) -> {
+      Subquery<Long> selectedProductIDsSubquery = query.subquery(Long.class);
+      Root<Product> selectedProductIDs = selectedProductIDsSubquery.from(Product.class);
+      Join<Category, Product> productCategoryJoin = selectedProductIDs.join("setOfCategories");
+      selectedProductIDsSubquery
+          .select(selectedProductIDs.get("id"))
+          .where(productCategoryJoin.get("id").in(categoryIds));
+      return root.get("id").in(selectedProductIDsSubquery);
+    });
+  }
 }

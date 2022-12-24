@@ -16,6 +16,7 @@ import com.hcmute.tdshop.entity.ProductPromotion;
 import com.hcmute.tdshop.entity.VariationOption;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.mapstruct.Mapper;
@@ -37,7 +38,7 @@ public abstract class ProductMapper {
     simpleProductDto.setImageUrl( product.getImageUrl() );
     simpleProductDto.setBrand(product.getBrand());
     simpleProductDto.setSelAmount(product.getSelAmount());
-    simpleProductDto.setProductPromotion( ProductPromotionToProductPromotionDto( product.getProductPromotion() ) );
+    simpleProductDto.setProductPromotion( ProductPromotionToProductPromotionDto( getCurrentPromotion(product) ) );
 
     return simpleProductDto;
   }
@@ -69,7 +70,7 @@ public abstract class ProductMapper {
     }
     productInfoDto.setSetOfProductAttributes( productAttributeSetToProductAttributeDtoSet( product.getSetOfProductAttributes() ) );
     productInfoDto.setSetOfVariationOptions( variationOptionSetToProductVariationOptionDtoSet( product.getSetOfVariationOptions() ) );
-    productInfoDto.setProductPromotion( ProductPromotionToProductPromotionDto( product.getProductPromotion() ) );
+    productInfoDto.setProductPromotion( ProductPromotionToProductPromotionDto( getCurrentPromotion(product) ) );
 
     return productInfoDto;
   }
@@ -113,4 +114,24 @@ public abstract class ProductMapper {
   public abstract Set<ProductAttributeDto> productAttributeSetToProductAttributeDtoSet(Set<ProductAttribute> set);
 
   public abstract Set<ProductVariationOptionDto> variationOptionSetToProductVariationOptionDtoSet(Set<VariationOption> set);
+
+  private ProductPromotion getCurrentPromotion(Product product) {
+    ProductPromotion promotion = null;
+    LocalDateTime now = LocalDateTime.now();
+    for (ProductPromotion productPromotion : product.getSetOfProductPromotions()) {
+      if (isBeforeOrEqual(productPromotion.getStartDate(), now) && isAfterOrEqual(productPromotion.getEndDate(), now)) {
+        promotion = productPromotion;
+        break;
+      }
+    }
+    return promotion;
+  }
+
+  private boolean isBeforeOrEqual(LocalDateTime date1, LocalDateTime date2){
+    return date1.isBefore(date2) || date1.isEqual(date2);
+  }
+
+  private boolean isAfterOrEqual(LocalDateTime date1, LocalDateTime date2){
+    return date1.isAfter(date2) || date1.isEqual(date2);
+  }
 }

@@ -75,7 +75,7 @@ public class Helper {
     return userRepository.countByPhone(phone) > 0;
   }
 
-  public boolean checkIfStringIsBlank(String str) {
+  public static boolean checkIfStringIsBlank(String str) {
     return str == null || str.isEmpty();
   }
 }
