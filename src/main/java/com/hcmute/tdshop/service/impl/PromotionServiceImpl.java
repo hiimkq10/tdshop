@@ -121,7 +121,7 @@ public class PromotionServiceImpl implements PromotionService {
     boolean updateRequire = false;
     if (optionalPromotion.isPresent()) {
       Promotion currentPromotion = optionalPromotion.get();
-      if (Helper.checkIfStringIsBlank(promotionToUpdate.getName())) {
+      if (!Helper.checkIfStringIsBlank(promotionToUpdate.getName())) {
         currentPromotion.setName(promotionToUpdate.getName());
       }
       currentPromotion.setDescription(promotionToUpdate.getDescription());

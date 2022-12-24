@@ -2,6 +2,7 @@ package com.hcmute.tdshop.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -55,6 +56,9 @@ public class Address {
   @ManyToOne
   @JoinColumn(name = "wards_id", nullable = false)
   private Wards wards;
+
+  @Column(name = "deleted_at")
+  private LocalDateTime deletedAt;
 
   @ManyToOne
   @JoinColumn(name = "user_id", nullable = false)
