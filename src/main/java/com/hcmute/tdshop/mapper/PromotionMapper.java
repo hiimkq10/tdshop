@@ -1,6 +1,8 @@
 package com.hcmute.tdshop.mapper;
 
 import com.hcmute.tdshop.dto.promotion.AddPromotionRequest;
+import com.hcmute.tdshop.dto.promotion.TempPromotion;
+import com.hcmute.tdshop.dto.promotion.UpdatePromotionRequest;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Promotion;
 import com.hcmute.tdshop.repository.CategoryRepository;
@@ -18,6 +20,7 @@ public abstract class PromotionMapper {
   private CategoryRepository categoryRepository;
 
   public abstract Promotion AddPromotionRequestToPromotion(AddPromotionRequest request);
+  public abstract Promotion UpdatePromotionRequestToPromotion(UpdatePromotionRequest request);
 
   LocalDateTime StringToLocalDateTime(String str) {
     return Helper.MyLocalDateTimeParser(str);

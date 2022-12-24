@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -85,6 +86,6 @@ public class Product {
       @JoinColumn(name = "variation_option_id")})
   private Set<VariationOption> setOfVariationOptions;
 
-  @OneToOne(mappedBy = "product", fetch = FetchType.EAGER)
-  private ProductPromotion productPromotion;
+  @OneToMany(mappedBy = "product", fetch = FetchType.EAGER)
+  private Set<ProductPromotion> setOfProductPromotions;
 }

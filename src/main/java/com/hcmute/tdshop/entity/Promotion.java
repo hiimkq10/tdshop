@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.util.Set;
 import javax.persistence.Column;
@@ -49,5 +50,6 @@ public class Promotion {
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(name = "promotion_category",
       joinColumns = {@JoinColumn(name = "promotion_id")}, inverseJoinColumns = {@JoinColumn(name = "category_id")})
+  @JsonIgnore
   private Set<Category> setOfCategories;
 }
