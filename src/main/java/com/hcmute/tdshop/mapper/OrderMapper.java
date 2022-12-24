@@ -4,14 +4,21 @@ import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.OrderDetailDto;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.order.OrderResponse;
+import com.hcmute.tdshop.dto.order.orderaddress.AddressDto;
+import com.hcmute.tdshop.dto.order.orderaddress.DistrictDto;
+import com.hcmute.tdshop.dto.order.orderaddress.ProvinceDto;
+import com.hcmute.tdshop.dto.order.orderaddress.WardsDto;
 import com.hcmute.tdshop.entity.Address;
+import com.hcmute.tdshop.entity.District;
 import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.PaymentMethod;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductPromotion;
+import com.hcmute.tdshop.entity.Province;
 import com.hcmute.tdshop.entity.Ship;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.entity.User;
+import com.hcmute.tdshop.entity.Wards;
 import com.hcmute.tdshop.repository.AddressRepository;
 import com.hcmute.tdshop.repository.PaymentMethodRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
@@ -113,7 +120,7 @@ public abstract class OrderMapper {
     orderResponse.setPaymentMethod(order.getPaymentMethod());
     orderResponse.setShip(order.getShip());
     orderResponse.setOrderStatus(order.getOrderStatus());
-    orderResponse.setAddress(order.getAddress());
+    orderResponse.setAddress(AddressToAddressDto(order.getAddress()));
     orderResponse.setSetOfOrderDetailDtos(SetOfOrderDetailsToSetOfOrderDetailDtos(order.getSetOfOrderDetails()));
 
     return orderResponse;
@@ -148,6 +155,27 @@ public abstract class OrderMapper {
 
     return orderDetailDto;
   }
+
+  public AddressDto AddressToAddressDto(Address address) {
+    if (address == null) {
+      return null;
+    }
+    AddressDto addressDto = new AddressDto();
+    addressDto.setId(address.getId());
+    addressDto.setName(address.getName());
+    addressDto.setEmail(address.getEmail());
+    addressDto.setPhone(address.getPhone());
+    addressDto.setAddressDetail(address.getAddressDetail());
+    addressDto.setWards(WardsToWardsDto(address.getWards()));
+    addressDto.setDistrict(DistrictToDistrictDto(address.getWards().getDistrict()));
+    addressDto.setProvince(ProvinceToProvinceDto(address.getWards().getDistrict().getProvince()));
+
+    return addressDto;
+  }
+
+  public abstract WardsDto WardsToWardsDto(Wards wards);
+  public abstract DistrictDto DistrictToDistrictDto(District district);
+  public abstract ProvinceDto ProvinceToProvinceDto(Province province);
 
   public String DoubleToString(Double d) {
     return new BigDecimal(d).toPlainString();

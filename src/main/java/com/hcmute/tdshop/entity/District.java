@@ -36,7 +36,6 @@ public class District {
 
   @ManyToOne
   @JoinColumn(name = "province_id", nullable = false)
-  @JsonIgnore
   private Province province;
 
   @OneToMany(mappedBy = "district", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

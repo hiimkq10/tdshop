@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.dto.order;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hcmute.tdshop.dto.order.orderaddress.AddressDto;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.OrderStatus;
 import com.hcmute.tdshop.entity.PaymentMethod;
@@ -27,7 +28,7 @@ public class OrderResponse {
   private OrderStatus orderStatus;
 
   @JsonProperty("Address")
-  private Address address;
+  private AddressDto address;
 
   @JsonProperty("OrderDetails")
   private Set<OrderDetailDto> setOfOrderDetailDtos;

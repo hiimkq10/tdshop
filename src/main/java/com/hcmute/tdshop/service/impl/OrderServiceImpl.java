@@ -14,6 +14,7 @@ import com.hcmute.tdshop.mapper.OrderMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.CartItemRepository;
 import com.hcmute.tdshop.repository.CartRepository;
+import com.hcmute.tdshop.repository.OrderDetailRepository;
 import com.hcmute.tdshop.repository.OrderStatusRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShopOrderRepository;
@@ -54,9 +55,12 @@ public class OrderServiceImpl implements OrderService {
   @Autowired
   private CartItemRepository cartItemRepository;
 
+  @Autowired
+  private OrderDetailRepository orderDetailRepository;
+
   @Override
   public DataResponse getOrder(Pageable page) {
-    Page<ShopOrder> pageOfOrders = orderRepository.findAll(page);
+    Page<ShopOrder> pageOfOrders = orderRepository.findByDeletedAtIsNull(page);
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
         page,
@@ -68,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public DataResponse getUserOrder(Pageable page) {
     long userId = AuthenticationHelper.getCurrentLoggedInUserId();
-    Page<ShopOrder> pageOfOrders = orderRepository.findByUser_Id(userId, page);
+    Page<ShopOrder> pageOfOrders = orderRepository.findByUser_IdAndDeletedAtIsNull(userId, page);
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
         page,
@@ -116,6 +120,7 @@ public class OrderServiceImpl implements OrderService {
       order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.AWAITINGPAYMENT.getId()).get());
     }
     order = orderRepository.save(order);
+    orderDetailRepository.saveAll(order.getSetOfOrderDetails());
     return new DataResponse(ApplicationConstants.ORDER_SUCCESSFULLY, orderMapper.OrderToOrderResponse(order));
   }
 
@@ -140,7 +145,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public DataResponse cancelOrder(long orderId) {
     long userId = AuthenticationHelper.getCurrentLoggedInUserId();
-    Optional<ShopOrder> optionalShopOrder = orderRepository.findByIdAndUser_Id(orderId, userId);
+    Optional<ShopOrder> optionalShopOrder = orderRepository.findByIdAndUser_IdAndDeletedAtIsNull(orderId, userId);
     if (optionalShopOrder.isPresent()) {
       ShopOrder order = optionalShopOrder.get();
       if (order.getOrderStatus().getId().equals(OrderStatusEnum.AWAITINGPAYMENT.getId())) {
@@ -149,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
         return new DataResponse(ApplicationConstants.ORDER_CANCEL_SUCCESSFULLY, orderMapper.OrderToOrderResponse(order));
       }
       else {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_DELETED, ApplicationConstants.BAD_REQUEST_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED, ApplicationConstants.BAD_REQUEST_CODE);
       }
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);

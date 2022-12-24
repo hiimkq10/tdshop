@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShopOrderRepository extends JpaRepository<ShopOrder, Long> {
-  Page<ShopOrder> findByUser_Id(Long userId, Pageable pageable);
-  Optional<ShopOrder> findByIdAndUser_Id(Long id, Long userId);
+  Page<ShopOrder> findByDeletedAtIsNull(Pageable pageable);
+  Page<ShopOrder> findByUser_IdAndDeletedAtIsNull(Long userId, Pageable pageable);
+  Optional<ShopOrder> findByIdAndUser_IdAndDeletedAtIsNull(Long id, Long userId);
 }
