@@ -14,7 +14,7 @@ public class OrderDetailDto {
   @JsonProperty("DiscountRate")
   private double discountRate;
 
-  @JsonProperty("FinalRate")
+  @JsonProperty("FinalPrice")
   private String finalPrice;
 
   @JsonProperty("Quantity")
