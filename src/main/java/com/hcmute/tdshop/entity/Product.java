@@ -16,10 +16,12 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 @Entity
 @Getter
@@ -88,4 +90,7 @@ public class Product {
 
   @OneToMany(mappedBy = "product", fetch = FetchType.EAGER)
   private Set<ProductPromotion> setOfProductPromotions;
+
+  @Formula("(select pm.discount_rate from product_promotion as pm where pm.start_date < NOW() and pm.end_date >= NOW() and pm.product_id = id)")
+  private Double currentDiscountRate;
 }

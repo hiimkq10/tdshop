@@ -2,33 +2,37 @@ package com.hcmute.tdshop.specification;
 
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Product;
-import com.hcmute.tdshop.entity.Variation;
+import com.hcmute.tdshop.entity.ProductPromotion;
 import com.hcmute.tdshop.entity.VariationOption;
 import com.hcmute.tdshop.enums.ProductStatusEnum;
+import java.time.LocalDateTime;
 import java.util.Set;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ProductSpecification {
+
   public static Specification<Product> hasId(long id) {
     return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
   }
 
   public static Specification<Product> hasSku(String sku) {
-    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("sku")), "%" + sku.toLowerCase() + "%"));
+    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("sku")),
+        "%" + sku.toLowerCase() + "%"));
   }
 
   public static Specification<Product> hasName(String name) {
-    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("name")),
+        "%" + name.toLowerCase() + "%"));
   }
 
   public static Specification<Product> hasBrand(String brand) {
-    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("brand").get("name")), "%" + brand.toLowerCase() + "%"));
+    return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("brand").get("name")),
+        "%" + brand.toLowerCase() + "%"));
   }
 
   public static Specification<Product> hasPriceLessThanOrEqualTo(double maxPrice) {
@@ -44,7 +48,8 @@ public class ProductSpecification {
   }
 
   public static Specification<Product> isNotHide() {
-    return (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("status").get("id"), ProductStatusEnum.HIDE.getId());
+    return (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("status").get("id"),
+        ProductStatusEnum.HIDE.getId());
   }
 
   public static Specification<Product> hasVariations(Set<Long> setOfVariationIds) {
@@ -90,5 +95,25 @@ public class ProductSpecification {
           .where(productCategoryJoin.get("id").in(categoryIds));
       return root.get("id").in(selectedProductIDsSubquery);
     });
+  }
+
+  public static Specification<Product> sortByPromotion(Direction direction) {
+    return (((root, query, criteriaBuilder) -> {
+      Subquery<Long> selectedProductIdsSubquery = query.subquery(Long.class);
+      Root<Product> selectedProductIds = selectedProductIdsSubquery.from(Product.class);
+      Join<Product, ProductPromotion> productProductPromotionJoin = selectedProductIds.join("setOfProductPromotions");
+      LocalDateTime now = LocalDateTime.now();
+      selectedProductIdsSubquery
+          .select(selectedProductIds.get("id"))
+          .where(criteriaBuilder.and(criteriaBuilder.lessThanOrEqualTo(selectedProductIds.get("startDate"), now), criteriaBuilder.greaterThanOrEqualTo(selectedProductIds.get("endDate"), now)));
+
+      selectedProductIdsSubquery.distinct(true);
+      Order promotionOrder = direction == Direction.ASC
+          ? criteriaBuilder.asc(selectedProductIds.get("discountRate"))
+          : criteriaBuilder.desc(selectedProductIds.get("discountRate"));
+
+      query.orderBy(promotionOrder);
+      return criteriaBuilder.equal(root.get("id"), selectedProductIdsSubquery);
+    }));
   }
 }
