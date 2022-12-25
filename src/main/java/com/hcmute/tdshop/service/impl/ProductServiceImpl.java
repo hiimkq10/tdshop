@@ -511,10 +511,10 @@ public class ProductServiceImpl implements ProductService {
     String role = AuthenticationHelper.getCurrentLoggedInUserRole();
     List<Specification<Product>> specifications = new ArrayList<>();
     specifications.add(ProductSpecification.isNotDeleted());
-    if (role != null && role.equals(AccountRoleEnum.ROLE_ADMIN.getName())) {
-      return specifications;
-    }
-//    specifications.add(ProductSpecification.isNotHide());
+//    if (role != null && role.equals(AccountRoleEnum.ROLE_ADMIN.getName())) {
+//      return specifications;
+//    }
+    specifications.add(ProductSpecification.isNotHide());
     return specifications;
   }
 }
