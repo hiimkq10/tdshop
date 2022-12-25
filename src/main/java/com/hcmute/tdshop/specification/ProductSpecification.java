@@ -35,6 +35,10 @@ public class ProductSpecification {
         "%" + brand.toLowerCase() + "%"));
   }
 
+  public static Specification<Product> hasBrandId(Long id) {
+    return (((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("brand").get("id"), id)));
+  }
+
   public static Specification<Product> hasPriceLessThanOrEqualTo(double maxPrice) {
     return ((root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice));
   }

@@ -19,7 +19,9 @@ import com.hcmute.tdshop.repository.OrderStatusRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShopOrderRepository;
 import com.hcmute.tdshop.service.OrderService;
+import com.hcmute.tdshop.specification.OrderSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
+import com.hcmute.tdshop.utils.SpecificationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -70,9 +73,21 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public DataResponse getUserOrder(Pageable page) {
+  public DataResponse getUserOrder(Long orderId, Long status, Pageable page) {
     long userId = AuthenticationHelper.getCurrentLoggedInUserId();
-    Page<ShopOrder> pageOfOrders = orderRepository.findByUser_IdAndDeletedAtIsNull(userId, page);
+
+    List<Specification<ShopOrder>> specifications = new ArrayList<>();
+    specifications.add(OrderSpecification.hasUser(userId));
+    specifications.add(OrderSpecification.isNotDeleted());
+    if (orderId > 0) {
+      specifications.add(OrderSpecification.hasId(orderId));
+    }
+    if (status > 0) {
+      specifications.add(OrderSpecification.hasStatus(status));
+    }
+
+    Specification<ShopOrder> conditions = SpecificationHelper.and(specifications);
+    Page<ShopOrder> pageOfOrders = orderRepository.findAll(conditions, page);
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
         page,
@@ -148,7 +163,7 @@ public class OrderServiceImpl implements OrderService {
     Optional<ShopOrder> optionalShopOrder = orderRepository.findByIdAndUser_IdAndDeletedAtIsNull(orderId, userId);
     if (optionalShopOrder.isPresent()) {
       ShopOrder order = optionalShopOrder.get();
-      if (order.getOrderStatus().getId().equals(OrderStatusEnum.AWAITINGPAYMENT.getId())) {
+      if (order.getOrderStatus().getId().equals(OrderStatusEnum.AWAITINGPAYMENT.getId()) || (order.getOrderStatus().getId().equals(OrderStatusEnum.PROCCESSING.getId()))) {
         order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.CANCELED.getId()).get());
         order = orderRepository.saveAndFlush(order);
         return new DataResponse(ApplicationConstants.ORDER_CANCEL_SUCCESSFULLY, orderMapper.OrderToOrderResponse(order));

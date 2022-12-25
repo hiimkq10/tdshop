@@ -30,8 +30,11 @@ public class OrderController {
   }
 
   @GetMapping("/my-order")
-  public DataResponse getUserOrder(Pageable page) {
-    return orderService.getUserOrder(page);
+  public DataResponse getUserOrder(
+      @RequestParam(value = "order-id", required = false, defaultValue = "0") long orderId,
+      @RequestParam(value = "status-id", required = false, defaultValue = "0") long statusId,
+      Pageable page) {
+    return orderService.getUserOrder(orderId, statusId, page);
   }
 
   @PostMapping("/add")
