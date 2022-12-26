@@ -213,11 +213,16 @@ public class ProductServiceImpl implements ProductService {
       Brand brand = optionalBrand.get();
       List<Category> listOfCaregories = categoryRepository.findAllById(request.getSetOfCategoryIds());
       product.setBrand(brand);
-      product.setSetOfCategories(new HashSet<>(listOfCaregories));
       product.setSku(UUID.randomUUID().toString());
       product.setSelAmount(0);
       product.setCreatedAt(LocalDateTime.now());
       product.setStatus(productStatusRepository.findById(ProductStatusEnum.HIDE.getId()).get());
+
+      // Add Category
+      product.setSetOfCategories(new HashSet<>(listOfCaregories));
+      for (Category c : listOfCaregories) {
+        c.getSetOfProducts().add(product);
+      }
 
       // Upload first image
       String imageUrl = uploadProductImage(mainImage);

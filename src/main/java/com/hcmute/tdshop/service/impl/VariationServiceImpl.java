@@ -77,6 +77,7 @@ public class VariationServiceImpl implements VariationService {
           currentVariation.setName(variationToUpdate.getName());
         }
       }
+      Set<String> tempsetOfVariationOptionValues = request.getSetOfVarirationOptionValues();
       Set<String> setOfVariationOptionValues = request.getSetOfVarirationOptionValues().stream()
           .map(String::toLowerCase).collect(
               Collectors.toSet());
@@ -90,8 +91,10 @@ public class VariationServiceImpl implements VariationService {
           variationOptionIterator.remove();
         }
       }
-      for (String value : setOfVariationOptionValues) {
-        currentVariation.getSetOfVariationOptions().add(new VariationOption(null, value, currentVariation, null));
+      for (String value : tempsetOfVariationOptionValues) {
+        if (setOfVariationOptionValues.contains(value.toLowerCase())) {
+          currentVariation.getSetOfVariationOptions().add(new VariationOption(null, value, currentVariation, null));
+        }
       }
       variationRepository.saveAndFlush(currentVariation);
       return DataResponse.SUCCESSFUL;

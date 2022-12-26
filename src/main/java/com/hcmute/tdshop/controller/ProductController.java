@@ -1,5 +1,8 @@
 package com.hcmute.tdshop.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+
 import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
@@ -60,12 +63,13 @@ public class ProductController {
     return productService.getProductById(id);
   }
 
-  @PostMapping("/add")
+  @PostMapping(value = "/add", consumes = {APPLICATION_JSON_VALUE, MULTIPART_FORM_DATA_VALUE})
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse insertProduct(
       @RequestPart(value = "ProductInfo") @Valid AddProductRequest request,
       @RequestPart(value = "MainImage") MultipartFile mainImage,
-      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
+      @RequestPart(value = "OtherImage[]") List<MultipartFile> images) {
+//    System.out.println(images.size());
     return productService.insertProduct(request, mainImage, images);
   }
 
@@ -75,7 +79,7 @@ public class ProductController {
       @PathVariable(name = "id") long id,
       @RequestPart(value = "ProductInfo") @Valid UpdateProductRequest request,
       @RequestPart(value = "MainImage") MultipartFile mainImage,
-      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
+      @RequestPart(value = "OtherImage[]") List<MultipartFile> images) {
     return productService.updateProduct(id, request, mainImage, images);
   }
 

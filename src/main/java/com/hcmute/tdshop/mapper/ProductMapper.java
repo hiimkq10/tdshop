@@ -116,6 +116,9 @@ public abstract class ProductMapper {
   public abstract Set<ProductVariationOptionDto> variationOptionSetToProductVariationOptionDtoSet(Set<VariationOption> set);
 
   private ProductPromotion getCurrentPromotion(Product product) {
+    if (product.getSetOfProductPromotions() == null) {
+      return null;
+    }
     ProductPromotion promotion = null;
     LocalDateTime now = LocalDateTime.now();
     for (ProductPromotion productPromotion : product.getSetOfProductPromotions()) {
