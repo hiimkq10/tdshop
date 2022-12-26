@@ -56,6 +56,7 @@ public class Category {
 
   @PreRemove
   private void preRemove() {
+    masterCategory.getSetOfCategories().remove(this);
     children.forEach(child -> child.setParent(null));
     setOfProducts.forEach(product -> product.getSetOfCategories().remove(this));
     setOfPromotions.forEach(promotion -> promotion.getSetOfCategories().remove(this));

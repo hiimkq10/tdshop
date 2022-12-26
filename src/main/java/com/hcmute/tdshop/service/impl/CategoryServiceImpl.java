@@ -79,7 +79,8 @@ public class CategoryServiceImpl implements CategoryService {
         Optional<Category> optionalParentCategory = categoryRepository.findById(request.getParentCategoryId());
         if (optionalParentCategory.isPresent()) {
           Category parentCategory = optionalParentCategory.get();
-          if (parentCategory.getParent() != null) {
+          if (parentCategory.getParent() == null) {
+            parentCategory.getChildren().add(category);
             category.setParent(optionalParentCategory.get());
           } else {
             return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_TWO_LEVEL_ERROR,
@@ -100,17 +101,27 @@ public class CategoryServiceImpl implements CategoryService {
     Optional<Category> optionalCategory = categoryRepository.findById(id);
     if (optionalCategory.isPresent()) {
       Category currentCategory = optionalCategory.get();
-      if (categoryToUpdate.getName() != null) {
-        if (checkIfNameExisted(categoryToUpdate.getName())) {
+      if (categoryToUpdate.getName() != null && !categoryToUpdate.getName().equals(currentCategory.getName())) {
+        if (!checkIfNameExisted(categoryToUpdate.getName())) {
           currentCategory.setName(categoryToUpdate.getName());
         }
+        else {
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NAME_EXISTED,
+              ApplicationConstants.BAD_REQUEST_CODE);
+        }
       }
-      if (request.getParentCategoryId() > 0) {
+      if (request.getParentCategoryId() > 0 && request.getParentCategoryId() != id && (currentCategory.getParent() == null || request.getParentCategoryId() != currentCategory.getParent().getId())) {
         Optional<Category> optionalParentCategory = categoryRepository.findById(request.getParentCategoryId());
         if (optionalParentCategory.isPresent()) {
           Category parentCategory = optionalParentCategory.get();
-          if (parentCategory.getParent() != null) {
-            currentCategory.setParent(optionalParentCategory.get());
+          if (parentCategory.getParent() == null) {
+            if (parentCategory.getMasterCategory().getId() == currentCategory.getMasterCategory().getId()) {
+              currentCategory.setParent(optionalParentCategory.get());
+            }
+            else {
+              return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PARENT_MASTER_CATEGORY_SAME_ERROR,
+                  ApplicationConstants.BAD_REQUEST_CODE);
+            }
           } else {
             return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_TWO_LEVEL_ERROR,
                 ApplicationConstants.BAD_REQUEST_CODE);
@@ -132,10 +143,6 @@ public class CategoryServiceImpl implements CategoryService {
           ApplicationConstants.BAD_REQUEST_CODE);
     }
     Category category = optionalCategory.get();
-    if (productRepository.existsBySetOfCategoriesContains(category) || categoryRepository.existsByParent_Id(id)) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_RELATED_EXIST,
-          ApplicationConstants.BAD_REQUEST_CODE);
-    }
     categoryRepository.delete(category);
     return new DataResponse(ApplicationConstants.CATEGORY_DELETE_SUCCESSFULLY, true);
   }

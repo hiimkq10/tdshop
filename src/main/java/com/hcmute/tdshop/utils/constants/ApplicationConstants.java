@@ -177,6 +177,7 @@ public class ApplicationConstants {
   public static final String CATEGORY_NAME_SIZE_INVALID = "Category name is too long";
   public static final String CATEGORY_RELATED_EXIST = "Can`t delete category!! Please remove all product or child category related to this category before delete";
   public static final String CATEGORY_TWO_LEVEL_ERROR = "You can only have 2 level category";
+  public static final String PARENT_MASTER_CATEGORY_SAME_ERROR = "Parent category`s master category must be the same as children";
   public static final String CATEGORY_ADD_SUCCESSFULLY = "Add category successfully";
   public static final String CATEGORY_UPDATE_SUCCESSFULLY = "Update category successfully";
   public static final String CATEGORY_DELETE_SUCCESSFULLY = "Delete category successfully";
