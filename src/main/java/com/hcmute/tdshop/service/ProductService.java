@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ProductService {
   public DataResponse getAllProducts(Pageable page);
   public DataResponse searchProductsByFilter(String keyword, long categoryId, double maxPrice, double minPrice, String brand, Long brandId, Set<Long> variationOptionIds, Pageable page);
+  public DataResponse searchProductsByFilterForAdmin(String keyword, long categoryId, double maxPrice, double minPrice, String brand, Long brandId, Set<Long> variationOptionIds, Pageable page);
   public DataResponse searchProductsByKeyword(String keyword, Pageable page);
   public DataResponse getProductById(long id);
   public DataResponse insertProduct(AddProductRequest request, MultipartFile mainImage, List<MultipartFile> images);

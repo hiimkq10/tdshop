@@ -171,6 +171,69 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
+  public DataResponse searchProductsByFilterForAdmin(String keyword, long categoryId, double maxPrice, double minPrice,
+      String brand, Long brandId, Set<Long> variationOptionIds, Pageable page) {
+    List<Specification<Product>> specifications = new ArrayList<>();
+    specifications.add(ProductSpecification.isNotDeleted());
+    if (keyword != null) {
+      List<Specification<Product>> ors = new ArrayList<>();
+      ors.add(ProductSpecification.hasSku(keyword));
+      ors.add(ProductSpecification.hasName(keyword));
+      ors.add(ProductSpecification.hasBrand(keyword));
+      specifications.add(SpecificationHelper.or(ors));
+    }
+
+    // Filter by variation
+    if (variationOptionIds != null) {
+      specifications.add(ProductSpecification.hasVariations(variationOptionIds));
+    }
+
+    // Filter by category
+    if (categoryId > 0) {
+      specifications.add(ProductSpecification.hasCategory(categoryId));
+    }
+
+    if (maxPrice > 0) {
+      specifications.add(ProductSpecification.hasPriceLessThanOrEqualTo(maxPrice));
+    }
+    if (minPrice > 0) {
+      specifications.add(ProductSpecification.hasPriceGreaterThanOrEqualTo(minPrice));
+    }
+
+    if (brand != null) {
+      specifications.add(ProductSpecification.hasBrand(brand));
+    }
+
+    if (brandId > 0) {
+      specifications.add(ProductSpecification.hasBrandId(brandId));
+    }
+
+    Specification<Product> conditions = SpecificationHelper.and(specifications);
+    Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
+    List<Product> listOfProducts = pageOfProducts.getContent();
+
+    // Filter by category
+//    if (categoryId > 0) {
+//      listOfProducts = listOfProducts.stream().filter(product -> checkIfProductHasCategory(product, categoryId))
+//          .collect(Collectors.toList());
+//    }
+
+    // Filter by variation
+//    if (variationOptionIds != null) {
+//      listOfProducts = listOfProducts.stream()
+//          .filter(product -> checkIfProductContainAllVariation(product, variationOptionIds)).collect(
+//              Collectors.toList());
+//    }
+
+    Page<SimpleProductDto> pageOfSimpleProducts = new PageImpl<SimpleProductDto>(
+        listOfProducts.stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()),
+        page,
+        pageOfProducts.getTotalElements()
+    );
+    return new DataResponse(pageOfSimpleProducts);
+  }
+
+  @Override
   public DataResponse searchProductsByKeyword(String keyword, Pageable page) {
     List<Specification<Product>> specifications = createSpecificationsBaseOnLoggedInUser();
     if (keyword != null) {

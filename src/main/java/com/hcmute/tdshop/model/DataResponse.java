@@ -41,10 +41,10 @@ public class DataResponse {
     this.message = message;
     this.status = status;
   }
-  public static final DataResponse SUCCESSFUL = new DataResponse(ApplicationConstants.SUCCESSFUL, "SUCCESSFUL");
-  public static final DataResponse NOT_FOUND = new DataResponse(ApplicationConstants.NOT_FOUND, "NOT_FOUND");
+  public static final DataResponse SUCCESSFUL = new DataResponse(ApplicationConstants.SUCCESSFUL, "SUCCESSFUL", ApplicationConstants.SUCCESSFUL_CODE);
+  public static final DataResponse NOT_FOUND = new DataResponse(ApplicationConstants.NOT_FOUND, "NOT_FOUND", ApplicationConstants.NOT_FOUND_CODE);
   public static final DataResponse BAD_REQUEST = new DataResponse(ApplicationConstants.BAD_REQUEST,
       ApplicationConstants.BAD_REQUEST_MESSAGE, null, ApplicationConstants.BAD_REQUEST_CODE);
-  public static final DataResponse FORBIDDEN = new DataResponse(ApplicationConstants.FORBIDDEN, "FORBIDDEN");
+  public static final DataResponse FORBIDDEN = new DataResponse(ApplicationConstants.FORBIDDEN, "FORBIDDEN", ApplicationConstants.FORBIDDEN_CODE);
   public static final DataResponse FAILED = new DataResponse(ApplicationConstants.FAILED, "FAILED");
 }
