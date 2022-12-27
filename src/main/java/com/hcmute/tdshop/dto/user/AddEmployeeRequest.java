@@ -15,7 +15,7 @@ public class AddEmployeeRequest {
   @NotBlank(message = ApplicationConstants.USER_FIRST_NAME_MANDATORY)
   private String firstName;
 
-  @JsonProperty("LastName")
+    @JsonProperty("LastName")
   @Size(max = 50, message = ApplicationConstants.USER_LAST_NAME_SIZE_INVALID)
   @NotBlank(message = ApplicationConstants.USER_LAST_NAME_MANDATORY)
   private String lastName;

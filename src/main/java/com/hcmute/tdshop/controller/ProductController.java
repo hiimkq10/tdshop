@@ -82,8 +82,7 @@ public class ProductController {
   public DataResponse insertProduct(
       @RequestPart(value = "ProductInfo") @Valid AddProductRequest request,
       @RequestPart(value = "MainImage") MultipartFile mainImage,
-      @RequestPart(value = "OtherImage[]") List<MultipartFile> images) {
-//    System.out.println(images.size());
+      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
     return productService.insertProduct(request, mainImage, images);
   }
 
@@ -93,7 +92,7 @@ public class ProductController {
       @PathVariable(name = "id") long id,
       @RequestPart(value = "ProductInfo") @Valid UpdateProductRequest request,
       @RequestPart(value = "MainImage") MultipartFile mainImage,
-      @RequestPart(value = "OtherImage[]") List<MultipartFile> images) {
+      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
     return productService.updateProduct(id, request, mainImage, images);
   }
 

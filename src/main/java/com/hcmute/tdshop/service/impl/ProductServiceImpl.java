@@ -316,27 +316,39 @@ public class ProductServiceImpl implements ProductService {
         }
       }
 
+      String url;
+      product.setSetOfImages(new HashSet<>());
+      for (int i = 0; i < images.size(); i++) {
+        MultipartFile image = images.get(i);
+        url = uploadProductImage(image);
+        if (url != null) {
+          product.getSetOfImages().add(new Image(null, url, null, product));
+        }
+      }
+
       product = productRepository.save(product);
 
       // Upload the rest image to server
-      if (images.size() > 0) {
-        product.setSetOfImages(new HashSet<>());
-        Product finalProduct = product;
-        Thread thread = new Thread(new Runnable() {
-          @Override
-          public void run() {
-            String url;
-            for (MultipartFile image : images) {
-              url = uploadProductImage(image);
-              if (url != null) {
-                finalProduct.getSetOfImages().add(new Image(null, url, null, finalProduct));
-              }
-            }
-            productRepository.saveAndFlush(finalProduct);
-          }
-        });
-        thread.start();
-      }
+//      if (images.size() > 0) {
+//        product.setSetOfImages(new HashSet<>());
+//        Product finalProduct = product;
+//        Thread thread = new Thread(new Runnable() {
+//          @Override
+//          public void run() {
+//            String url;
+//            for (int i = 0; i < images.size(); i++) {
+//              MultipartFile image = images.get(i);
+//              url = uploadProductImage(image);
+//              System.out.println("test: " + url);
+//              if (url != null) {
+//                finalProduct.getSetOfImages().add(new Image(null, url, null, finalProduct));
+//              }
+//            }
+//            productRepository.saveAndFlush(finalProduct);
+//          }
+//        });
+//        thread.start();
+//      }
 
       return new DataResponse(ApplicationConstants.PRODUCT_ADD_SUCCESSFULLY,
           productMapper.ProductToProductInfoDto(product));
@@ -514,7 +526,8 @@ public class ProductServiceImpl implements ProductService {
       );
       Map result = cloudinary.uploader().upload(image.getBytes(), params);
       return result.get("secure_url").toString();
-    } catch (IOException exception) {
+    } catch (Exception exception) {
+      System.out.println("exception: " + exception);
       return null;
     }
   }

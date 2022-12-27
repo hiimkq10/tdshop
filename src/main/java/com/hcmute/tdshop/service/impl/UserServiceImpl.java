@@ -7,11 +7,20 @@ import com.hcmute.tdshop.mapper.UserMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.UserRepository;
 import com.hcmute.tdshop.service.UserService;
+import com.hcmute.tdshop.specification.UserSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.Helper;
+import com.hcmute.tdshop.utils.SpecificationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,6 +34,33 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private Helper helper;
+
+  @Override
+  public DataResponse getUsers(Long id, String keyword, Long roleId, Pageable pageable) {
+    List<Specification<User>> specifications = new ArrayList<>();
+    specifications.add(UserSpecification.isNotDeleted());
+    if (id > 0) {
+      specifications.add(UserSpecification.hasId(id));
+    }
+    if (!Helper.checkIfStringIsBlank(keyword)) {
+      List<Specification<User>> orSpecifications = new ArrayList<>();
+      orSpecifications.add(UserSpecification.hasName(keyword));
+      orSpecifications.add(UserSpecification.hasEmail(keyword));
+      orSpecifications.add(UserSpecification.hasPhone(keyword));
+      specifications.add(SpecificationHelper.or(orSpecifications));
+    }
+    if (roleId > 0) {
+      specifications.add(UserSpecification.hasRole(roleId));
+    }
+    Specification<User> conditions = SpecificationHelper.and(specifications);
+    Page<User> pageOfUsers = userRepository.findAll(conditions, pageable);
+    Page<UserResponse> pageOfUsersResponse = new PageImpl<UserResponse>(
+        pageOfUsers.getContent().stream().map(userMapper::UserToUserResponse).collect(Collectors.toList()),
+        pageable,
+        pageOfUsers.getTotalElements()
+    );
+    return new DataResponse(pageOfUsers);
+  }
 
   @Override
   public DataResponse getUserInfo() {
@@ -80,7 +116,7 @@ public class UserServiceImpl implements UserService {
     if (adminId == id) {
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_BAN_THEMSELF, ApplicationConstants.BAD_REQUEST_CODE);
     }
-    Optional<User> optionalUser = userRepository.findById(id);
+    Optional<User> optionalUser = userRepository.findByIdAndDeletedAtIsNull(id);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
       user.setIsActive(false);
