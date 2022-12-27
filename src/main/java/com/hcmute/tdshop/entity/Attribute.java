@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -36,8 +37,10 @@ public class Attribute {
 
   @ManyToOne
   @JoinColumn(name = "attribute_set_id")
+  @JsonIgnore
   private AttributeSet attributeSet;
 
   @OneToMany(mappedBy = "attribute", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  @JsonIgnore
   private Set<ProductAttribute> setOfProductAttributes;
 }
