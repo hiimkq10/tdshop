@@ -43,24 +43,24 @@ public class PromotionController {
     return promotionService.getPromotion(id, keyword, fromRate, toRate, startDate, endDate, pageable);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/get/{id}")
   public DataResponse getById(@PathVariable long id) {
     return promotionService.getById(id);
   }
 
-  @PostMapping("/add")
+  @PostMapping("/admin/add")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse insertPromotion(@RequestBody @Valid AddPromotionRequest request) {
     return promotionService.insertPromotion(request);
   }
 
-  @PutMapping("/update/{id}")
+  @PutMapping("/admin/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse updatePromotion(@PathVariable long id, @RequestBody @Valid UpdatePromotionRequest request) {
     return promotionService.updatePromotion(id, request);
   }
 
-  @DeleteMapping("/delete/{id}")
+  @DeleteMapping("/admin/delete/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse deletePromotion(@PathVariable long id) {
     return promotionService.deletePromotion(id);

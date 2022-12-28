@@ -161,7 +161,9 @@ public class ProductServiceImpl implements ProductService {
 //          .filter(product -> checkIfProductContainAllVariation(product, variationOptionIds)).collect(
 //              Collectors.toList());
 //    }
-
+    for (Product p : pageOfProducts.getContent()) {
+      System.out.println(p.getCurrentDiscountRate());
+    }
     Page<SimpleProductDto> pageOfSimpleProducts = new PageImpl<SimpleProductDto>(
         listOfProducts.stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()),
         page,

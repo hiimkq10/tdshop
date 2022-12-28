@@ -88,9 +88,9 @@ public class Product {
       @JoinColumn(name = "variation_option_id")})
   private Set<VariationOption> setOfVariationOptions;
 
-  @OneToMany(mappedBy = "product", fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
   private Set<ProductPromotion> setOfProductPromotions;
 
-  @Formula("(select pm.discount_rate from product_promotion as pm where pm.start_date < NOW() and pm.end_date >= NOW() and pm.product_id = id)")
+  @Formula("(select min(pm.discount_rate) from product_promotion as pm where pm.start_date <= NOW() and pm.end_date >= NOW() and pm.product_id = id)")
   private Double currentDiscountRate;
 }

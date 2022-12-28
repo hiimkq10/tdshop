@@ -8,6 +8,7 @@ import com.hcmute.tdshop.entity.ProductPromotion;
 import com.hcmute.tdshop.entity.Promotion;
 import com.hcmute.tdshop.mapper.PromotionMapper;
 import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.repository.ProductPromotionRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.PromotionRepository;
 import com.hcmute.tdshop.service.PromotionService;
@@ -19,6 +20,7 @@ import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +43,9 @@ public class PromotionServiceImpl implements PromotionService {
 
   @Autowired
   PromotionMapper promotionMapper;
+
+  @Autowired
+  ProductPromotionRepository productPromotionRepository;
 
   private static final Comparator<LocalDateTime> compareDateTime = new Comparator<LocalDateTime>() {
     @Override
@@ -163,63 +168,66 @@ public class PromotionServiceImpl implements PromotionService {
     return new DataResponse(ApplicationConstants.PROMOTION_NOT_FOUND, null);
   }
 
-  private void UpdateProductPromotion(final Promotion promotion) {
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      @Transactional
-      public void run() {
-        List<Product> listOfProducts = productRepository.findAll(ProductSpecification
-            .hasCategory(promotion.getSetOfCategories().stream().map(promotion -> promotion.getId())
-                .collect(Collectors.toSet())));
+  private void UpdateProductPromotion(Promotion promotion) {
+    List<Product> listOfProducts = productRepository.findAll(ProductSpecification
+        .hasCategory(promotion.getSetOfCategories().stream().map(p -> p.getId())
+            .collect(Collectors.toSet())));
 
-        for (Product product : listOfProducts) {
-          List<Promotion> listOfPromotions = promotionRepository.findAll(
-              PromotionSpecification.hasCategory(promotion.getSetOfCategories().stream().map(c -> c.getId())
-                  .collect(Collectors.toSet())));
+    for (Product product : listOfProducts) {
+      List<Promotion> listOfPromotions = promotionRepository.findAll(
+          PromotionSpecification.hasCategory(product.getSetOfCategories().stream().map(c -> c.getId())
+              .collect(Collectors.toSet())));
 
-          product.getSetOfProductPromotions().removeAll(listOfPromotions);
-          promotionRepository.deleteAll(listOfPromotions);
+      List<ProductPromotion> listOfProductPromotions = productPromotionRepository.findByProductId(product.getId());
+      if (product.getSetOfProductAttributes() != null && product.getSetOfProductAttributes().size() > 0) {
+        productPromotionRepository.deleteAll(listOfProductPromotions);
+        product.getSetOfProductPromotions().clear();
+      }
+      product.setSetOfProductPromotions(new HashSet<>());
 
-          List<LocalDateTime> listOfDateTime = new ArrayList<>();
-          listOfPromotions.forEach(p -> {
-            listOfDateTime.add(p.getStartDate());
-            listOfDateTime.add(p.getEndDate());
-          });
-          listOfDateTime.sort(compareDateTime);
-          int size = listOfDateTime.size();
-          int size1 = listOfPromotions.size();
-          LocalDateTime start;
-          LocalDateTime end;
-          double max = 0;
-          List<Double> listOfDiscountRate = new ArrayList<>();
-          Promotion temp;
-          for (int i = 0; i < size - 1; i++) {
-            start = listOfDateTime.get(i);
-            end = listOfDateTime.get(i + 1);
-            max = 0;
-            listOfDiscountRate.clear();
-
-            for (int j = 0; j < size1; j++) {
-              temp = listOfPromotions.get(j);
-              if (isBeforeOrEqual(temp.getStartDate(), start) && isAfterOrEqual(temp.getEndDate(), end)) {
-                if (temp.getDiscountRate() > max) {
-                  max = temp.getDiscountRate();
-                }
-                if (temp.getDiscountRate() > 0.05) {
-                  listOfDiscountRate.add(temp.getDiscountRate());
-                }
-              }
+      List<LocalDateTime> listOfDateTime = new ArrayList<>();
+      for (Promotion p : listOfPromotions) {
+        listOfDateTime.add(p.getStartDate());
+        listOfDateTime.add(p.getEndDate());
+      }
+      listOfDateTime = new ArrayList<>(new HashSet<>(listOfDateTime));
+      listOfDateTime.sort(compareDateTime);
+      int size = listOfDateTime.size();
+      int size1 = listOfPromotions.size();
+      LocalDateTime start;
+      LocalDateTime end;
+      double max = 0;
+      List<Double> listOfDiscountRate = new ArrayList<>();
+      Promotion temp;
+      List<ProductPromotion> productPromotions = new ArrayList<>();
+      for (int i = 0; i < size - 1; i++) {
+        start = listOfDateTime.get(i);
+        end = listOfDateTime.get(i + 1);
+        max = 0;
+        listOfDiscountRate.clear();
+        System.out.println("test: " + start);
+        System.out.println("test: " + end);
+        for (int j = 0; j < size1; j++) {
+          temp = listOfPromotions.get(j);
+          if (isBeforeOrEqual(temp.getStartDate(), start) && isAfterOrEqual(temp.getEndDate(), end)) {
+            if (temp.getDiscountRate() > max) {
+              max = temp.getDiscountRate();
             }
-            listOfDiscountRate.remove(max);
-            double totalDiscount = max + listOfDiscountRate.size() * 0.05;
-            ProductPromotion productPromotion = new ProductPromotion(null, "", "", totalDiscount, start, end, null, product);
-            product.getSetOfProductPromotions().add(productPromotion);
+            if (temp.getDiscountRate() > 0.05) {
+              listOfDiscountRate.add(temp.getDiscountRate());
+            }
           }
-          productRepository.saveAndFlush(product);
+        }
+        if (listOfDiscountRate.size() > 0 && max != 0) {
+          listOfDiscountRate.remove(max);
+          double totalDiscount = max + listOfDiscountRate.size() * 0.05;
+          ProductPromotion productPromotion = new ProductPromotion(null, "", "", Math.floor(totalDiscount * 100) / 100, start, end, null, product);
+          product.getSetOfProductPromotions().add(productPromotion);
+          productPromotions.add(productPromotion);
         }
       }
-    });
-    thread.start();
+      productPromotionRepository.saveAll(productPromotions);
+    }
   }
 
   private boolean isBeforeOrEqual(LocalDateTime date1, LocalDateTime date2){
