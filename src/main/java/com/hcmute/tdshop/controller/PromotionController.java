@@ -56,7 +56,7 @@ public class PromotionController {
 
   @PutMapping("/admin/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
-  public DataResponse updatePromotion(@PathVariable long id, @RequestBody @Valid UpdatePromotionRequest request) {
+  public DataResponse updatePromotion(@PathVariable(name = "id") long id, @RequestBody @Valid UpdatePromotionRequest request) {
     return promotionService.updatePromotion(id, request);
   }
 

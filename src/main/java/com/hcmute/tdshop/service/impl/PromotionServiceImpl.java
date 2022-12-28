@@ -146,13 +146,13 @@ public class PromotionServiceImpl implements PromotionService {
           updateRequire = true;
         }
       }
-      promotionRepository.saveAndFlush(currentPromotion);
+      currentPromotion = promotionRepository.saveAndFlush(currentPromotion);
       if (updateRequire) {
         UpdateProductPromotion(currentPromotion);
       }
       return new DataResponse(ApplicationConstants.PROMOTION_UPDATE_SUCCESSFULLY, Boolean.valueOf(true));
     }
-    return new DataResponse(ApplicationConstants.PROMOTION_NOT_FOUND, null);
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PROMOTION_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
   }
 
   @Override

@@ -6,7 +6,9 @@ import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.Set;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 public class UpdatePromotionRequest {
 
   @JsonProperty("Name")
