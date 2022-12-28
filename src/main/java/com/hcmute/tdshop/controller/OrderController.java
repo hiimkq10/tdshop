@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.controller;
 
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
+import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.OrderService;
 import javax.validation.Valid;
@@ -45,5 +46,11 @@ public class OrderController {
   @DeleteMapping("/cancel")
   public DataResponse cancelOrder(@RequestParam(name = "order") long orderId) {
     return orderService.cancelOrder(orderId);
+  }
+
+  @PostMapping("/admin/change-status")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
+  public DataResponse changeOrderStatus(@RequestBody @Valid ChangeOrderStatusRequest request) {
+    return orderService.changeOrderStatus(request);
   }
 }

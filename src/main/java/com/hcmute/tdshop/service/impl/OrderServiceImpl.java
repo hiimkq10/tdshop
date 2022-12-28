@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.service.impl;
 
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
+import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.dto.order.OrderResponse;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
@@ -140,7 +141,10 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public DataResponse changeOrderStatus(long orderId, long statusId) {
+  public DataResponse changeOrderStatus(ChangeOrderStatusRequest request) {
+    long orderId = request.getOrderId();
+    long statusId = request.getStatusId();
+    System.out.println("test: " + orderId);
     Optional<ShopOrder> optionalShopOrder = orderRepository.findById(orderId);
     if (optionalShopOrder.isPresent()) {
       ShopOrder order = optionalShopOrder.get();
