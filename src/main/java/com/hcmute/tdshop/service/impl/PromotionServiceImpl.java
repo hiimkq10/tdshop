@@ -146,8 +146,8 @@ public class PromotionServiceImpl implements PromotionService {
           updateRequire = true;
         }
       }
+      promotionRepository.saveAndFlush(currentPromotion);
       if (updateRequire) {
-        promotionRepository.saveAndFlush(currentPromotion);
         UpdateProductPromotion(currentPromotion);
       }
       return new DataResponse(ApplicationConstants.PROMOTION_UPDATE_SUCCESSFULLY, Boolean.valueOf(true));
