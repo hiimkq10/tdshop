@@ -3,6 +3,7 @@ package com.hcmute.tdshop.service.impl;
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.dto.order.OrderResponse;
+import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResponse;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
 import com.hcmute.tdshop.entity.OrderDetail;
@@ -20,11 +21,11 @@ import com.hcmute.tdshop.repository.OrderStatusRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShopOrderRepository;
 import com.hcmute.tdshop.service.OrderService;
+import com.hcmute.tdshop.service.payment.PaymentServiceImpl;
 import com.hcmute.tdshop.specification.OrderSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.SpecificationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -61,6 +62,9 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   private OrderDetailRepository orderDetailRepository;
+
+  @Autowired
+  private PaymentServiceImpl paymentService;
 
   @Override
   public DataResponse getOrder(Pageable page) {
@@ -134,6 +138,10 @@ public class OrderServiceImpl implements OrderService {
       order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.PROCCESSING.getId()).get());
     } else {
       order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.AWAITINGPAYMENT.getId()).get());
+      order = orderRepository.save(order);
+      orderDetailRepository.saveAll(order.getSetOfOrderDetails());
+      MomoPaymentResponse momoResponse = paymentService.execute(order);
+      return new DataResponse(momoResponse.getPayUrl());
     }
     order = orderRepository.save(order);
     orderDetailRepository.saveAll(order.getSetOfOrderDetails());

@@ -28,7 +28,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       "/email/send-forgot-password-email**", "/email/send-activate-account-email/**",
       "/auth/activate/**", "/product/get-all", "/product/search", "/product/get/**", "/province/**", "/district/**", "/wards/**",
       "/master-category/get-all**", "/master-category/get/**",
-      "/category/get**", "/category/get**/**", "/variation/get**", "/ship/**", "/payment-method/**", "/promotion/get**", "/promotion/get**/**", "/promotion/search"};
+      "/category/get**", "/category/get**/**", "/variation/get**", "/ship/**", "/payment-method/**", "/promotion/get**", "/promotion/get**/**", "/promotion/search",
+      "/payment/success**"};
   @Autowired
   CustomUserDetailsService customUserDetailsService;
 
