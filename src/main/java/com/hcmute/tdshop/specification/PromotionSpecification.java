@@ -63,4 +63,10 @@ public class PromotionSpecification {
       return root.get("id").in(selectedPromotionIdsSubquery);
     }));
   }
+
+  public static Specification<Promotion> isNotDeleted() {
+    return (((root, query, criteriaBuilder) -> {
+      return criteriaBuilder.isNull(root.get("deletedAt"));
+    }));
+  }
 }

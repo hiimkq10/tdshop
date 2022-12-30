@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.service.impl;
 
 import com.hcmute.tdshop.dto.promotion.AddPromotionRequest;
+import com.hcmute.tdshop.dto.promotion.PromotionResponse;
 import com.hcmute.tdshop.dto.promotion.UpdatePromotionRequest;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Product;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -56,13 +58,20 @@ public class PromotionServiceImpl implements PromotionService {
 
   @Override
   public DataResponse getAll(Pageable pageable) {
-    Page<Promotion> pageOfPromotions = promotionRepository.findAll(pageable);
-    return new DataResponse(pageOfPromotions);
+    Specification<Promotion> conditions = Specification.where(PromotionSpecification.isNotDeleted());
+    Page<Promotion> pageOfPromotions = promotionRepository.findAll(conditions, pageable);
+    Page<PromotionResponse> pageOfPromotionResponse = new PageImpl<>(
+        pageOfPromotions.getContent().stream().map(promotionMapper::PromotionToPromotionResponse).collect(Collectors.toList()),
+        pageable,
+        pageOfPromotions.getTotalElements()
+    );
+    return new DataResponse(pageOfPromotionResponse);
   }
 
   @Override
   public DataResponse getPromotion(Long id, String keyword, Double fromRate, Double toRate, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
     List<Specification<Promotion>> listOfSpecifications = new ArrayList<>();
+    listOfSpecifications.add(PromotionSpecification.isNotDeleted());
     if (id > 0 ) {
       listOfSpecifications.add(PromotionSpecification.hasId(id));
     }
@@ -86,13 +95,21 @@ public class PromotionServiceImpl implements PromotionService {
     }
     Specification<Promotion> conditions = SpecificationHelper.and(listOfSpecifications);
     Page<Promotion> pageOfPromotions = promotionRepository.findAll(conditions, pageable);
-    return new DataResponse(pageOfPromotions);
+    Page<PromotionResponse> pageOfPromotionResponse = new PageImpl<>(
+        pageOfPromotions.getContent().stream().map(promotionMapper::PromotionToPromotionResponse).collect(Collectors.toList()),
+        pageable,
+        pageOfPromotions.getTotalElements()
+    );
+    return new DataResponse(pageOfPromotionResponse);
   }
 
   @Override
   public DataResponse getById(Long id) {
-    Optional<Promotion> optionalPromotion = promotionRepository.findById(id);
-    return new DataResponse(optionalPromotion.orElse(null));
+    Optional<Promotion> optionalPromotion = promotionRepository.findByIdAndDeletedAtIsNull(id);
+    if (optionalPromotion.isPresent()) {
+      return new DataResponse(promotionMapper.PromotionToPromotionResponse(optionalPromotion.get()));
+    }
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PROMOTION_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
   }
 
   @Override

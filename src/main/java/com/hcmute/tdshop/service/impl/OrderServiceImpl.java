@@ -86,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
         page,
-        pageOfOrders.getNumberOfElements()
+        pageOfOrders.getTotalElements()
     );
     return new DataResponse(pageOfOrderResponse);
   }
@@ -109,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
         page,
-        pageOfOrders.getNumberOfElements()
+        pageOfOrders.getTotalElements()
     );
     return new DataResponse(pageOfOrderResponse);
   }
@@ -133,7 +133,7 @@ public class OrderServiceImpl implements OrderService {
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
         page,
-        pageOfOrders.getNumberOfElements()
+        pageOfOrders.getTotalElements()
     );
     return new DataResponse(pageOfOrderResponse);
   }

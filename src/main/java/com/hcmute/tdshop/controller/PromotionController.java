@@ -33,10 +33,10 @@ public class PromotionController {
 
   @GetMapping("/search")
   public DataResponse search(
-      @RequestParam(name = "id", required = false) long id,
+      @RequestParam(name = "id", required = false, defaultValue = "0") long id,
       @RequestParam(name = "keyword", required = false) String keyword,
-      @RequestParam(name = "from-rate", required = false) Double fromRate,
-      @RequestParam(name = "to-rate", required = false) Double toRate,
+      @RequestParam(name = "from-rate", required = false, defaultValue = "0") Double fromRate,
+      @RequestParam(name = "to-rate", required = false, defaultValue = "0") Double toRate,
       @RequestParam(name = "start-date", required = false) LocalDateTime startDate,
       @RequestParam(name = "end-date", required = false) LocalDateTime endDate,
       Pageable pageable) {
