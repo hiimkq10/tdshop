@@ -26,10 +26,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final String[] publicUrlPatterns = {"/v3/api-docs/**", "/swagger-ui/**", "/auth/reset-password**",
       "/auth/reset-password-verification**", "/email/send-reset-password-verification**", "/auth/register**",
       "/email/send-forgot-password-email**", "/email/send-activate-account-email/**",
-      "/auth/activate/**", "/product/get-all", "/product/search", "/product/get/**", "/province/**", "/district/**", "/wards/**",
+      "/auth/activate/**", "/product/get-all", "/product/search", "/product/get/**",
+      "/province/**", "/district/**", "/wards/**",
       "/master-category/get-all**", "/master-category/get/**",
-      "/category/get**", "/category/get**/**", "/variation/get**", "/ship/**", "/payment-method/**", "/promotion/get**", "/promotion/get**/**", "/promotion/search",
-      "/payment/success**"};
+      "/category/get**", "/category/get**/**",
+      "/variation/get**", "/ship/**",
+      "/promotion/get**", "/promotion/get**/**", "/promotion/search",
+      "/payment/success**", "/payment-method/**",
+      "/token/refresh"};
   @Autowired
   CustomUserDetailsService customUserDetailsService;
 

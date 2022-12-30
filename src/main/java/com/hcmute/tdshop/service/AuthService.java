@@ -14,4 +14,5 @@ public interface AuthService {
   DataResponse resetPassword(ResetPasswordRequest request);
   DataResponse resetPasswordVerification(ResetPasswordVerificationRequest request);
   DataResponse activateAccount(Long id, String token, HttpServletRequest request, HttpServletResponse response);
+  DataResponse regenerateAccessToken(HttpServletRequest request);
 }

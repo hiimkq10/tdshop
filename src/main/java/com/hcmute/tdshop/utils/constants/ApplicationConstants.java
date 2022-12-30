@@ -221,6 +221,9 @@ public class ApplicationConstants {
   public static final String PROMOTION_UPDATE_SUCCESSFULLY = "Update promotion successfully";
   public static final String PROMOTION_DELETE_SUCCESSFULLY = "Delete promotion successfully";
 
+  // ------------------------------ PAYMENT -------------------------------------
+  public static final String PAYMENT_SIGNATURE_INCORRECT = "Signature is incorrect";
+
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
   public static final String JWT_CLAIM_ID = "id";

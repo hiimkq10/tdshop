@@ -1,10 +1,16 @@
 package com.hcmute.tdshop.service.impl;
 
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.hcmute.tdshop.dto.auth.ChangePasswordRequest;
 import com.hcmute.tdshop.dto.auth.RegisterRequest;
 import com.hcmute.tdshop.dto.auth.ResetPasswordRequest;
 import com.hcmute.tdshop.dto.auth.ResetPasswordVerificationRequest;
 import com.hcmute.tdshop.dto.security.LoginResponse;
+import com.hcmute.tdshop.dto.security.TokenResponse;
 import com.hcmute.tdshop.dto.security.UserInfo;
 import com.hcmute.tdshop.entity.Token;
 import com.hcmute.tdshop.entity.User;
@@ -26,11 +32,13 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
   @Autowired
@@ -231,6 +239,33 @@ public class AuthServiceImpl implements AuthService {
       message = ApplicationConstants.USER_NOT_FOUND;
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, message, ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  @Override
+  public DataResponse regenerateAccessToken(HttpServletRequest request) {
+    String authorizationHeader = request.getHeader(AUTHORIZATION);
+    String errorMessage = "";
+    if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+      try {
+        String token = authorizationHeader.substring("Bearer ".length());
+        JWTVerifier verifier = JWT.require(Helper.JWT_ALGORITHM).build();
+        DecodedJWT decodedJWT = verifier.verify(token);
+        User user = userRepository.findByUsername(decodedJWT.getSubject())
+            .orElseThrow(() -> new RuntimeException(
+                ApplicationConstants.UNEXPECTED_ERROR));
+        ;
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+        String accessToken = JwtTokenProvider.generateAccessToken(userDetails, request);
+        String refreshToken = JwtTokenProvider.generateRefreshToken(userDetails, request);
+        return new DataResponse(new TokenResponse(accessToken, refreshToken));
+      } catch (Exception ex) {
+        log.error("Error logging in: {}", ex.getMessage());
+        errorMessage = ex.getMessage();
+      }
+    } else {
+      errorMessage = ApplicationConstants.JWT_TOKEN_MISSING;
+    }
+    return new DataResponse(ApplicationConstants.FAILED, errorMessage, ApplicationConstants.FAILED_CODE);
   }
 
   private boolean checkIfCurrentPasswordCorrect(String currentPassword, String encodedPassword) {

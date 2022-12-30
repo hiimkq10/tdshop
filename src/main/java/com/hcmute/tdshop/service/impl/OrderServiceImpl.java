@@ -1,9 +1,12 @@
 package com.hcmute.tdshop.service.impl;
 
+import com.google.gson.Gson;
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.dto.order.OrderResponse;
+import com.hcmute.tdshop.dto.payment.momo.MomoConfig;
 import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResponse;
+import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResultDto;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
 import com.hcmute.tdshop.entity.OrderDetail;
@@ -26,16 +29,22 @@ import com.hcmute.tdshop.specification.OrderSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.SpecificationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +74,11 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   private PaymentServiceImpl paymentService;
+
+  @Autowired
+  private MomoConfig momoConfig;
+
+  private Gson gson = new Gson();
 
   @Override
   public DataResponse getOrder(Pageable page) {
@@ -185,5 +199,28 @@ public class OrderServiceImpl implements OrderService {
       }
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  @Override
+  public DataResponse updateMomoPaymentOrder(HttpServletRequest request, HttpServletResponse response) {
+    MomoPaymentResultDto result = new MomoPaymentResultDto(request);
+    response.setHeader("Location", "https://td-shop.vercel.app/");
+    response.setStatus(302);
+    if (result.checkIfSignatureValid(momoConfig)) {
+      String data = new String(Base64.getDecoder().decode(result.getExtraData().getBytes(StandardCharsets.UTF_8)));
+      Map<String, String> map = gson.fromJson(data, Map.class);
+      Long orderId = Long.valueOf(map.get("orderId"));
+      Optional<ShopOrder> optionalOrder = orderRepository.findById(orderId);
+      if (optionalOrder.isPresent()) {
+        ShopOrder order = optionalOrder.get();
+        OrderStatus orderStatus = orderStatusRepository.findById(OrderStatusEnum.PROCCESSING.getId()).get();
+        order.setOrderStatus(orderStatus);
+        orderRepository.saveAndFlush(order);
+      }
+      else {
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      }
+    }
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PAYMENT_SIGNATURE_INCORRECT, ApplicationConstants.BAD_REQUEST_CODE);
   }
 }

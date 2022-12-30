@@ -16,28 +16,16 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class PaymentServiceImpl {
+
   @Autowired
   MomoConfig momoConfig;
 
   private final Gson gson = new Gson();
-
-  public MomoPaymentRequest ShopOrderToMoMoPaymentDto(ShopOrder order) {
-    double total = 0;
-    for (OrderDetail orderDetail : order.getSetOfOrderDetails()) {
-      total += (orderDetail.getFinalPrice() * orderDetail.getQuantity());
-    }
-    total = total / 1000;
-    Map<String, Long> map = new HashMap<>();
-    map.put("orderId", order.getId());
-    String extraData = Base64.getEncoder().encodeToString(gson.toJson(map).getBytes(StandardCharsets.UTF_8));
-    return new MomoPaymentRequest(momoConfig, String.valueOf(UUID.randomUUID()), "ORDER", momoConfig.getRedirectUrl(), momoConfig.getRedirectUrl(), String.valueOf((long) total), extraData);
-  }
 
   public MomoPaymentResponse execute(ShopOrder order) {
     try {
@@ -54,8 +42,21 @@ public class PaymentServiceImpl {
       return captureMoMoResponse;
 
     } catch (Exception exception) {
-      log.error("[PaymentMoMoResponse] "+ exception);
+      log.error("[PaymentMoMoResponse] " + exception);
       throw new IllegalArgumentException("Invalid params capture MoMo Request");
     }
+  }
+
+  public MomoPaymentRequest ShopOrderToMoMoPaymentDto(ShopOrder order) {
+    double total = 0;
+    for (OrderDetail orderDetail : order.getSetOfOrderDetails()) {
+      total += (orderDetail.getFinalPrice() * orderDetail.getQuantity());
+    }
+    total = total / 1000;
+    Map<String, String> map = new HashMap<>();
+    map.put("orderId", String.valueOf(order.getId()));
+    String extraData = Base64.getEncoder().encodeToString(gson.toJson(map).getBytes(StandardCharsets.UTF_8));
+    return new MomoPaymentRequest(momoConfig, String.valueOf(UUID.randomUUID()), "ORDER", momoConfig.getRedirectUrl(),
+        momoConfig.getRedirectUrl(), String.valueOf((long) total), extraData);
   }
 }
