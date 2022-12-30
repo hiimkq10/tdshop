@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 public interface OrderService {
 
   public DataResponse getOrder(Pageable page);
+  public DataResponse searchOrder(Long orderId, Long statusId, Pageable page);
 
   public DataResponse getUserOrder(Long orderId, Long status, Pageable page);
 

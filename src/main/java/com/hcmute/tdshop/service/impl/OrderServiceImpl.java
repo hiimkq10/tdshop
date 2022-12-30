@@ -92,6 +92,29 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
+  public DataResponse searchOrder(Long orderId, Long statusId, Pageable page) {
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
+
+    List<Specification<ShopOrder>> specifications = new ArrayList<>();
+    specifications.add(OrderSpecification.isNotDeleted());
+    if (orderId > 0) {
+      specifications.add(OrderSpecification.hasId(orderId));
+    }
+    if (statusId > 0) {
+      specifications.add(OrderSpecification.hasStatus(statusId));
+    }
+
+    Specification<ShopOrder> conditions = SpecificationHelper.and(specifications);
+    Page<ShopOrder> pageOfOrders = orderRepository.findAll(conditions, page);
+    Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
+        pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
+        page,
+        pageOfOrders.getNumberOfElements()
+    );
+    return new DataResponse(pageOfOrderResponse);
+  }
+
+  @Override
   public DataResponse getUserOrder(Long orderId, Long status, Pageable page) {
     long userId = AuthenticationHelper.getCurrentLoggedInUserId();
 

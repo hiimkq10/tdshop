@@ -30,6 +30,15 @@ public class OrderController {
     return orderService.getOrder(page);
   }
 
+  @GetMapping("/search")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
+  public DataResponse searchOrder(
+      @RequestParam(value = "order-id", required = false, defaultValue = "0") long orderId,
+      @RequestParam(value = "status-id", required = false, defaultValue = "0") long statusId,
+      Pageable page) {
+    return orderService.searchOrder(orderId, statusId, page);
+  }
+
   @GetMapping("/my-order")
   public DataResponse getUserOrder(
       @RequestParam(value = "order-id", required = false, defaultValue = "0") long orderId,
