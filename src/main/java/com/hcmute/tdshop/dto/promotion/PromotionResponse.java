@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.dto.promotion;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hcmute.tdshop.entity.Category;
 import java.time.LocalDateTime;
@@ -14,10 +15,10 @@ public class PromotionResponse {
   private String description;
   private double discountRate;
 
-  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
   private LocalDateTime startDate;
 
-  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
   private LocalDateTime endDate;
 
   @JsonProperty("Categories")

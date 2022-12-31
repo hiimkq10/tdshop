@@ -14,8 +14,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 @Component
 public class Helper {
   public static final String JWT_SECRET = "secretttttt";
-  public static final Long JWT_ACCESS_TOKEN_EXPIRATION = 600000L; // 10 minutes in milliseconds
-  public static final Long JWT_REFRESH_TOKEN_EXPIRATION = 1800000L; // 30 minutes in milliseconds
+  public static final Long JWT_ACCESS_TOKEN_EXPIRATION = 3600000L; // 1 hour in milliseconds
+  public static final Long JWT_REFRESH_TOKEN_EXPIRATION = 7200000L; // 2 hourss in milliseconds
   public static final int CONFIRM_TOKEN_DURATION = 5;
   public static final int RESET_PASSWORD_DURATION = 5;
   public static final Algorithm JWT_ALGORITHM = Algorithm.HMAC256(JWT_SECRET.getBytes());
