@@ -2,6 +2,7 @@ package com.hcmute.tdshop.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,5 +46,5 @@ public class UpdateProductRequest {
   private Set<Long> setOfVariationIds;
 
   @JsonProperty("DeletedImages")
-  private List<String> listOfDeletedImageUrls;
+  private List<String> listOfDeletedImageUrls = new ArrayList<>();
 }

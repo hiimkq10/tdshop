@@ -23,6 +23,7 @@ import com.hcmute.tdshop.projection.product.ProductIdView;
 import com.hcmute.tdshop.repository.AttributeRepository;
 import com.hcmute.tdshop.repository.BrandRepository;
 import com.hcmute.tdshop.repository.CategoryRepository;
+import com.hcmute.tdshop.repository.ImageRepository;
 import com.hcmute.tdshop.repository.ProductAttributeRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ProductStatusRepository;
@@ -91,6 +92,9 @@ public class ProductServiceImpl implements ProductService {
 
   @Autowired
   private ProductStatusRepository productStatusRepository;
+
+  @Autowired
+  private ImageRepository imageRepository;
 
   @Override
   public DataResponse getAllProducts(Pageable page) {
@@ -448,28 +452,46 @@ public class ProductServiceImpl implements ProductService {
       }
       // Handler update image
       List<String> listOfDeletedImageUrls = request.getListOfDeletedImageUrls();
+      List<Image> tempList = new ArrayList<>();
+      currentProduct.getSetOfImages().forEach(image -> {
+        if (listOfDeletedImageUrls.contains(image.getUrl())) {
+          tempList.add(image);
+        }
+      });
       currentProduct.getSetOfImages().removeIf(image -> listOfDeletedImageUrls.contains(image.getUrl()));
+      imageRepository.deleteAll(tempList);
+
+      if (mainImage != null) {
+        updateProductImage(mainImage, currentProduct.getImageUrl());
+      }
+      String url;
+      for (MultipartFile image : images) {
+        url = uploadProductImage(image);
+        if (url != null) {
+          currentProduct.getSetOfImages().add(new Image(null, url, null, currentProduct));
+        }
+      }
 
       currentProduct = productRepository.saveAndFlush(currentProduct);
 
-      Product finalProduct = currentProduct;
-      Thread thread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          if (mainImage != null) {
-            updateProductImage(mainImage, finalProduct.getImageUrl());
-          }
-          String url;
-          for (MultipartFile image : images) {
-            url = uploadProductImage(image);
-            if (url != null) {
-              finalProduct.getSetOfImages().add(new Image(null, url, null, finalProduct));
-            }
-          }
-          productRepository.saveAndFlush(finalProduct);
-        }
-      });
-      thread.start();
+//      Product finalProduct = currentProduct;
+//      Thread thread = new Thread(new Runnable() {
+//        @Override
+//        public void run() {
+//          if (mainImage != null) {
+//            updateProductImage(mainImage, finalProduct.getImageUrl());
+//          }
+//          String url;
+//          for (MultipartFile image : images) {
+//            url = uploadProductImage(image);
+//            if (url != null) {
+//              finalProduct.getSetOfImages().add(new Image(null, url, null, finalProduct));
+//            }
+//          }
+//          productRepository.saveAndFlush(finalProduct);
+//        }
+//      });
+//      thread.start();
 
       return new DataResponse(ApplicationConstants.PRODUCT_UPDATE_SUCCESSFULLY,
           productMapper.ProductToProductInfoDto(currentProduct));
