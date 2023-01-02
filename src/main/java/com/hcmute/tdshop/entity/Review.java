@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.PreRemove;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,9 +43,11 @@ public class Review {
 
   @ManyToOne
   @JoinColumn(name = "user_id", nullable = false)
+  @JsonIgnore
   private User user;
 
   @ManyToOne
   @JoinColumn(name = "product_id", nullable = false)
+  @JsonIgnore
   private Product product;
 }

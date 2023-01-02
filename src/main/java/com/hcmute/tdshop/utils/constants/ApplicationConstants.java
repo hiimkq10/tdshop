@@ -124,7 +124,6 @@ public class ApplicationConstants {
   // ------------------------------ CART -------------------------------------
   public static final String IMAGE_UPLOAD_FAILED = "Failed to save image!! Please check your network and try again";
 
-  // ------------------------------ CART -------------------------------------
   public static final String ADD_ITEM_SUCCESSFULLY = "Add item successfully";
   public static final String REMOVE_ITEM_SUCCESSFULLY = "Remove item successfully";
   public static final String CHANGE_ITEM_QUANTITY_SUCCESSFULLY = "Change item quantity successfully";
@@ -220,6 +219,12 @@ public class ApplicationConstants {
   public static final String PROMOTION_ADD_SUCCESSFULLY = "Add promotion successfully";
   public static final String PROMOTION_UPDATE_SUCCESSFULLY = "Update promotion successfully";
   public static final String PROMOTION_DELETE_SUCCESSFULLY = "Delete promotion successfully";
+
+  // ------------------------------ REVIEW -------------------------------------
+  public static final String REVIEW_NOT_FOUND= "Review not found";
+  public static final String REVIEW_ADD_SUCCESSFULLY = "Add review successfully";
+  public static final String REVIEW_DELETE_SUCCESSFULLY = "Delete review successfully";
+  public static final String REVIEW_VERIFY_SUCCESSFULLY = "Verify review successfully";
 
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_SIGNATURE_INCORRECT = "Signature is incorrect";
