@@ -4,6 +4,7 @@ import com.hcmute.tdshop.dto.attributeset.AddAttributeSetRequest;
 import com.hcmute.tdshop.dto.attributeset.UpdateAttributeSetRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.AttributeSetService;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,12 +28,12 @@ public class AttributeSetController {
   }
 
   @PostMapping("/add")
-  public DataResponse insertAttributeSet(AddAttributeSetRequest request) {
+  public DataResponse insertAttributeSet(@RequestBody @Valid AddAttributeSetRequest request) {
     return attributeSetService.insertAttributeSet(request);
   }
 
   @PutMapping("/update/{id}")
-  public DataResponse updateAttributeSet(@PathVariable(name = "id") long id, UpdateAttributeSetRequest request) {
+  public DataResponse updateAttributeSet(@PathVariable(name = "id") long id, @RequestBody @Valid UpdateAttributeSetRequest request) {
     return attributeSetService.updateAttributeSet(id, request);
   }
 

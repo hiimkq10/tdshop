@@ -89,10 +89,11 @@ public class BrandServiceImpl implements BrandService {
     Optional<Brand> optionalBrand = brandRepository.findById(id);
     if (optionalBrand.isPresent()) {
       Brand currentBrand = optionalBrand.get();
-      if (brandToUpdate.getName() != null) {
-        if (!checkIfNameExisted(brandToUpdate.getName())) {
-          currentBrand.setName(brandToUpdate.getName());
+      if (brandToUpdate.getName() != null && (!brandToUpdate.getName().equalsIgnoreCase(currentBrand.getName()))) {
+        if (checkIfNameExisted(brandToUpdate.getName())) {
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.BRAND_NAME_EXISTED, ApplicationConstants.BAD_REQUEST_CODE);
         }
+        currentBrand.setName(brandToUpdate.getName());
       }
       if (logo != null) {
         String url;
@@ -102,6 +103,12 @@ public class BrandServiceImpl implements BrandService {
           url = uploadBrandImage(logo);
         }
         currentBrand.setLogoUrl(url);
+      }
+      else {
+        if (currentBrand.getLogoUrl() != null) {
+          deleteBrandImage(currentBrand.getLogoUrl());
+          currentBrand.setLogoUrl(null);
+        }
       }
       currentBrand = brandRepository.saveAndFlush(currentBrand);
       return new DataResponse(ApplicationConstants.BRAND_UPDATE_SUCCESSFULLY, currentBrand);

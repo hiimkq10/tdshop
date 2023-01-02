@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,16 +38,16 @@ public class BrandController {
   @PostMapping("/add")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse insertBrand(@RequestPart(name = "BrandInfo") @Valid AddBrandRequest request,
-      @RequestPart(name = "Logo") MultipartFile logo) {
+      @RequestPart(name = "Logo", required = false) MultipartFile logo) {
     return brandService.insertBrand(request, logo);
   }
 
-  @PostMapping("/update/{id}")
+  @PutMapping("/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse updateBrand(
       @PathVariable(name = "id") long id,
       @RequestPart(name = "BrandInfo") @Valid UpdateBrandRequest request,
-      @RequestPart(name = "Logo") MultipartFile logo) {
+      @RequestPart(name = "Logo", required = false) MultipartFile logo) {
     return brandService.updateBrand(id, request, logo);
   }
 

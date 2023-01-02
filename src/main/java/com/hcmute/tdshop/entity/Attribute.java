@@ -43,4 +43,9 @@ public class Attribute {
   @OneToMany(mappedBy = "attribute", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   @JsonIgnore
   private Set<ProductAttribute> setOfProductAttributes;
+
+  @PreRemove
+  public void preRemove() {
+    attributeSet.getSetOfAttributes().remove(this);
+  }
 }

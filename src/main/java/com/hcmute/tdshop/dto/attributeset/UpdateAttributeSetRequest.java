@@ -12,7 +12,6 @@ import lombok.Data;
 @Data
 public class UpdateAttributeSetRequest {
   @JsonProperty("Name")
-  @NotBlank(message = ApplicationConstants.ATTRIBUTE_SET_NAME_MANDATORY)
   @Size(max = 100, message = ApplicationConstants.ATTRIBUTE_SET_NAME_SIZE_INVALID)
   private String name;
 
