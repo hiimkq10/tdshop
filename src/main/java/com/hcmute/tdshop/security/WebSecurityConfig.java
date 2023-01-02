@@ -33,6 +33,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       "/variation/get**", "/ship/**",
       "/promotion/get**", "/promotion/get**/**", "/promotion/search",
       "/payment/success**", "/payment-method/**",
+      "/review/get-all", "/review/search",
       "/token/refresh"};
   @Autowired
   CustomUserDetailsService customUserDetailsService;
