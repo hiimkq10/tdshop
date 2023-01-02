@@ -12,6 +12,7 @@ import com.hcmute.tdshop.repository.VariationOptionRepository;
 import com.hcmute.tdshop.repository.VariationRepository;
 import com.hcmute.tdshop.service.VariationService;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +58,7 @@ public class VariationServiceImpl implements VariationService {
       variation.setMasterCategory(optionalMasterCategory.get());
       if (!checkIfNameExisted(variation.getName(), variation.getMasterCategory().getId())) {
         variation = variationRepository.save(variation);
-        return DataResponse.SUCCESSFUL;
+        return new DataResponse(ApplicationConstants.VARIATION_ADD_SUCCESSFULLY, variation);
       }
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.VARIATION_NAME_EXISTED,
           ApplicationConstants.BAD_REQUEST_CODE);
@@ -72,32 +73,43 @@ public class VariationServiceImpl implements VariationService {
     Optional<Variation> optionalVariation = variationRepository.findById(id);
     if (optionalVariation.isPresent()) {
       Variation currentVariation = optionalVariation.get();
-      if (variationToUpdate.getName() != null) {
-        if (!checkIfNameExisted(variationToUpdate.getName(), currentVariation.getMasterCategory().getId())) {
-          currentVariation.setName(variationToUpdate.getName());
+      if (variationToUpdate.getName() != null && (!variationToUpdate.getName().equals(currentVariation.getName()))) {
+        if (checkIfNameExisted(variationToUpdate.getName(), currentVariation.getMasterCategory().getId())) {
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.VARIATION_NAME_EXISTED,
+              ApplicationConstants.BAD_REQUEST_CODE);
         }
+        currentVariation.setName(variationToUpdate.getName());
       }
-      Set<String> tempsetOfVariationOptionValues = request.getSetOfVarirationOptionValues();
-      Set<String> setOfVariationOptionValues = request.getSetOfVarirationOptionValues().stream()
-          .map(String::toLowerCase).collect(
-              Collectors.toSet());
-      Iterator<VariationOption> variationOptionIterator = currentVariation.getSetOfVariationOptions().iterator();
-      VariationOption variationOption;
-      while (variationOptionIterator.hasNext()) {
-        variationOption = variationOptionIterator.next();
-        if (setOfVariationOptionValues.contains(variationOption.getValue().toLowerCase())) {
-          setOfVariationOptionValues.remove(variationOption.getValue().toLowerCase());
-        } else {
-          variationOptionIterator.remove();
+
+      if (request.getSetOfVarirationOptionValues() != null) {
+        Set<String> tempsetOfVariationOptionValues = request.getSetOfVarirationOptionValues();
+        Set<VariationOption> setOfVariationOption = currentVariation.getSetOfVariationOptions();
+        Set<VariationOption> setOfDeletedVariationOption = new HashSet<>();
+        String value;
+        boolean isDeleted = true;
+        for (VariationOption variationOption : setOfVariationOption) {
+          Iterator<String> stringIterator = tempsetOfVariationOptionValues.iterator();
+          while (stringIterator.hasNext()) {
+            value = stringIterator.next();
+            if (variationOption.getValue().toLowerCase().equals(value.toLowerCase())) {
+              variationOption.setValue(value);
+              stringIterator.remove();
+              isDeleted = false;
+              break;
+            }
+          }
+          if (isDeleted) {
+            setOfDeletedVariationOption.add(variationOption);
+          }
         }
-      }
-      for (String value : tempsetOfVariationOptionValues) {
-        if (setOfVariationOptionValues.contains(value.toLowerCase())) {
-          currentVariation.getSetOfVariationOptions().add(new VariationOption(null, value, currentVariation, null));
+        for (String value1 : tempsetOfVariationOptionValues) {
+          currentVariation.getSetOfVariationOptions().add(new VariationOption(null, value1, currentVariation, null));
         }
+        currentVariation.getSetOfVariationOptions().removeAll(setOfDeletedVariationOption);
+        variationOptionRepository.deleteAll(setOfDeletedVariationOption);
       }
-      variationRepository.saveAndFlush(currentVariation);
-      return DataResponse.SUCCESSFUL;
+      currentVariation = variationRepository.saveAndFlush(currentVariation);
+      return new DataResponse(ApplicationConstants.VARIATION_UPDATE_SUCCESSFULLY, currentVariation);
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.VARIATION_NOT_FOUND,
         ApplicationConstants.BAD_REQUEST_CODE);

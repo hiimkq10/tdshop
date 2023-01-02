@@ -7,6 +7,7 @@ import com.hcmute.tdshop.service.VariationService;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,16 +35,19 @@ public class VariationController {
   }
 
   @PostMapping("/add")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse insertVariation(@RequestBody @Valid AddVariationRequest request) {
     return variationService.insertVariation(request);
   }
 
   @PutMapping("/update/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse updateVariation(@PathVariable(name = "id") long id, @RequestBody @Valid UpdateVariationRequest request) {
     return variationService.updateVariation(id, request);
   }
 
   @DeleteMapping("/delete/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse deleteVariation(@PathVariable(name = "id") long id) {
     return variationService.deleteVariation(id);
   }
