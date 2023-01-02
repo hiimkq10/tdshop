@@ -365,8 +365,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional
-  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage,
-      List<MultipartFile> images) {
+  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage, List<MultipartFile> images) {
     Product productToUpdate = productMapper.UpdateProductRequestToProduct(request);
     Optional<Product> optionalProduct = productRepository.findById(id);
     if (optionalProduct.isPresent()) {
@@ -411,14 +410,16 @@ public class ProductServiceImpl implements ProductService {
       // Update attributes
       Map<Long, String> mapOfProductAttributes = request.getMapOfProductAttributes();
       Set<Long> attributeIds = mapOfProductAttributes.keySet();
+      List<ProductAttribute> deletedAttributes = new ArrayList<>();
       Iterator<ProductAttribute> productAttributeIterator = currentProduct.getSetOfProductAttributes().iterator();
       ProductAttribute productAttribute;
       while (productAttributeIterator.hasNext()) {
         productAttribute = productAttributeIterator.next();
         if (attributeIds.contains(productAttribute.getAttribute().getId())) {
+          productAttribute.setValue(mapOfProductAttributes.get(productAttribute.getAttribute().getId()));
           attributeIds.remove(productAttribute.getAttribute().getId());
         } else {
-          productAttributeIterator.remove();
+          deletedAttributes.add(productAttribute);
         }
       }
       if (attributeIds.size() > 0) {
@@ -433,6 +434,7 @@ public class ProductServiceImpl implements ProductService {
               ));
         }
       }
+      productAttributeRepository.deleteAll(deletedAttributes);
 
       // Update variation option
       Set<Long> variationOptionIds = request.getSetOfVariationIds();
@@ -450,6 +452,7 @@ public class ProductServiceImpl implements ProductService {
         List<VariationOption> variationOptions = variationOptionRepository.findAllById(variationOptionIds);
         currentProduct.getSetOfVariationOptions().addAll(variationOptions);
       }
+
       // Handler update image
       List<String> listOfDeletedImageUrls = request.getListOfDeletedImageUrls();
       List<Image> tempList = new ArrayList<>();

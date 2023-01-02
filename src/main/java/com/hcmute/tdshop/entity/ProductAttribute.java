@@ -7,6 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.PreRemove;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,4 +34,10 @@ public class ProductAttribute {
   @ManyToOne
   @JoinColumn(name = "product_id", nullable = false)
   private Product product;
+
+  @PreRemove
+  public void preRemove() {
+    product.getSetOfProductAttributes().remove(this);
+    attribute.getSetOfProductAttributes().remove(this);
+  }
 }
