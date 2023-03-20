@@ -2,6 +2,8 @@ package com.hcmute.tdshop.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.constraints.Min;
@@ -9,6 +11,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class AddProductRequest {
@@ -48,4 +51,10 @@ public class AddProductRequest {
 
   @JsonProperty("Variations")
   private Set<Long> setOfVariationIds;
+
+  @JsonProperty("MainImage")
+  private Map<String, String> mainImage = new HashMap<>();
+
+  @JsonProperty("Images")
+  private Map<String, String> images = new HashMap<>();
 }

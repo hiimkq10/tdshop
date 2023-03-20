@@ -229,6 +229,10 @@ public class ApplicationConstants {
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_SIGNATURE_INCORRECT = "Signature is incorrect";
 
+  // ------------------------------ NOTIFICATION -------------------------------------
+  public static final String NOTIFICATION_CONTENT_MANDATORY = "Notification content is mandatory";
+  public static final String NOTIFICATION_NOT_FOUND = "Notification not found";
+
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
   public static final String JWT_CLAIM_ID = "id";

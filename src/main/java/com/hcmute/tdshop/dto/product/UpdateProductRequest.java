@@ -3,6 +3,7 @@ package com.hcmute.tdshop.dto.product;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,4 +48,10 @@ public class UpdateProductRequest {
 
   @JsonProperty("DeletedImages")
   private List<String> listOfDeletedImageUrls = new ArrayList<>();
+
+  @JsonProperty("MainImage")
+  private Map<String, String> mainImage = new HashMap<>();
+
+  @JsonProperty("Images")
+  private Map<String, String> images = new HashMap<>();
 }

@@ -1,9 +1,5 @@
 package com.hcmute.tdshop.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.time.LocalDateTime;
-import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,7 +7,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,23 +17,23 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Notification {
-
+public class UserNotification {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "content", nullable = false)
-  private String content;
+  @Column(name = "is_read", nullable = false)
+  private Boolean isRead = false;
 
-  @Column(name = "created_at", nullable = false)
-  private LocalDateTime createdAt;
+  @Column(name = "is_deleted")
+  private Boolean isDeleted = false;
 
-  @Column(name = "send_all")
-  private Boolean sendAll = false;
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-  @OneToMany(cascade = CascadeType.ALL)
-  @JsonIgnore
-  private List<UserNotification> listOfUserNotifications;
+  @ManyToOne
+  @JoinColumn(name = "notification_id", nullable = false)
+  private Notification notification;
 }

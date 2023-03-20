@@ -222,8 +222,6 @@ public class PromotionServiceImpl implements PromotionService {
         end = listOfDateTime.get(i + 1);
         max = 0;
         listOfDiscountRate.clear();
-        System.out.println("test: " + start);
-        System.out.println("test: " + end);
         for (int j = 0; j < size1; j++) {
           temp = listOfPromotions.get(j);
           if (isBeforeOrEqual(temp.getStartDate(), start) && isAfterOrEqual(temp.getEndDate(), end)) {
