@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 @Entity
 @Getter
@@ -43,4 +45,18 @@ public class OrderDetail {
   @ManyToOne
   @JoinColumn(name = "order_id", nullable = false)
   private ShopOrder order;
+
+  @Formula("finalPrice * quantity")
+  @JsonIgnore
+  private double total;
+
+  public OrderDetail(Long id, double price, double discountRate, double finalPrice, int quantity, Product product, ShopOrder order) {
+    this.id = id;
+    this.price = price;
+    this.discountRate = discountRate;
+    this.finalPrice = finalPrice;
+    this.quantity = quantity;
+    this.product = product;
+    this.order = order;
+  }
 }

@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.repository;
 
+import com.hcmute.tdshop.dto.statistic.ProductDto;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.projection.product.ProductIdView;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -42,4 +44,14 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
       nativeQuery = true
   )
   List<Product> getProductIdSortByPromotionDESC(LocalDateTime dateTime, Pageable pageable);
+
+  @Query(
+      value = "SELECT "
+          + "new com.hcmute.tdshop.dto.statistic.ProductDto(p.id as id, p.name as name, SUM(o.quantity) as amount, SUM(o.quantity * o.finalPrice) as total) "
+          + "FROM Product p INNER JOIN OrderDetail o ON p.id = o.product.id INNER JOIN ShopOrder s ON o.order.id = s.id "
+          + "WHERE s.orderStatus.id != 5 AND s.orderedAt BETWEEN :startDate AND :endDate "
+          + "GROUP BY p.id, p.name "
+          + "ORDER BY amount DESC, total DESC"
+  )
+  List<ProductDto> getProductStatistic(@Param("startDate") LocalDateTime start, @Param("endDate") LocalDateTime end);
 }
