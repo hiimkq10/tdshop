@@ -133,6 +133,8 @@ public class BrandServiceImpl implements BrandService {
   }
 
   private String uploadBrandImage(MultipartFile image) {
+    System.out.println(cloudinaryURL);
+    log.info(cloudinaryURL);
     this.cloudinary = new Cloudinary(cloudinaryURL);
     this.cloudinary.config.secure = true;
     try {
