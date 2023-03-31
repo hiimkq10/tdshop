@@ -2,6 +2,11 @@ package com.hcmute.tdshop.security;
 
 import com.hcmute.tdshop.security.filter.CustomAuthorizationFilter;
 import com.hcmute.tdshop.security.filter.CustomUsernamePasswordAuthenticationFilter;
+import com.hcmute.tdshop.security.jwt.JwtTokenProvider;
+import com.hcmute.tdshop.security.oauth2.OAuth2AuthenticationFailureHandler;
+import com.hcmute.tdshop.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.hcmute.tdshop.security.repository.HttpCookieOAuth2AuthorizationRequestRepository;
+import com.hcmute.tdshop.security.service.CustomOAuth2UserService;
 import com.hcmute.tdshop.security.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +21,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
@@ -37,6 +43,28 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       "/token/refresh"};
   @Autowired
   CustomUserDetailsService customUserDetailsService;
+
+  @Autowired
+  private CustomOAuth2UserService customOAuth2UserService;
+
+//  @Autowired
+//  private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+//
+//  @Autowired
+//  private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+
+  @Autowired
+  private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+
+  @Bean
+  public JwtTokenProvider tokenAuthenticationFilter() {
+    return new JwtTokenProvider();
+  }
+
+  @Bean
+  public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
+    return new HttpCookieOAuth2AuthorizationRequestRepository();
+  }
 
   @Bean
   public PasswordEncoder passwordEncoder() {
@@ -62,6 +90,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http.authorizeRequests().antMatchers("/login").permitAll();
     http.authorizeRequests().antMatchers("/token/refresh").permitAll();
     http.authorizeRequests().anyRequest().authenticated();
+    http.oauth2Login()
+        .authorizationEndpoint()
+        .baseUri("/oauth2/authorize")
+        .authorizationRequestRepository(cookieAuthorizationRequestRepository())
+        .and()
+        .redirectionEndpoint()
+        .baseUri("/oauth2/callback/*")
+        .and()
+        .userInfoEndpoint()
+        .userService(customOAuth2UserService)
+        .and()
+        .successHandler((AuthenticationSuccessHandler) new OAuth2AuthenticationSuccessHandler());
+//        .failureHandler(oAuth2AuthenticationFailureHandler);
     http.addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManagerBean()));
     http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
   }

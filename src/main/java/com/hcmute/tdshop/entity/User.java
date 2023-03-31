@@ -1,12 +1,15 @@
 package com.hcmute.tdshop.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hcmute.tdshop.enums.AuthProvider;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -83,4 +86,9 @@ public class User {
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   private Set<Address> setOfAddress;
+
+  @Enumerated(EnumType.STRING)
+  private AuthProvider provider;
+
+  private String providerId;
 }
