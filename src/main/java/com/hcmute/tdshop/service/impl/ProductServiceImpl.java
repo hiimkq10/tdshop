@@ -57,11 +57,11 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ProductServiceImpl implements ProductService {
 
-  @Value("${CLOUDINARY_URL}")
-  private String cloudinaryURL;
+//  @Value("${CLOUDINARY_URL}")
+  private String cloudinaryURL = "cloudinary://484587933643945:LZyMCt-jqVo9hbKSkH3JT2tn0oo@dd4dftliy";
 
-  @Value("${cloudinaryProductImagePath}")
-  private String imagePath;
+//  @Value("${cloudinaryProductImagePath}")
+  private String imagePath = "tdshop/product/images";
 
   private Cloudinary cloudinary;
 

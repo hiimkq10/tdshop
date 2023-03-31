@@ -29,11 +29,11 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class BrandServiceImpl implements BrandService {
 
-  @Value("${CLOUDINARY_URL}")
-  private String cloudinaryURL;
+//  @Value("${CLOUDINARY_URL}")
+  private String cloudinaryURL = "cloudinary://484587933643945:LZyMCt-jqVo9hbKSkH3JT2tn0oo@dd4dftliy";
 
-  @Value("${cloudinaryBrandImagePath}")
-  private String imagePath;
+//  @Value("${cloudinaryBrandImagePath}")
+  private String imagePath = "tdshop/brand/images";
 
   private Cloudinary cloudinary;
 
