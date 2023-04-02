@@ -45,7 +45,7 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public DataResponse searchReview(long userId, long productId, String fromDate, Boolean isVerified,
+  public DataResponse searchReview(long userId, long productId, String fromDate, Boolean isVerified, Boolean isValid,
       Pageable page) {
     List<Specification<Review>> specifications = new ArrayList<>();
     if (userId > 0) {
@@ -59,6 +59,9 @@ public class ReviewServiceImpl implements ReviewService {
     }
     if (isVerified != null) {
       specifications.add(ReviewSpecification.isVerified(isVerified));
+    }
+    if (isValid != null) {
+      specifications.add(ReviewSpecification.isValid(isValid));
     }
     Specification<Review> conditions = SpecificationHelper.and(specifications);
     Page<Review> pageOfReviews = reviewRepository.findAll(conditions, page);
@@ -108,6 +111,11 @@ public class ReviewServiceImpl implements ReviewService {
     review.setValid(false);
     review = reviewRepository.saveAndFlush(review);
     return new DataResponse(ApplicationConstants.REVIEW_VERIFY_SUCCESSFULLY, review);
+  }
+
+  @Override
+  public DataResponse checkUserBoughtProduct(long productId, long userId) {
+    return new DataResponse(checkIfUserBoughtProduct(productId, userId));
   }
 
   public boolean checkIfUserBoughtProduct(long productId, long userId) {

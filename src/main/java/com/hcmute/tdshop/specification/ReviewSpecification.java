@@ -21,4 +21,8 @@ public class ReviewSpecification {
   public static Specification<Review> isVerified(boolean isVerified) {
     return (((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("isVerified"), isVerified)));
   }
+
+  public static Specification<Review> isValid(boolean isValid) {
+    return (((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("isValid"), isValid)));
+  }
 }

@@ -36,9 +36,10 @@ public class ReviewController {
       @RequestParam(name = "product-id", required = false, defaultValue = "0") long productId,
       @RequestParam(name = "from-date", required = false) String fromDateTime,
       @RequestParam(name = "is-verified", required = false) Boolean isVerified,
+      @RequestParam(name = "is-valid", required = false) Boolean isValid,
       Pageable page
   ) {
-    return reviewService.searchReview(userId, productId, fromDateTime, isVerified, page);
+    return reviewService.searchReview(userId, productId, fromDateTime, isVerified, isValid, page);
   }
 
   @PostMapping("/add")
@@ -62,5 +63,10 @@ public class ReviewController {
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse denyReview(@PathVariable(name = "id") long id) {
     return reviewService.denyReview(id);
+  }
+
+  @GetMapping("/check-buy")
+  public DataResponse checkBuy(@RequestParam(name = "user-id") long userId, @RequestParam(name = "product-id") long productId) {
+    return reviewService.checkUserBoughtProduct(productId, userId);
   }
 }
