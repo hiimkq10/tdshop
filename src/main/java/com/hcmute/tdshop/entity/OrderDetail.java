@@ -46,7 +46,7 @@ public class OrderDetail {
   @JoinColumn(name = "order_id", nullable = false)
   private ShopOrder order;
 
-  @Formula("finalPrice * quantity")
+  @Formula("final_price * quantity")
   @JsonIgnore
   private double total;
 
