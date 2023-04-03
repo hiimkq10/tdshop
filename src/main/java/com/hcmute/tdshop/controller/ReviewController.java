@@ -65,8 +65,18 @@ public class ReviewController {
     return reviewService.denyReview(id);
   }
 
+//  @GetMapping("/check-buy")
+//  public DataResponse checkBuy(@RequestParam(name = "user-id") long userId, @RequestParam(name = "product-id") long productId) {
+//    return reviewService.checkUserBoughtProduct(productId, userId);
+//  }
+
   @GetMapping("/check-buy")
-  public DataResponse checkBuy(@RequestParam(name = "user-id") long userId, @RequestParam(name = "product-id") long productId) {
-    return reviewService.checkUserBoughtProduct(productId, userId);
+  public DataResponse checkBuy(@RequestParam(name = "product-id") long productId) {
+    return reviewService.checkUserBoughtProduct(productId);
+  }
+
+  @GetMapping("/product-avg")
+  public DataResponse getProductAvgReview(@RequestParam(name = "product-id") long productId) {
+    return reviewService.getProductAvgReview(productId);
   }
 }

@@ -19,5 +19,6 @@ public interface ReviewService {
 
   DataResponse denyReview(long id);
 
-  DataResponse checkUserBoughtProduct(long productId, long userId);
+  DataResponse checkUserBoughtProduct(long productId);
+  DataResponse getProductAvgReview(long productId);
 }

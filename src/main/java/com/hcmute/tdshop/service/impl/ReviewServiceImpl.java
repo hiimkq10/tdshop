@@ -1,6 +1,8 @@
 package com.hcmute.tdshop.service.impl;
 
 import com.hcmute.tdshop.dto.review.AddReviewRequest;
+import com.hcmute.tdshop.dto.security.UserInfo;
+import com.hcmute.tdshop.dto.statistic.RatingDto;
 import com.hcmute.tdshop.entity.Review;
 import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.mapper.ReviewMapper;
@@ -8,6 +10,7 @@ import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.OrderDetailRepository;
 import com.hcmute.tdshop.repository.ReviewRepository;
 import com.hcmute.tdshop.repository.UserRepository;
+import com.hcmute.tdshop.security.model.CustomUserDetails;
 import com.hcmute.tdshop.service.ReviewService;
 import com.hcmute.tdshop.specification.ReviewSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -114,8 +118,25 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public DataResponse checkUserBoughtProduct(long productId, long userId) {
-    return new DataResponse(checkIfUserBoughtProduct(productId, userId));
+  public DataResponse checkUserBoughtProduct(long productId) {
+    UserInfo user = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    return new DataResponse(checkIfUserBoughtProduct(productId, user.getId()));
+  }
+
+  @Override
+  public DataResponse getProductAvgReview(long productId) {
+    List<Specification<Review>> specifications = new ArrayList<>();
+    specifications.add(ReviewSpecification.hasProduct(productId));
+    specifications.add(ReviewSpecification.isVerified(true));
+    specifications.add(ReviewSpecification.isValid(true));
+    Specification<Review> conditions = SpecificationHelper.and(specifications);
+    List<Review> reviews = reviewRepository.findAll(conditions);
+    double total = 0;
+    long size = reviews.size();
+    for (int i = 0; i < size; i++) {
+      total = total + reviews.get(i).getRatingValue();
+    }
+    return new DataResponse(new RatingDto(productId, null, total / size, size));
   }
 
   public boolean checkIfUserBoughtProduct(long productId, long userId) {
