@@ -6,6 +6,7 @@ import com.hcmute.tdshop.dto.auth.ResetPasswordRequest;
 import com.hcmute.tdshop.dto.auth.ResetPasswordVerificationRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.AuthService;
+import com.hcmute.tdshop.service.impl.SmsService;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -25,6 +26,9 @@ public class AuthController {
 
   @Autowired
   private AuthService authService;
+
+  @Autowired
+  private SmsService service;
 
   @PostMapping("/change-password/{id}")
   public DataResponse changePassword(@PathVariable(name = "id") long id,
@@ -56,5 +60,11 @@ public class AuthController {
       HttpServletRequest request,
       HttpServletResponse response) {
     return authService.activateAccount(id, token, request, response);
+  }
+
+  @GetMapping("/test")
+  public DataResponse test() {
+    service.send();
+    return DataResponse.SUCCESSFUL;
   }
 }

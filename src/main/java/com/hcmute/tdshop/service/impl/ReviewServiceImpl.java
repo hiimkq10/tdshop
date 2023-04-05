@@ -3,6 +3,7 @@ package com.hcmute.tdshop.service.impl;
 import com.hcmute.tdshop.dto.review.AddReviewRequest;
 import com.hcmute.tdshop.dto.security.UserInfo;
 import com.hcmute.tdshop.dto.statistic.RatingDto;
+import com.hcmute.tdshop.dto.statistic.RatingWithStarDto;
 import com.hcmute.tdshop.entity.Review;
 import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.mapper.ReviewMapper;
@@ -133,10 +134,35 @@ public class ReviewServiceImpl implements ReviewService {
     List<Review> reviews = reviewRepository.findAll(conditions);
     double total = 0;
     long size = reviews.size();
+    long star1 = 0;
+    long star2 = 0;
+    long star3 = 0;
+    long star4 = 0;
+    long star5 = 0;
+    int ratingValue = 0;
     for (int i = 0; i < size; i++) {
       total = total + reviews.get(i).getRatingValue();
+      if (reviews.get(i).getRatingValue() < 1.5) {
+        star1 += 1;
+      }
+      else if (reviews.get(i).getRatingValue() >= 1.5 && reviews.get(i).getRatingValue() < 2.5) {
+        star2 += 1;
+      }
+      else if (reviews.get(i).getRatingValue() >= 2.5 && reviews.get(i).getRatingValue() < 3.5) {
+        star3 += 1;
+      }
+      else if (reviews.get(i).getRatingValue() >= 3.5 && reviews.get(i).getRatingValue() < 4.5) {
+        star4 += 1;
+      }
+      else if (reviews.get(i).getRatingValue() >= 4.5) {
+        star5 += 1;
+      }
     }
-    return new DataResponse(new RatingDto(productId, null, total / size, size));
+    double avg = 0;
+    if (size != 0 && total != 0) {
+      avg = total / size;
+    }
+    return new DataResponse(new RatingWithStarDto(productId, null, avg, size, star1, star2, star3, star4, star5));
   }
 
   public boolean checkIfUserBoughtProduct(long productId, long userId) {
