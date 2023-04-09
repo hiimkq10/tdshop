@@ -27,4 +27,5 @@ public interface OrderService {
 
   public SseEmitter registerClient(Long userId);
   public void sendMessage(Long userId);
+  public void sendDummyMessage(Long userId);
 }

@@ -267,7 +267,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public SseEmitter registerClient(Long userId) {
 //    long userId = 4;
-    SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+    SseEmitter emitter = new SseEmitter((long) 5 * 60 * 1000);
     log.info(emitter.getTimeout().toString());
     emitter.onCompletion(() -> clients.remove(userId));
     emitter.onError((err) -> removeAndLogError(userId));
@@ -289,6 +289,20 @@ public class OrderServiceImpl implements OrderService {
       log.info("Notify client {}", userId);
       SseEmitter.SseEventBuilder eventBuilder = SseEmitter.event().name("payment_result")
           .data(new DataResponse(Boolean.valueOf(true)), MediaType.APPLICATION_JSON);
+      sseEmitter.send(eventBuilder);
+    } catch (IOException e) {
+      log.error(e.getMessage());
+      sseEmitter.completeWithError(e);
+    }
+  }
+
+  @Override
+  public void sendDummyMessage(Long userId) {
+    SseEmitter sseEmitter = clients.get(userId);
+    try {
+      log.info("Notify client {}", userId);
+      SseEmitter.SseEventBuilder eventBuilder = SseEmitter.event().name("payment_result")
+          .data(new DataResponse("Keep sse alive"), MediaType.APPLICATION_JSON);
       sseEmitter.send(eventBuilder);
     } catch (IOException e) {
       log.error(e.getMessage());

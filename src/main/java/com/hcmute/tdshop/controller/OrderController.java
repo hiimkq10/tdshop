@@ -69,9 +69,9 @@ public class OrderController {
     return orderService.registerClient(userId);
   }
 
-  @GetMapping("/send-message")
-  public DataResponse sendMessage() {
-    orderService.sendMessage(4L);
+  @GetMapping("/send-dummy-message/{id}")
+  public DataResponse sendMessage(@PathVariable(name = "id") Long userId) {
+    orderService.sendDummyMessage(userId);
     return DataResponse.SUCCESSFUL;
   }
 }
