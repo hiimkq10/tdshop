@@ -31,9 +31,11 @@ public class PaymentServiceImpl {
     try {
       MomoPaymentRequest momoPaymentDto = ShopOrderToMoMoPaymentDto(order);
       String payload = gson.toJson(momoPaymentDto, MomoPaymentRequest.class);
+      System.out.println(payload);
       Execute execute = new Execute();
       HttpResponse response = execute.sendToMoMo(momoPaymentDto.getEndpoint(), payload);
 
+      System.out.println(response);
       if (response.getStatus() != 200) {
         throw new MoMoException("[PaymentResponse] [" + momoPaymentDto.getOrderId() + "] -> Error API");
       }
@@ -57,6 +59,6 @@ public class PaymentServiceImpl {
     map.put("orderId", String.valueOf(order.getId()));
     String extraData = Base64.getEncoder().encodeToString(gson.toJson(map).getBytes(StandardCharsets.UTF_8));
     return new MomoPaymentRequest(momoConfig, String.valueOf(UUID.randomUUID()), "ORDER", momoConfig.getRedirectUrl(),
-        momoConfig.getRedirectUrl(), String.valueOf((long) total), extraData);
+        momoConfig.getIpnUrl(), String.valueOf((long) total), extraData);
   }
 }

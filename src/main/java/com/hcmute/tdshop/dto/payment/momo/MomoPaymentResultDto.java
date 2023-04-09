@@ -2,9 +2,13 @@ package com.hcmute.tdshop.dto.payment.momo;
 
 import com.mservice.shared.utils.Encoder;
 import javax.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class MomoPaymentResultDto {
 
   private String partnerCode;

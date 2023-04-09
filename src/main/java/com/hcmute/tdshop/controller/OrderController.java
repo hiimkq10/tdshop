@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/order")
@@ -61,5 +62,16 @@ public class OrderController {
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse changeOrderStatus(@RequestBody @Valid ChangeOrderStatusRequest request) {
     return orderService.changeOrderStatus(request);
+  }
+
+  @GetMapping("/register-client")
+  public SseEmitter registerClient() {
+    return orderService.registerClient();
+  }
+
+  @GetMapping("/send-message")
+  public DataResponse sendMessage() {
+    orderService.sendMessage(4L);
+    return DataResponse.SUCCESSFUL;
   }
 }

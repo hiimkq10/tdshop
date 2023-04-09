@@ -23,6 +23,9 @@ public class MomoConfig {
   @Value("${MOMO_REDIRECT_URL}")
   String redirectUrl;
 
+  @Value(("${MOMO_REDIRECT_URL}"))
+  String ipnUrl;
+
   public String getPartnerCode() {
     return partnerCode;
   }
@@ -42,4 +45,6 @@ public class MomoConfig {
   public String getRedirectUrl() {
     return redirectUrl;
   }
+
+  public String getIpnUrl() {return ipnUrl;}
 }
