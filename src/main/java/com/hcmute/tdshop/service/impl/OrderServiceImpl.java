@@ -290,6 +290,7 @@ public class OrderServiceImpl implements OrderService {
           .data(new DataResponse(Boolean.valueOf(true)), MediaType.APPLICATION_JSON);
       sseEmitter.send(eventBuilder);
     } catch (IOException e) {
+      log.error(e.getMessage());
       sseEmitter.completeWithError(e);
     }
   }
