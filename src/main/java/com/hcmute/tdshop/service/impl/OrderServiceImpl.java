@@ -267,7 +267,8 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public SseEmitter registerClient(Long userId) {
 //    long userId = 4;
-    SseEmitter emitter = new SseEmitter((long) 5 * 1000 * 60);
+    SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+    log.info(emitter.getTimeout().toString());
     emitter.onCompletion(() -> clients.remove(userId));
     emitter.onError((err) -> removeAndLogError(userId));
     emitter.onTimeout(() -> removeAndLogError(userId));
