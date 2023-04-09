@@ -265,9 +265,8 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public SseEmitter registerClient() {
-//    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
-    long userId = 4;
+  public SseEmitter registerClient(Long userId) {
+//    long userId = 4;
     SseEmitter emitter = new SseEmitter((long) 5 * 1000 * 60);
     emitter.onCompletion(() -> clients.remove(userId));
     emitter.onError((err) -> removeAndLogError(userId));

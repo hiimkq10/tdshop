@@ -25,6 +25,6 @@ public interface OrderService {
 
   public DataResponse updateMomoPaymentOrder(MomoPaymentResultDto momoPaymentResultDto);
 
-  public SseEmitter registerClient();
+  public SseEmitter registerClient(Long userId);
   public void sendMessage(Long userId);
 }

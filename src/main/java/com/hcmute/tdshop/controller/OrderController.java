@@ -64,9 +64,9 @@ public class OrderController {
     return orderService.changeOrderStatus(request);
   }
 
-  @GetMapping("/register-client")
-  public SseEmitter registerClient() {
-    return orderService.registerClient();
+  @GetMapping("/register-client/{id}")
+  public SseEmitter registerClient(@PathVariable(name = "id") Long userId) {
+    return orderService.registerClient(userId);
   }
 
   @GetMapping("/send-message")
