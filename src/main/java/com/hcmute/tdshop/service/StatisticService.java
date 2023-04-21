@@ -11,4 +11,11 @@ public interface StatisticService {
   DataResponse ratingStatistic(LocalDateTime fromDate, LocalDateTime toDate);
   DataResponse productStatistic(LocalDateTime fromDate, LocalDateTime toDate, Integer type);
   DataResponse orderAvarage(LocalDateTime fromDate, LocalDateTime toDate, Integer type);
+  DataResponse accountAvarage(LocalDateTime fromDate, LocalDateTime toDate, Long role);
+  DataResponse ratingByStar(LocalDateTime fromDate, LocalDateTime toDate);
+
+  DataResponse totalProduct();
+  DataResponse totalOrder();
+  DataResponse totalRevenue();
+  DataResponse ratingAvarage();
 }

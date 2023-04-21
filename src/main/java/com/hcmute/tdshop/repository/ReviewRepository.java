@@ -13,11 +13,16 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecificationExecutor<Review> {
   @Query(value = "SELECT "
-      + "new com.hcmute.tdshop.dto.statistic.RatingDto(p.id as id, p.name as name, AVG(r.ratingValue) as value, SUM(p.id) as total) "
+      + "new com.hcmute.tdshop.dto.statistic.RatingDto(p.id as id, p.name as name, AVG(r.ratingValue) as value, COUNT(p.id) as total) "
       + "FROM Review r INNER JOIN Product p ON r.product.id = p.id "
       + "WHERE r.isValid = true and r.createdAt BETWEEN :startDate AND :endDate "
       + "GROUP BY p.id, p.name "
       + "ORDER BY value DESC, total DESC")
   public List<RatingDto> ratingStatistic(@Param("startDate") LocalDateTime start,
       @Param("endDate") LocalDateTime end);
+
+  @Query(value = "SELECT AVG(r.ratingValue) "
+      + "FROM Review as r "
+      + "WHERE isValid = true")
+  public double ratingAvg();
 }

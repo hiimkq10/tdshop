@@ -18,6 +18,10 @@ public class ReviewSpecification {
     return (((root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), dateTime)));
   }
 
+  public static Specification<Review> toDateTime(LocalDateTime dateTime) {
+    return (((root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), dateTime)));
+  }
+
   public static Specification<Review> isVerified(boolean isVerified) {
     return (((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("isVerified"), isVerified)));
   }

@@ -58,4 +58,41 @@ public class StatisticController {
   ) {
     return statisticService.orderAvarage(fromDate, toDate, 0);
   }
+
+  @GetMapping("/account")
+  public DataResponse accountAvg(
+      @RequestParam(name = "from-date", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime fromDate,
+      @RequestParam(name = "to-date", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime toDate,
+      @RequestParam(name = "role", defaultValue = "0") Long role
+  ) {
+    return statisticService.accountAvarage(fromDate, toDate, role);
+  }
+
+  @GetMapping("/rating-by-star")
+  public DataResponse ratingByStar(
+      @RequestParam(name = "from-date", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime fromDate,
+      @RequestParam(name = "to-date", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime toDate
+  ) {
+    return statisticService.ratingByStar(fromDate, toDate);
+  }
+
+  @GetMapping("/total-product")
+  public DataResponse totalProduct() {
+    return statisticService.totalProduct();
+  }
+
+  @GetMapping("/total-order")
+  public DataResponse totalOrder() {
+    return statisticService.totalOrder();
+  }
+
+  @GetMapping("/total-revenue")
+  public DataResponse totalRevenue() {
+    return statisticService.totalRevenue();
+  }
+
+  @GetMapping("/rating-avarage")
+  public DataResponse ratingAvarage() {
+    return statisticService.ratingAvarage();
+  }
 }

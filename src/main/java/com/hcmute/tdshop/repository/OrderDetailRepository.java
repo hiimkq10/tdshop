@@ -18,22 +18,27 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
 
   @Query(value = "SELECT new com.hcmute.tdshop.dto.statistic.RevenueStatisticDto(TO_CHAR(s.orderedAt, 'yyyy-mm-dd') as date, SUM(o.finalPrice * o.quantity) as revenue) "
       + "FROM OrderDetail o JOIN ShopOrder s ON o.order.id = s.id "
-      + "WHERE s.orderedAt BETWEEN :startDate AND :endDate "
+      + "WHERE s.orderStatus.id != 5 AND s.deletedAt = NULL AND s.orderedAt BETWEEN :startDate AND :endDate "
       + "GROUP BY TO_CHAR(s.orderedAt, 'yyyy-mm-dd')")
   public List<RevenueStatisticDto> getRevenueByDate(@Param("startDate") LocalDateTime start,
       @Param("endDate") LocalDateTime end);
 
   @Query(value = "SELECT new com.hcmute.tdshop.dto.statistic.RevenueStatisticDto(TO_CHAR(s.orderedAt, 'yyyy-mm') as date, SUM(o.finalPrice * o.quantity) as revenue) "
       + "FROM OrderDetail o JOIN ShopOrder s ON o.order.id = s.id "
-      + "WHERE s.orderedAt BETWEEN :startDate AND :endDate "
+      + "WHERE s.orderStatus.id != 5 AND s.deletedAt = NULL AND s.orderedAt BETWEEN :startDate AND :endDate "
       + "GROUP BY TO_CHAR(s.orderedAt, 'yyyy-mm')")
   public List<RevenueStatisticDto> getRevenueByMonth(@Param("startDate") LocalDateTime start,
       @Param("endDate") LocalDateTime end);
 
   @Query(value = "SELECT new com.hcmute.tdshop.dto.statistic.RevenueStatisticDto(TO_CHAR(s.orderedAt, 'yyyy') as date, SUM(o.finalPrice * o.quantity) as revenue) "
       + "FROM OrderDetail o JOIN ShopOrder s ON o.order.id = s.id "
-      + "WHERE s.orderedAt BETWEEN :startDate AND :endDate "
+      + "WHERE s.orderStatus.id != 5 AND s.deletedAt = NULL AND s.orderedAt BETWEEN :startDate AND :endDate "
       + "GROUP BY TO_CHAR(s.orderedAt, 'yyyy')")
   public List<RevenueStatisticDto> getRevenueByYear(@Param("startDate") LocalDateTime start,
       @Param("endDate") LocalDateTime end);
+
+  @Query(value = "SELECT SUM(o.finalPrice * o.quantity) "
+      + "FROM OrderDetail o JOIN ShopOrder s ON o.order.id = s.id "
+      + "WHERE s.orderStatus.id != 5 AND s.deletedAt = NULL")
+  public Double getTotalRevenue();
 }

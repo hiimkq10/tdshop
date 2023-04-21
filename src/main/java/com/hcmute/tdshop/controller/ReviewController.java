@@ -35,11 +35,24 @@ public class ReviewController {
       @RequestParam(name = "user-id", required = false, defaultValue = "0") long userId,
       @RequestParam(name = "product-id", required = false, defaultValue = "0") long productId,
       @RequestParam(name = "from-date", required = false) String fromDateTime,
+      @RequestParam(name = "to-date", required = false) String toDateTime,
       @RequestParam(name = "is-verified", required = false) Boolean isVerified,
       @RequestParam(name = "is-valid", required = false) Boolean isValid,
       Pageable page
   ) {
-    return reviewService.searchReview(userId, productId, fromDateTime, isVerified, isValid, page);
+    return reviewService.searchReview(userId, productId, fromDateTime, toDateTime, isVerified, isValid, page);
+  }
+
+  @GetMapping("/search-all")
+  public DataResponse searchAll(
+      @RequestParam(name = "user-id", required = false, defaultValue = "0") long userId,
+      @RequestParam(name = "product-id", required = false, defaultValue = "0") long productId,
+      @RequestParam(name = "from-date", required = false) String fromDateTime,
+      @RequestParam(name = "to-date", required = false) String toDateTime,
+      @RequestParam(name = "is-verified", required = false) Boolean isVerified,
+      @RequestParam(name = "is-valid", required = false) Boolean isValid
+  ) {
+    return reviewService.searchAll(userId, productId, fromDateTime, toDateTime, isVerified, isValid);
   }
 
   @PostMapping("/add")

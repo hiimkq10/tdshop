@@ -50,7 +50,7 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public DataResponse searchReview(long userId, long productId, String fromDate, Boolean isVerified, Boolean isValid,
+  public DataResponse searchReview(long userId, long productId, String fromDate, String toDate, Boolean isVerified, Boolean isValid,
       Pageable page) {
     List<Specification<Review>> specifications = new ArrayList<>();
     if (userId > 0) {
@@ -62,6 +62,9 @@ public class ReviewServiceImpl implements ReviewService {
     if (fromDate != null) {
       specifications.add(ReviewSpecification.fromDateTime(Helper.MyLocalDateTimeParser(fromDate)));
     }
+    if (toDate != null) {
+      specifications.add(ReviewSpecification.toDateTime(Helper.MyLocalDateTimeParser(toDate)));
+    }
     if (isVerified != null) {
       specifications.add(ReviewSpecification.isVerified(isVerified));
     }
@@ -71,6 +74,38 @@ public class ReviewServiceImpl implements ReviewService {
     Specification<Review> conditions = SpecificationHelper.and(specifications);
     Page<Review> pageOfReviews = reviewRepository.findAll(conditions, page);
     return new DataResponse(pageOfReviews);
+  }
+
+  @Override
+  public DataResponse searchAll(long userId, long productId, String fromDate, String toDate, Boolean isVerified,
+      Boolean isValid) {
+    return new DataResponse(searchAllList(userId, productId, fromDate, toDate, isVerified, isValid));
+  }
+  
+  public List<Review> searchAllList(long userId, long productId, String fromDate, String toDate, Boolean isVerified,
+      Boolean isValid) {
+    List<Specification<Review>> specifications = new ArrayList<>();
+    if (userId > 0) {
+      specifications.add(ReviewSpecification.hasUser(userId));
+    }
+    if (productId > 0) {
+      specifications.add(ReviewSpecification.hasProduct(productId));
+    }
+    if (fromDate != null) {
+      specifications.add(ReviewSpecification.fromDateTime(Helper.MyLocalDateTimeParser(fromDate)));
+    }
+    if (toDate != null) {
+      specifications.add(ReviewSpecification.toDateTime(Helper.MyLocalDateTimeParser(toDate)));
+    }
+    if (isVerified != null) {
+      specifications.add(ReviewSpecification.isVerified(isVerified));
+    }
+    if (isValid != null) {
+      specifications.add(ReviewSpecification.isValid(isValid));
+    }
+    Specification<Review> conditions = SpecificationHelper.and(specifications);
+    List<Review> pageOfReviews = reviewRepository.findAll(conditions);
+    return pageOfReviews;
   }
 
   @Override
