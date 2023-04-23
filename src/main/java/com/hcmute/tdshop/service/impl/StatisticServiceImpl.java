@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.service.impl;
 
+import com.hcmute.tdshop.dto.statistic.AccountStatisticDto;
 import com.hcmute.tdshop.dto.statistic.OrderDto;
 import com.hcmute.tdshop.dto.statistic.RatingByStarDto;
 import com.hcmute.tdshop.dto.statistic.RatingWithStarDto;
@@ -7,6 +8,7 @@ import com.hcmute.tdshop.dto.statistic.RevenueStatisticDto;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.Review;
 import com.hcmute.tdshop.entity.ShopOrder;
+import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.OrderDetailRepository;
@@ -163,7 +165,13 @@ public class StatisticServiceImpl implements StatisticService {
     if (toDate == null) {
       toDate = maxDate;
     }
-    return new DataResponse(userRepository.accountStatistic(fromDate, toDate, role));
+    List<AccountStatisticDto> dtos = userRepository.accountStatistic(fromDate, toDate, role);
+    for (AccountRoleEnum accountRoleEnum : AccountRoleEnum.values()) {
+      if (!dtos.stream().map(item -> item.getRoleId()).collect(Collectors.toList()).contains(accountRoleEnum.getId())) {
+        dtos.add(new AccountStatisticDto(accountRoleEnum.getId(), accountRoleEnum.getName(), 0l));
+      }
+    }
+    return new DataResponse(dtos);
   }
 
   @Override
