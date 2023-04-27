@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.service.impl;
 
 import com.hcmute.tdshop.dto.review.AddReviewRequest;
+import com.hcmute.tdshop.dto.review.ReviewDto;
 import com.hcmute.tdshop.dto.security.UserInfo;
 import com.hcmute.tdshop.dto.statistic.RatingDto;
 import com.hcmute.tdshop.dto.statistic.RatingWithStarDto;
@@ -21,6 +22,7 @@ import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,7 +48,7 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public DataResponse getAll(Pageable page) {
     Page<Review> pageOfReviews = reviewRepository.findAll(page);
-    return new DataResponse(pageOfReviews);
+    return new DataResponse(pageOfReviews.map(reviewMapper::ReviewToReviewDto));
   }
 
   @Override
@@ -73,7 +75,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
     Specification<Review> conditions = SpecificationHelper.and(specifications);
     Page<Review> pageOfReviews = reviewRepository.findAll(conditions, page);
-    return new DataResponse(pageOfReviews);
+    return new DataResponse(pageOfReviews.map(reviewMapper::ReviewToReviewDto));
   }
 
   @Override
@@ -82,7 +84,7 @@ public class ReviewServiceImpl implements ReviewService {
     return new DataResponse(searchAllList(userId, productId, fromDate, toDate, isVerified, isValid));
   }
   
-  public List<Review> searchAllList(long userId, long productId, String fromDate, String toDate, Boolean isVerified,
+  public List<ReviewDto> searchAllList(long userId, long productId, String fromDate, String toDate, Boolean isVerified,
       Boolean isValid) {
     List<Specification<Review>> specifications = new ArrayList<>();
     if (userId > 0) {
@@ -105,7 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
     Specification<Review> conditions = SpecificationHelper.and(specifications);
     List<Review> pageOfReviews = reviewRepository.findAll(conditions);
-    return pageOfReviews;
+    return pageOfReviews.stream().map(reviewMapper::ReviewToReviewDto).collect(Collectors.toList());
   }
 
   @Override

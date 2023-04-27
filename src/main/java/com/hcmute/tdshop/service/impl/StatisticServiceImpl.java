@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.service.impl;
 
+import com.hcmute.tdshop.dto.review.ReviewDto;
 import com.hcmute.tdshop.dto.statistic.AccountStatisticDto;
 import com.hcmute.tdshop.dto.statistic.OrderDto;
 import com.hcmute.tdshop.dto.statistic.RatingByStarDto;
@@ -182,7 +183,7 @@ public class StatisticServiceImpl implements StatisticService {
     if (toDate == null) {
       toDate = maxDate;
     }
-    List<Review> reviews = reviewService.searchAllList(0, 0, fromDate.toString().replace("T", " "), toDate.toString().replace("T", " ").substring(0, 16), true, true);
+    List<ReviewDto> reviews = reviewService.searchAllList(0, 0, fromDate.toString().replace("T", " "), toDate.toString().replace("T", " ").substring(0, 16), true, true);
     List<RatingByStarDto> ratingByStarDtoList = new ArrayList<>();
     RatingByStarDto rating;
     double total = 0;

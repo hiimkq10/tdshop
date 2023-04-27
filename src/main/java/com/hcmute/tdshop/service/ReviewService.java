@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.service;
 
 import com.hcmute.tdshop.dto.review.AddReviewRequest;
+import com.hcmute.tdshop.dto.review.ReviewDto;
 import com.hcmute.tdshop.entity.Review;
 import com.hcmute.tdshop.model.DataResponse;
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ public interface ReviewService {
 
   DataResponse searchReview(long userId, long productId, String fromDate, String toDateTime, Boolean isVerified, Boolean isValid, Pageable page);
   DataResponse searchAll(long userId, long productId, String fromDate, String toDateTime, Boolean isVerified, Boolean isValid);
-  List<Review> searchAllList(long userId, long productId, String fromDate, String toDateTime, Boolean isVerified, Boolean isValid);
+  List<ReviewDto> searchAllList(long userId, long productId, String fromDate, String toDateTime, Boolean isVerified, Boolean isValid);
   DataResponse addReview(AddReviewRequest request);
 
   DataResponse deleteReview(long id);

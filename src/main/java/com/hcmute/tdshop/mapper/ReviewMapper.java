@@ -1,6 +1,9 @@
 package com.hcmute.tdshop.mapper;
 
+import com.hcmute.tdshop.dto.product.SimpleProductDto;
 import com.hcmute.tdshop.dto.review.AddReviewRequest;
+import com.hcmute.tdshop.dto.review.ReviewDto;
+import com.hcmute.tdshop.dto.user.UserResponse;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.Review;
 import com.hcmute.tdshop.entity.User;
@@ -20,9 +23,24 @@ public abstract class ReviewMapper {
   @Autowired
   UserRepository userRepository;
 
+  @Autowired
+  ProductMapper productMapper;
+
+  @Autowired
+  UserMapper userMapper;
+
   public abstract Review AddReviewDtoToReview(AddReviewRequest request);
 
   public Product LongToProduct(Long id) {
     return productRepository.findById(id).orElseThrow(() -> new RuntimeException(ApplicationConstants.PRODUCT_NOT_FOUND));
+  }
+
+  public abstract ReviewDto ReviewToReviewDto(Review review);
+  public SimpleProductDto ProductToSimpleProductDto(Product product) {
+    return productMapper.ProductToSimpleProductDto(product);
+  }
+
+  public UserResponse UserToUserResponse(User user) {
+    return userMapper.UserToUserResponse(user);
   }
 }
