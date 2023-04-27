@@ -43,7 +43,7 @@ public class VariationOption {
 
   @PreRemove
   private void preRemove() {
-    variation.getSetOfVariationOptions().remove(this);
+//    variation.getSetOfVariationOptions().remove(this);
     setOfProducts.forEach(product -> product.getSetOfVariationOptions().remove(this));
   }
 }
