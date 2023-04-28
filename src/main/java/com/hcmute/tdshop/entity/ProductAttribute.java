@@ -38,6 +38,6 @@ public class ProductAttribute {
   @PreRemove
   public void preRemove() {
     product.getSetOfProductAttributes().remove(this);
-    attribute.getSetOfProductAttributes().remove(this);
+//    attribute.getSetOfProductAttributes().remove(this);
   }
 }

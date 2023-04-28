@@ -46,6 +46,6 @@ public class Attribute {
 
   @PreRemove
   public void preRemove() {
-    attributeSet.getSetOfAttributes().remove(this);
+//    attributeSet.getSetOfAttributes().remove(this);
   }
 }
