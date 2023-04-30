@@ -238,14 +238,11 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public DataResponse updateMomoPaymentOrder(MomoPaymentResultDto momoPaymentResultDto) {
-//    MomoPaymentResultDto result = new MomoPaymentResultDto(request);
-//    response.setHeader("Location", "https://td-shop.vercel.app/?t1=1&t2=2");
-//    response.setStatus(302);
-    MomoPaymentResultDto result = momoPaymentResultDto;
-    if (result.checkIfSignatureValid(momoConfig)) {
-      String data = new String(Base64.getDecoder().decode(result.getExtraData().getBytes(StandardCharsets.UTF_8)));
-      Map<String, String> map = gson.fromJson(data, Map.class);
-      Long orderId = Long.valueOf(map.get("orderId"));
+    if (momoPaymentResultDto.checkIfSignatureValid(momoConfig)) {
+      log.info(String.format("momo result: %d with message %s", momoPaymentResultDto.getResultCode(), momoPaymentResultDto.getMessage()));
+      String data = new String(Base64.getDecoder().decode(momoPaymentResultDto.getExtraData().getBytes(StandardCharsets.UTF_8)));
+      Map map = gson.fromJson(data, Map.class);
+      Long orderId = Long.valueOf((String) map.get("orderId"));
       Optional<ShopOrder> optionalOrder = orderRepository.findById(orderId);
       if (optionalOrder.isPresent()) {
         ShopOrder order = optionalOrder.get();
@@ -253,7 +250,7 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus(orderStatus);
         orderRepository.saveAndFlush(order);
 
-        sendMessage(order.getUser().getId());
+        sendMessage(order.getUser().getId(), momoPaymentResultDto.getResultCode());
         return DataResponse.SUCCESSFUL;
       } else {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
@@ -268,7 +265,6 @@ public class OrderServiceImpl implements OrderService {
   public SseEmitter registerClient(Long userId) {
 //    long userId = 4;
     SseEmitter emitter = new SseEmitter((long) 5 * 60 * 1000);
-    log.info(emitter.getTimeout().toString());
     emitter.onCompletion(() -> clients.remove(userId));
     emitter.onError((err) -> removeAndLogError(userId));
     emitter.onTimeout(() -> removeAndLogError(userId));
@@ -283,12 +279,12 @@ public class OrderServiceImpl implements OrderService {
     clients.remove(userId);
   }
 
-  public void sendMessage(Long userId) {
+  public void sendMessage(Long userId, int result) {
     SseEmitter sseEmitter = clients.get(userId);
     try {
       log.info("Notify client {}", userId);
       SseEmitter.SseEventBuilder eventBuilder = SseEmitter.event().name("payment_result")
-          .data(new DataResponse(Boolean.valueOf(true)), MediaType.APPLICATION_JSON);
+          .data(new DataResponse(Boolean.valueOf(result == 0)), MediaType.APPLICATION_JSON);
       sseEmitter.send(eventBuilder);
     } catch (IOException e) {
       log.error(e.getMessage());
