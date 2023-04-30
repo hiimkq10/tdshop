@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -65,8 +66,11 @@ public class AuthServiceImpl implements AuthService {
   @Autowired
   private EmailService emailService;
 
+  @Value("${fe.base.url}")
+  String feBaseUrl;
+
   @Override
-  public DataResponse register(RegisterRequest request) {
+  public DataResponse register(HttpServletRequest servletRequest, RegisterRequest request) {
     User user = authMapper.RegisterRequestToUser(request);
     if (user != null) {
       if (helper.checkIfUsernameExisted(user.getUsername())) {
@@ -87,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
       user.setIsVerified(false);
       user.setCreatedAt(LocalDateTime.now());
       user = userRepository.save(user);
-      emailService.sendActivateAccountEmail(user.getId());
+      emailService.sendActivateAccountEmail(servletRequest, user.getId());
       return new DataResponse(userMapper.UserToUserResponse(user));
     }
     return DataResponse.BAD_REQUEST;
@@ -195,7 +199,7 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional
   public DataResponse activateAccount(Long id, String token, HttpServletRequest request, HttpServletResponse response) {
-    response.setHeader("Location", "https://td-shop.vercel.app/");
+    response.setHeader("Location", feBaseUrl + ApplicationConstants.activateAccountFailEndpoint + "?activate-success=false&user-id=" + id);
     response.setStatus(302);
     Optional<User> optionalUser = userRepository.findById(id);
     String message = "";
@@ -217,6 +221,7 @@ public class AuthServiceImpl implements AuthService {
               UserInfo userInfo = CustomUserDetailsToUserInfo(new CustomUserDetails(user));
               String accessToken = JwtTokenProvider.generateAccessToken(new CustomUserDetails(user), request);
               String refreshToken = JwtTokenProvider.generateRefreshToken(new CustomUserDetails(user), request);
+              response.setHeader("Location", feBaseUrl + ApplicationConstants.activateAccountSuccessEndpoint + "?activate-success=true");
               LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, userInfo);
               return new DataResponse(ApplicationConstants.ACCOUNT_ACTIVATED, loginResponse);
             }

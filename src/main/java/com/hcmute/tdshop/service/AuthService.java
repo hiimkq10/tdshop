@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public interface AuthService {
-  DataResponse register(RegisterRequest request);
+  DataResponse register(HttpServletRequest request, RegisterRequest input);
   DataResponse changePassword(long id, ChangePasswordRequest request);
   DataResponse resetPassword(ResetPasswordRequest request);
   DataResponse resetPasswordVerification(ResetPasswordVerificationRequest request);

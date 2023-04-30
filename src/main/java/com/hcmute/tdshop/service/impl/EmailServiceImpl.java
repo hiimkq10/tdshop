@@ -21,11 +21,13 @@ import java.util.Random;
 import java.util.UUID;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Service
 public class EmailServiceImpl implements EmailService {
@@ -60,14 +62,18 @@ public class EmailServiceImpl implements EmailService {
   }
 
   @Override
-  public DataResponse sendActivateAccountEmail(Long id) {
+  public DataResponse sendActivateAccountEmail(HttpServletRequest request, Long id) {
+    String baseUrl = ServletUriComponentsBuilder.fromRequestUri(request)
+        .replacePath(null)
+        .build()
+        .toUriString();
     Optional<User> optionalUser = userRepository.findById(id);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
       if (!user.getIsVerified()) {
         String code = getRandomString();
         createToken(user, code);
-        return sendEmail(user, String.format("https://tdshop.herokuapp.com/api/v1/auth/activate/%d?token=%s", id, code),
+        return sendEmail(user, String.format(baseUrl + ApplicationConstants.activateAccountEndpoint + "/%d?token=%s", id, code),
             "activate_account_email_template.ftl");
       }
       else {

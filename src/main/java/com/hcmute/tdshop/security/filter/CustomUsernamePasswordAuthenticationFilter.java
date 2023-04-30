@@ -41,6 +41,7 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
     ObjectMapper objectMapper = new ObjectMapper();
     LoginRequest loginRequest;
     String errorMessage = "";
+    int status = ApplicationConstants.UNAUTHORIZED_CODE;
     response.setContentType(APPLICATION_JSON_VALUE);
     try {
       loginRequest = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
@@ -54,6 +55,7 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
         errorMessage = ApplicationConstants.USERNAME_OR_PASSWORD_MISSING;
       }
     } catch (DisabledException ex) {
+      status = 10001;
       errorMessage = ApplicationConstants.ACCOUNT_INACTIVE;
     } catch (BadCredentialsException ex) {
       errorMessage = ApplicationConstants.USERNAME_OR_PASSWORD_INCORRECT;
@@ -68,7 +70,7 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
     try {
       objectMapper.writeValue(
           response.getOutputStream(),
-          new DataResponse(ApplicationConstants.UNAUTHORIZED, errorMessage, ApplicationConstants.UNAUTHORIZED_CODE)
+          new DataResponse(ApplicationConstants.UNAUTHORIZED, errorMessage, status)
       );
     } catch (IOException ex) {
       log.error("Error logging in: {}", ex.getMessage());

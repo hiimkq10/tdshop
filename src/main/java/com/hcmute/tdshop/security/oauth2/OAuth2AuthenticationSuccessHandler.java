@@ -23,17 +23,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-  private JwtTokenProvider tokenProvider = new JwtTokenProvider();
 
-  private AppProperties appProperties = new AppProperties();
+  @Autowired
+  private AppProperties appProperties;
 
-  private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository = new HttpCookieOAuth2AuthorizationRequestRepository();
+  private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
 
   @Autowired
-  public OAuth2AuthenticationSuccessHandler(JwtTokenProvider tokenProvider, AppProperties appProperties,
+  public OAuth2AuthenticationSuccessHandler(AppProperties appProperties,
       HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
-    this.tokenProvider = tokenProvider;
     this.appProperties = appProperties;
     this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
   }
@@ -60,14 +59,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     Optional<String> redirectUri = CookieUtils.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
         .map(Cookie::getValue);
 
+    String targetUrl;
     if(redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
-      throw new BadRequestException("Sorry! We've got an Unauthorized Redirect URI and can't proceed with the authentication");
+      redirectUri = Optional.empty();
     }
-
-    String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
-
+    targetUrl = redirectUri.orElse(appProperties.getFeBaseUrl());
+  
     CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-    String token = tokenProvider.generateAccessToken(user, request);
+    String token = JwtTokenProvider.generateAccessToken(user, request);
 
     return UriComponentsBuilder.fromUriString(targetUrl)
         .queryParam("token", token)
@@ -82,17 +81,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
   private boolean isAuthorizedRedirectUri(String uri) {
     URI clientRedirectUri = URI.create(uri);
 
-//    return appProperties.getOauth2().getAuthorizedRedirectUris()
-//        .stream()
-//        .anyMatch(authorizedRedirectUri -> {
-//          // Only validate host and port. Let the clients use different paths if they want to
-//          URI authorizedURI = URI.create(authorizedRedirectUri);
-//          if(authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost())
-//              && authorizedURI.getPort() == clientRedirectUri.getPort()) {
-//            return true;
-//          }
-//          return false;
-//        });
-    return true;
+    return appProperties.getAuthorizedRedirectUris()
+        .stream()
+        .anyMatch(authorizedRedirectUri -> {
+          // Only validate host and port. Let the clients use different paths if they want to
+          URI authorizedURI = URI.create(authorizedRedirectUri);
+          if(authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost())
+              && authorizedURI.getPort() == clientRedirectUri.getPort()) {
+            return true;
+          }
+          return false;
+        });
   }
 }

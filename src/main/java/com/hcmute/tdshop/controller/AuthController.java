@@ -37,8 +37,8 @@ public class AuthController {
   }
 
   @PostMapping("/register")
-  public DataResponse register(@RequestBody @Valid RegisterRequest request) {
-    return authService.register(request);
+  public DataResponse register(HttpServletRequest request, @RequestBody @Valid RegisterRequest input) {
+    return authService.register(request, input);
   }
 
   @PostMapping("/reset-password")

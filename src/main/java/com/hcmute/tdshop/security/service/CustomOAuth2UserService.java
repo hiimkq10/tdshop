@@ -11,7 +11,9 @@ import com.hcmute.tdshop.security.model.CustomUserDetails;
 import com.hcmute.tdshop.security.oauth2.OAuth2UserInfo;
 import com.hcmute.tdshop.security.oauth2.OAuth2UserInfoFactory;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
@@ -54,12 +56,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     User user;
     if(userOptional.isPresent()) {
       user = userOptional.get();
-      if(!user.getProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
-        throw new OAuth2AuthenticationProcessingException("Looks like you're signed up with " +
-            user.getProvider() + " account. Please use your " + user.getProvider() +
-            " account to login.");
+      if(Objects.isNull(user.getProvider()) || (!user.getProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId())))) {
+        throw new OAuth2AuthenticationProcessingException("Account Existed");
       }
-      user = updateExistingUser(user, oAuth2UserInfo);
     } else {
       user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
     }
@@ -72,21 +71,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
     user.setProviderId(oAuth2UserInfo.getId());
-    user.setFirstName(oAuth2UserInfo.getName());
-    user.setLastName(oAuth2UserInfo.getName());
+    String[] names = oAuth2UserInfo.getName().split(" ", 2);
+    try {
+      user.setFirstName(names[0]);
+      user.setLastName(names[1]);
+    }
+    catch (Exception ex) {
+
+    }
     user.setEmail(oAuth2UserInfo.getEmail());
     user.setUsername(oAuth2UserInfo.getEmail());
-    user.setPassword("ABDAKSDLLASLDLSDASDASD");
+    user.setPassword(UUID.randomUUID().toString());
     AccountRole role = accountRoleRepository.findById(AccountRoleEnum.ROLE_USER.getId()).get();
     user.setRole(role);
     user.setIsActive(true);
     user.setIsVerified(true);
     user.setCreatedAt(LocalDateTime.now());
     return userRepository.save(user);
-  }
-
-  private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
-    existingUser.setFirstName(oAuth2UserInfo.getName());
-    return userRepository.save(existingUser);
   }
 }

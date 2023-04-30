@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.security;
 
+import com.hcmute.tdshop.config.AppProperties;
 import com.hcmute.tdshop.security.filter.CustomAuthorizationFilter;
 import com.hcmute.tdshop.security.filter.CustomUsernamePasswordAuthenticationFilter;
 import com.hcmute.tdshop.security.jwt.JwtTokenProvider;
@@ -21,6 +22,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -43,6 +45,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       "/token/refresh", "/", "/order/register-client/**", "/order/send-message", "/test/posttest", "/order/send-dummy-message/**"};
   @Autowired
   CustomUserDetailsService customUserDetailsService;
+
+  @Autowired
+  private AppProperties appProperties;
 
   @Autowired
   private CustomOAuth2UserService customOAuth2UserService;
@@ -102,8 +107,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .userInfoEndpoint()
         .userService(customOAuth2UserService)
         .and()
-        .successHandler((AuthenticationSuccessHandler) new OAuth2AuthenticationSuccessHandler());
-//        .failureHandler(oAuth2AuthenticationFailureHandler);
+        .successHandler((AuthenticationSuccessHandler) new OAuth2AuthenticationSuccessHandler(appProperties, httpCookieOAuth2AuthorizationRequestRepository))
+        .failureHandler((AuthenticationFailureHandler) new OAuth2AuthenticationFailureHandler(httpCookieOAuth2AuthorizationRequestRepository));
     http.addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManagerBean()));
     http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
   }

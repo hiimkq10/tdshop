@@ -1,6 +1,13 @@
 package com.hcmute.tdshop.utils.constants;
 
 public class ApplicationConstants {
+  // BE Endpoint
+  public static final String activateAccountEndpoint= "/api/v1/auth/activate";
+
+  // FE Endpoint
+  public static final String activateAccountSuccessEndpoint = "/";
+  public static final String activateAccountFailEndpoint = "/resend-token";
+
 
   public static final String EMAIL_PATTERN =
       "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";

@@ -3,6 +3,7 @@ package com.hcmute.tdshop.controller;
 import com.hcmute.tdshop.dto.auth.ForgotPasswordRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.EmailService;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +25,7 @@ public class EmailController {
   }
 
   @PostMapping("/send-activate-account-email/{id}")
-  public DataResponse sendEmail(@PathVariable(name = "id") long id) {
-    return emailService.sendActivateAccountEmail(id);
+  public DataResponse sendEmail(HttpServletRequest request, @PathVariable(name = "id") long id) {
+    return emailService.sendActivateAccountEmail(request, id);
   }
 }
