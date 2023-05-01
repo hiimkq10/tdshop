@@ -15,6 +15,7 @@ import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductAttribute;
 import com.hcmute.tdshop.entity.ProductStatus;
 import com.hcmute.tdshop.entity.VariationOption;
+import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.enums.ProductStatusEnum;
 import com.hcmute.tdshop.mapper.ProductMapper;
 import com.hcmute.tdshop.model.DataResponse;
@@ -261,6 +262,21 @@ public class ProductServiceImpl implements ProductService {
         pageOfProducts.getTotalElements()
     );
     return new DataResponse(pageOfSimpleProducts);
+  }
+
+  @Override
+  public DataResponse getProductByIdForAdmin(long id) {
+    List<Specification<Product>> specifications = new ArrayList<>();
+    specifications.add(ProductSpecification.isNotDeleted());
+    specifications.add(ProductSpecification.hasId(id));
+    Specification<Product> conditions = SpecificationHelper.and(specifications);
+    List<Product> listOfProduct = productRepository.findAll(conditions);
+    if (listOfProduct.size() > 0) {
+      ProductInfoDto productInfoDto = productMapper.ProductToProductInfoDto(listOfProduct.get(0));
+      return new DataResponse(productInfoDto);
+    }
+    return new DataResponse(ApplicationConstants.NOT_FOUND, ApplicationConstants.PRODUCT_NOT_FOUND,
+        ApplicationConstants.NOT_FOUND_CODE);
   }
 
   @Override
@@ -880,7 +896,7 @@ public class ProductServiceImpl implements ProductService {
     String role = AuthenticationHelper.getCurrentLoggedInUserRole();
     List<Specification<Product>> specifications = new ArrayList<>();
     specifications.add(ProductSpecification.isNotDeleted());
-//    if (role != null && role.equals(AccountRoleEnum.ROLE_ADMIN.getName())) {
+//    if (role != null && (role.equals(AccountRoleEnum.ROLE_ADMIN.getName()) || role.equals(AccountRoleEnum.ROLE_EMPLOYEE.getName()))) {
 //      return specifications;
 //    }
     specifications.add(ProductSpecification.isNotHide());

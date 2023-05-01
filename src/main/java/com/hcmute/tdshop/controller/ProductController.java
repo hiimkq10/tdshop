@@ -83,6 +83,12 @@ public class ProductController {
 //    return productService.searchProductsByKeyword(keyword, pageable);
 //  }
 
+  @GetMapping("/admin/get/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
+  public DataResponse getProductByIdForAdmin(@PathVariable(name = "id") Long id) {
+    return productService.getProductByIdForAdmin(id);
+  }
+
   @GetMapping("/get/{id}")
   public DataResponse getProductById(@PathVariable(name = "id") Long id) {
     return productService.getProductById(id);

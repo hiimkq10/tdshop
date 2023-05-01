@@ -22,6 +22,7 @@ public interface ProductService {
 
   public DataResponse searchProductsByKeyword(String keyword, Pageable page);
 
+  public DataResponse getProductByIdForAdmin(long id);
   public DataResponse getProductById(long id);
 
   //  public DataResponse insertProduct(AddProductRequest request, MultipartFile mainImage, List<MultipartFile> images);
