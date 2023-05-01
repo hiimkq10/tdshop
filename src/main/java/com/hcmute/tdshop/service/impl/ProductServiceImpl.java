@@ -172,9 +172,8 @@ public class ProductServiceImpl implements ProductService {
     return new DataResponse(pageOfSimpleProducts);
   }
 
-  @Override
-  public DataResponse searchProductsByFilterForAdmin(String keyword, long categoryId, double maxPrice, double minPrice,
-      String brand, Long brandId, Set<Long> variationOptionIds, Pageable page) {
+  public Specification<Product> buildCriteria(String keyword, long categoryId, double maxPrice, double minPrice,
+      String brand, Long brandId, Set<Long> variationOptionIds) {
     List<Specification<Product>> specifications = new ArrayList<>();
     specifications.add(ProductSpecification.isNotDeleted());
     if (keyword != null) {
@@ -211,21 +210,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     Specification<Product> conditions = SpecificationHelper.and(specifications);
+    return conditions;
+  }
+
+  @Override
+  public DataResponse searchProductsByFilterForAdmin(String keyword, long categoryId, double maxPrice, double minPrice,
+      String brand, Long brandId, Set<Long> variationOptionIds, Pageable page) {
+    Specification<Product> conditions = buildCriteria(keyword, categoryId, maxPrice, minPrice, brand, brandId, variationOptionIds);
     Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
     List<Product> listOfProducts = pageOfProducts.getContent();
-
-    // Filter by category
-//    if (categoryId > 0) {
-//      listOfProducts = listOfProducts.stream().filter(product -> checkIfProductHasCategory(product, categoryId))
-//          .collect(Collectors.toList());
-//    }
-
-    // Filter by variation
-//    if (variationOptionIds != null) {
-//      listOfProducts = listOfProducts.stream()
-//          .filter(product -> checkIfProductContainAllVariation(product, variationOptionIds)).collect(
-//              Collectors.toList());
-//    }
 
     Page<SimpleProductDto> pageOfSimpleProducts = new PageImpl<SimpleProductDto>(
         listOfProducts.stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()),
@@ -233,6 +226,21 @@ public class ProductServiceImpl implements ProductService {
         pageOfProducts.getTotalElements()
     );
     return new DataResponse(pageOfSimpleProducts);
+  }
+
+  @Override
+  public DataResponse getProductsByFilterForAdmin(String keyword, long categoryId, double maxPrice, double minPrice,
+      String brand, Long brandId, Set<Long> variationOptionIds, Pageable page) {
+    Specification<Product> conditions = buildCriteria(keyword, categoryId, maxPrice, minPrice, brand, brandId, variationOptionIds);
+    Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
+    List<Product> listOfProducts = pageOfProducts.getContent();
+
+    Page<ProductInfoDto> pageOfProductInfos = new PageImpl<ProductInfoDto>(
+        listOfProducts.stream().map(productMapper::ProductToProductInfoDto).collect(Collectors.toList()),
+        page,
+        pageOfProducts.getTotalElements()
+    );
+    return new DataResponse(pageOfProductInfos);
   }
 
   @Override

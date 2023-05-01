@@ -61,6 +61,21 @@ public class ProductController {
         pageable);
   }
 
+  @GetMapping("/admin/get")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
+  public DataResponse getProductsByFilterForAdmin(
+      @RequestParam(name = "keyword", required = false) String keyword,
+      @RequestParam(name = "category-id", required = false, defaultValue = "0") long categoryId,
+      @RequestParam(name = "max-price", required = false, defaultValue = "0") double maxPrice,
+      @RequestParam(name = "min-price", required = false, defaultValue = "0") double minPrice,
+      @RequestParam(name = "brand", required = false) String brand,
+      @RequestParam(name = "brand-id", required = false, defaultValue = "0") long brandId,
+      @RequestParam(name = "variations", required = false) Set<Long> ids,
+      Pageable pageable) {
+    return productService.getProductsByFilterForAdmin(keyword, categoryId, maxPrice, minPrice, brand, brandId, ids,
+        pageable);
+  }
+
 //  @GetMapping("/search")
 //  public DataResponse searchProductsByKeyword(
 //      @RequestParam(name = "keyword", required = false) String keyword,
