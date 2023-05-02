@@ -4,8 +4,10 @@ import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.model.DataResponse;
+import java.util.List;
 import java.util.Set;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProductService {
 
@@ -25,11 +27,11 @@ public interface ProductService {
   public DataResponse getProductByIdForAdmin(long id);
   public DataResponse getProductById(long id);
 
-  //  public DataResponse insertProduct(AddProductRequest request, MultipartFile mainImage, List<MultipartFile> images);
-  public DataResponse insertProduct(AddProductRequest request);
+    public DataResponse insertProduct(AddProductRequest request, MultipartFile mainImage, List<MultipartFile> images);
+//  public DataResponse insertProduct(AddProductRequest request);
 
-  //  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage, List<MultipartFile> images);
-  DataResponse updateProduct(long id, UpdateProductRequest request);
+    public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage, List<MultipartFile> images);
+//  DataResponse updateProduct(long id, UpdateProductRequest request);
 
   public DataResponse deleteProduct(long id);
 

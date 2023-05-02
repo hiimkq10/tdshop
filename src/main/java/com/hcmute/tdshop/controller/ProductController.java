@@ -1,10 +1,14 @@
 package com.hcmute.tdshop.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+
 import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.ProductService;
+import java.util.List;
 import java.util.Set;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +22,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/product")
@@ -94,39 +100,39 @@ public class ProductController {
     return productService.getProductById(id);
   }
 
-//  @PostMapping(value = "/add", consumes = {APPLICATION_JSON_VALUE, MULTIPART_FORM_DATA_VALUE})
-//  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
-//  public DataResponse insertProduct(
-//      @RequestPart(value = "ProductInfo") @Valid AddProductRequest request,
-//      @RequestPart(value = "MainImage") MultipartFile mainImage,
-//      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
-//    return productService.insertProduct(request, mainImage, images);
-//  }
-
-  @PostMapping("/add")
+  @PostMapping(value = "/add", consumes = {APPLICATION_JSON_VALUE, MULTIPART_FORM_DATA_VALUE})
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse insertProduct(
-      @RequestBody @Valid AddProductRequest request) {
-    return productService.insertProduct(request);
+      @RequestPart(value = "ProductInfo") @Valid AddProductRequest request,
+      @RequestPart(value = "MainImage") MultipartFile mainImage,
+      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
+    return productService.insertProduct(request, mainImage, images);
   }
 
-//  @PutMapping("/update/{id}")
+//  @PostMapping("/add")
 //  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
-//  public DataResponse updateProduct(
-//      @PathVariable(name = "id") long id,
-//      @RequestPart(value = "ProductInfo") @Valid UpdateProductRequest request,
-//      @RequestPart(value = "MainImage") MultipartFile mainImage,
-//      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
-//    return productService.updateProduct(id, request, mainImage, images);
+//  public DataResponse insertProduct(
+//      @RequestBody @Valid AddProductRequest request) {
+//    return productService.insertProduct(request);
 //  }
 
   @PutMapping("/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse updateProduct(
       @PathVariable(name = "id") long id,
-      @RequestBody @Valid UpdateProductRequest request) {
-    return productService.updateProduct(id, request);
+      @RequestPart(value = "ProductInfo") @Valid UpdateProductRequest request,
+      @RequestPart(value = "MainImage") MultipartFile mainImage,
+      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
+    return productService.updateProduct(id, request, mainImage, images);
   }
+
+//  @PutMapping("/update/{id}")
+//  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
+//  public DataResponse updateProduct(
+//      @PathVariable(name = "id") long id,
+//      @RequestBody @Valid UpdateProductRequest request) {
+//    return productService.updateProduct(id, request);
+//  }
 
   @DeleteMapping("/delete/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
