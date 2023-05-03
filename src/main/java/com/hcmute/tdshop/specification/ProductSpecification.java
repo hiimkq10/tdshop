@@ -8,6 +8,7 @@ import com.hcmute.tdshop.enums.ProductStatusEnum;
 import java.time.LocalDateTime;
 import java.util.Set;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
@@ -58,12 +59,19 @@ public class ProductSpecification {
 
   public static Specification<Product> hasVariations(Set<Long> setOfVariationIds) {
     return ((root, query, criteriaBuilder) -> {
+//      Subquery<Long> countVariationSubquery = query.subquery(Long.class);
+//      Root<Product> countVariations = countVariationSubquery.from(Product.class);
+//      Join<VariationOption, Product> variationOptionProductJoin = countVariations.join("setOfVariationOptions", JoinType.RIGHT);
+//      countVariationSubquery
+//          .select(criteriaBuilder.countDistinct(variationOptionProductJoin.get("variation").get("id")))
+//          .where(variationOptionProductJoin.get("id").in(setOfVariationIds));
+
       Subquery<Long> countVariationSubquery = query.subquery(Long.class);
-      Root<Product> countVariations = countVariationSubquery.from(Product.class);
-      Join<VariationOption, Product> variationOptionProductJoin = countVariations.join("setOfVariationOptions");
+      Root<VariationOption> countVariations = countVariationSubquery.from(VariationOption.class);
+      Join<VariationOption, Product> variationOptionProductJoin = countVariations.join("setOfProducts", JoinType.LEFT);
       countVariationSubquery
-          .select(criteriaBuilder.countDistinct(variationOptionProductJoin.get("variation").get("id")))
-          .where(variationOptionProductJoin.get("id").in(setOfVariationIds));
+          .select(criteriaBuilder.countDistinct(variationOptionProductJoin.getParentPath().get("variation").get("id")))
+          .where(variationOptionProductJoin.getParentPath().get("id").in(setOfVariationIds));
 
       Subquery<Long> selectedProductIDsSubquery = query.subquery(Long.class);
       Root<Product> selectedProductIDs = selectedProductIDsSubquery.from(Product.class);
