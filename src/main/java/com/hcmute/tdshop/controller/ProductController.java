@@ -104,8 +104,8 @@ public class ProductController {
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse insertProduct(
       @RequestPart(value = "ProductInfo") @Valid AddProductRequest request,
-      @RequestPart(value = "MainImage") MultipartFile mainImage,
-      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
+      @RequestPart(value = "MainImage", required = false) MultipartFile mainImage,
+      @RequestPart(value = "OtherImage", required = false) List<MultipartFile> images) {
     return productService.insertProduct(request, mainImage, images);
   }
 
