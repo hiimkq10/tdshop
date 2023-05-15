@@ -203,6 +203,7 @@ public class ApplicationConstants {
   // ------------------------------ ATTRIBUTE_SET -------------------------------------
   public static final String ATTRIBUTE_SET_NOT_FOUND = "Attribute set not found";
   public static final String ATTRIBUTE_SET_NAME_EXISTED = "Attribute set name existed";
+  public static final int ATTRIBUTE_SET_NAME_EXISTED_CODE = 30001;
   public static final String ATTRIBUTE_SET_NAME_MANDATORY = "Attribute set name is mandatory";
   public static final String ATTRIBUTE_SET_NAME_SIZE_INVALID = "Attribute set name is too long";
   public static final String ATTRIBUTE_SET_ADD_SUCCESSFULLY = "Add variation successfully";
@@ -214,6 +215,7 @@ public class ApplicationConstants {
   // ------------------------------ ATTRIBUTE -------------------------------------
   public static final String ATTRIBUTE_PRIORITY_INVALID = "Attribute priority is invalid";
   public static final String ATTRIBUTE_NAME_EXISTED = "Attribute name existed";
+  public static final int ATTRIBUTE_NAME_EXISTED_CODE = 40001;
   public static final String ATTRIBUTE_NAME_MANDATORY = "Attribute name is mandatory";
   public static final String ATTRIBUTE_NAME_SIZE_INVALID = "Attribute name is too long";
 
