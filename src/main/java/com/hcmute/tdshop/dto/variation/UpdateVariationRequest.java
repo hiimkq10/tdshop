@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.dto.variation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hcmute.tdshop.dto.variationoption.VariationOptionDto;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.Set;
 import javax.validation.constraints.NotBlank;
@@ -15,5 +16,5 @@ public class UpdateVariationRequest {
   private String name;
 
   @JsonProperty("VariationOptions")
-  private Set<String> setOfVarirationOptionValues;
+  private Set<VariationOptionDto> setOfVarirationOptionValues;
 }

@@ -169,6 +169,7 @@ public class ApplicationConstants {
   // ------------------------------ MASTER CATEGORY -------------------------------------
   public static final String MASTER_CATEGORY_ID_INVALID = "Master category is invalid";
   public static final String MASTER_CATEGORY_NOT_FOUND = "Master category not found";
+  public static final int MASTER_CATEGORY_NOT_FOUND_CODE = 50001;
   public static final String MASTER_CATEGORY_NAME_EXISTED = "Master category name existed";
   public static final String MASTER_CATEGORY_NAME_MANDATORY = "Master category name is mandatory";
   public static final String MASTER_CATEGORY_NAME_SIZE_INVALID = "Master category name is too long";
@@ -192,13 +193,23 @@ public class ApplicationConstants {
 
   // ------------------------------ VARIATION -------------------------------------
   public static final String VARIATION_NOT_FOUND = "Variation not found";
+  public static final int VARIATION_NOT_FOUND_CODE = 60002;
   public static final String VARIATION_NAME_EXISTED = "Variation name existed";
+  public static final int VARIATION_NAME_EXISTED_CODE = 60001;
   public static final String VARIATION_NAME_MANDATORY = "Variation name is mandatory";
   public static final String VARIATION_NAME_SIZE_INVALID = "Variation name is too long";
   public static final String VARIATION_ADD_SUCCESSFULLY = "Add variation successfully";
   public static final String VARIATION_UPDATE_SUCCESSFULLY = "Update variation successfully";
   public static final String VARIATION_DELETE_SUCCESSFULLY = "Delete variation successfully";
   public static final String VARIATION_RELATED_EXIST = "Can`t delete variation!! Please remove all variation options related to this category before delete";
+
+  // ------------------------------ VARIATION OPTION -------------------------------------
+  public static final String VARIATION_OPTION_NAME_EXISTED = "Variation option name existed";
+  public static final int VARIATION_OPTION_NAME_EXISTED_CODE = 70001;
+  public static final String VARIATION_OPTION_VALUE_SIZE_INVALID = "Variation option value size invalid";
+  public static final int VARIATION_OPTION_VALUE_SIZE_INVALID_CODE = 70002;
+  public static final String VARIATION_OPTION_VALUE_MANDATORY = "Variation option value size invalid";
+  public static final int VARIATION_OPTION_VALUE_MANDATORY_CODE = 70003;
 
   // ------------------------------ ATTRIBUTE_SET -------------------------------------
   public static final String ATTRIBUTE_SET_NOT_FOUND = "Attribute set not found";
