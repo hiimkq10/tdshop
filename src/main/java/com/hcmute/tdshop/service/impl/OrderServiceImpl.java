@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -242,15 +243,26 @@ public class OrderServiceImpl implements OrderService {
     Optional<ShopOrder> optionalShopOrder = orderRepository.findByIdAndUser_IdAndDeletedAtIsNull(orderId, userId);
     if (optionalShopOrder.isPresent()) {
       ShopOrder order = optionalShopOrder.get();
-      if (order.getOrderStatus().getId().equals(OrderStatusEnum.AWAITINGPAYMENT.getId()) || (order.getOrderStatus()
-          .getId().equals(OrderStatusEnum.PROCCESSING.getId()))) {
+      if (order.getOrderStatus().getId().equals(OrderStatusEnum.AWAITINGPAYMENT.getId())) {
         order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.CANCELED.getId()).get());
+
+        // Increase product quantity
+        Iterator<OrderDetail> iterator = order.getSetOfOrderDetails().iterator();
+        OrderDetail orderDetail;
+        int selAmount;
+        while (iterator.hasNext()) {
+          orderDetail = iterator.next();
+          orderDetail.getProduct().setTotal(orderDetail.getProduct().getTotal() + orderDetail.getQuantity());
+          selAmount = orderDetail.getProduct().getSelAmount() - orderDetail.getQuantity();
+          orderDetail.getProduct().setSelAmount(Math.max(selAmount, 0));
+        }
+
         order = orderRepository.saveAndFlush(order);
         return new DataResponse(ApplicationConstants.ORDER_CANCEL_SUCCESSFULLY,
             orderMapper.OrderToOrderResponse(order));
       } else {
         return new DataResponse(ApplicationConstants.BAD_REQUEST,
-            ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED, ApplicationConstants.BAD_REQUEST_CODE);
+            ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED, ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED_CODE);
       }
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,

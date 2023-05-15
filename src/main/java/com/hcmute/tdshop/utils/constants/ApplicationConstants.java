@@ -145,6 +145,7 @@ public class ApplicationConstants {
   // ------------------------------ ORDER STATUS -------------------------------------
   public static final String ORDER_STATUS_NOT_FOUND = "Order status not found";
   public static final String ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED = "Only awaiting payment order can be canceled";
+  public static final int ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED_CODE = 20002;
 
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_ID_INVALID = "Payment id invalid";
