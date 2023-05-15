@@ -565,7 +565,10 @@ public class ProductServiceImpl implements ProductService {
       imageRepository.deleteAll(tempList);
 
       if (mainImage != null) {
-        updateProductImage(mainImage, currentProduct.getImageUrl());
+        String url = updateProductImage(mainImage, currentProduct.getImageUrl());
+        if (url != null) {
+          currentProduct.setImageUrl(url);
+        }
       }
       String url;
       for (MultipartFile image : images) {
