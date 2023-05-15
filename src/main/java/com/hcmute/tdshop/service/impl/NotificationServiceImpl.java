@@ -52,7 +52,6 @@ public class NotificationServiceImpl implements NotificationService {
     }
     Specification<Notification> conditions = SpecificationHelper.and(specifications);
     Page<Notification> notifications = notificationRepository.findAll(conditions, pageable);
-    System.out.println(1);
     return new DataResponse(notifications);
   }
 

@@ -38,7 +38,7 @@ public class Notification {
   @Column(name = "send_all")
   private Boolean sendAll = false;
 
-  @OneToMany(cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL)
   @JsonIgnore
   private List<UserNotification> listOfUserNotifications;
 }
