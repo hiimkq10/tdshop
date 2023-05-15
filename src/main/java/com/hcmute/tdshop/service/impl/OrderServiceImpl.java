@@ -160,7 +160,7 @@ public class OrderServiceImpl implements OrderService {
         listOfProducts.add(product);
       } else {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_QUANTITY_NOT_ENOUGH,
-            ApplicationConstants.BAD_REQUEST_CODE);
+            ApplicationConstants.PRODUCT_QUANTITY_NOT_ENOUGH_CODE);
       }
     }
     productRepository.saveAllAndFlush(listOfProducts);

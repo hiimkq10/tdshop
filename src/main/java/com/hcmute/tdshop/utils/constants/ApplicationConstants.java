@@ -28,6 +28,7 @@ public class ApplicationConstants {
   public static final int DUPLICATED_CODE = 400;
   public static final String CREATED = "CREATED";
   public static final int CREATED_CODE = 201;
+  public static final int PRODUCT_QUANTITY_NOT_ENOUGH_CODE = 20001;
 
   public static final String EMAIL_EXISTED = "Email existed";
   public static final String PHONE_EXISTED = "Phone existed";

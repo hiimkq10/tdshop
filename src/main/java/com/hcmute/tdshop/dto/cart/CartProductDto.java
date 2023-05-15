@@ -23,4 +23,7 @@ public class CartProductDto {
 
   @JsonProperty("Discount")
   private CartProductPromotionDto productPromotion;
+
+  @JsonProperty("Total")
+  private int total;
 }

@@ -49,6 +49,7 @@ public abstract class CartMapper {
     cartProductDto.setImageUrl( product.getImageUrl() );
     cartProductDto.setPrice( doubleToString( product.getPrice() ) );
     cartProductDto.setProductPromotion( ProductPromotionToCartProductPromotionDto( getCurrentPromotion(product)) );
+    cartProductDto.setTotal(product.getTotal());
 
     return cartProductDto;
   }
