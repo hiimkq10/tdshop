@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.service.impl;
 
 import com.google.gson.Gson;
+import com.hcmute.tdshop.controller.AddressController;
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.dto.order.OrderResponse;
@@ -8,6 +9,7 @@ import com.hcmute.tdshop.dto.payment.momo.MomoConfig;
 import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResponse;
 import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResultDto;
 import com.hcmute.tdshop.dto.serversentevent.Clients;
+import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
 import com.hcmute.tdshop.entity.OrderDetail;
@@ -18,6 +20,7 @@ import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
 import com.hcmute.tdshop.mapper.OrderMapper;
 import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.repository.AddressRepository;
 import com.hcmute.tdshop.repository.CartItemRepository;
 import com.hcmute.tdshop.repository.CartRepository;
 import com.hcmute.tdshop.repository.OrderDetailRepository;
@@ -77,6 +80,9 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   private OrderDetailRepository orderDetailRepository;
+
+  @Autowired
+  private AddressRepository addressRepository;
 
   @Autowired
   private PaymentServiceImpl paymentService;
@@ -164,6 +170,21 @@ public class OrderServiceImpl implements OrderService {
       }
     }
     productRepository.saveAllAndFlush(listOfProducts);
+
+    // Clone address for order
+    Address tempAddress = new Address(
+        0L,
+        order.getAddress().getName(),
+        order.getAddress().getEmail(),
+        order.getAddress().getPhone(),
+        order.getAddress().getAddressDetail(),
+        false,
+        order.getAddress().getWards(),
+        null,
+        null);
+    tempAddress = addressRepository.save(tempAddress);
+    order.setAddress(tempAddress);
+
 
     Cart cart = cartRepository.findByUser_Id(userId).get();
     Set<CartItem> setOfCartItems = cart.getSetOfCartItems();

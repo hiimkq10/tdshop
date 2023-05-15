@@ -61,7 +61,7 @@ public class Address {
   private LocalDateTime deletedAt;
 
   @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "user_id")
   @JsonIgnore
   private User user;
 }
