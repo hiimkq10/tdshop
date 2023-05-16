@@ -122,8 +122,8 @@ public class ProductController {
   public DataResponse updateProduct(
       @PathVariable(name = "id") long id,
       @RequestPart(value = "ProductInfo") @Valid UpdateProductRequest request,
-      @RequestPart(value = "MainImage") MultipartFile mainImage,
-      @RequestPart(value = "OtherImage") List<MultipartFile> images) {
+      @RequestPart(value = "MainImage", required = false) MultipartFile mainImage,
+      @RequestPart(value = "OtherImage", required = false) List<MultipartFile> images) {
     return productService.updateProduct(id, request, mainImage, images);
   }
 
