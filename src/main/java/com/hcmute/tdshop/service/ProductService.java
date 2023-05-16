@@ -14,7 +14,7 @@ public interface ProductService {
   public DataResponse getAllProducts(Pageable page);
 
   public DataResponse searchProductsByFilter(String keyword, long categoryId, double maxPrice, double minPrice,
-      String brand, Long brandId, Set<Long> variationOptionIds, Pageable page);
+      String brand, Long brandId, Set<Long> variationOptionIds, long masterCategoryId, Pageable page);
 
   public DataResponse searchProductsByFilterForAdmin(String keyword, long categoryId, double maxPrice, double minPrice,
       String brand, Long brandId, Set<Long> variationOptionIds, Pageable page);

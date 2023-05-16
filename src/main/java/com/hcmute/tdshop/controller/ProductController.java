@@ -47,8 +47,9 @@ public class ProductController {
       @RequestParam(name = "brand", required = false) String brand,
       @RequestParam(name = "brand-id", required = false, defaultValue = "0") long brandId,
       @RequestParam(name = "variations", required = false) Set<Long> ids,
+      @RequestParam(name = "master-category-id", required = false, defaultValue = "0") long masterCategoryId,
       Pageable pageable) {
-    return productService.searchProductsByFilter(keyword, categoryId, maxPrice, minPrice, brand, brandId, ids,
+    return productService.searchProductsByFilter(keyword, categoryId, maxPrice, minPrice, brand, brandId, ids, masterCategoryId,
         pageable);
   }
 

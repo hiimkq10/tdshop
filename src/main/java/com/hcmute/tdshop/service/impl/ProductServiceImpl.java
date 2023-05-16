@@ -111,6 +111,7 @@ public class ProductServiceImpl implements ProductService {
       String brand,
       Long brandId,
       Set<Long> variationOptionIds,
+      long masterCategoryId,
       Pageable page) {
     List<Specification<Product>> specifications = createSpecificationsBaseOnLoggedInUser();
     if (keyword != null) {
@@ -144,6 +145,11 @@ public class ProductServiceImpl implements ProductService {
 
     if (brandId > 0) {
       specifications.add(ProductSpecification.hasBrandId(brandId));
+    }
+
+    // Filter by mastercategory
+    if (masterCategoryId > 0) {
+      specifications.add(ProductSpecification.hasMasterCategory(masterCategoryId));
     }
 
     Specification<Product> conditions = SpecificationHelper.and(specifications);

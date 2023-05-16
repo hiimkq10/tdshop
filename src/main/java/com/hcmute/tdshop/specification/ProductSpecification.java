@@ -128,4 +128,16 @@ public class ProductSpecification {
       return criteriaBuilder.equal(root.get("id"), selectedProductIdsSubquery);
     }));
   }
+
+  public static Specification<Product> hasMasterCategory(long masterCategoryId) {
+    return ((root, query, criteriaBuilder) -> {
+      Subquery<Long> selectedProductIDsSubquery = query.subquery(Long.class);
+      Root<Product> selectedProductIDs = selectedProductIDsSubquery.from(Product.class);
+      Join<Category, Product> productCategoryJoin = selectedProductIDs.join("setOfCategories");
+      selectedProductIDsSubquery
+          .select(selectedProductIDs.get("id"))
+          .where(productCategoryJoin.get("masterCategory").get("id").in(masterCategoryId));
+      return root.get("id").in(selectedProductIDsSubquery);
+    });
+  }
 }
