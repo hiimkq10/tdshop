@@ -87,7 +87,7 @@ public abstract class ProductMapper {
     productAttributeDto.setName(attribute.getAttribute().getName());
     productAttributeDto.setValue(attribute.getValue());
     productAttributeDto.setPriority(attribute.getAttribute().getPriority());
-    productAttributeDto.setAttributeId(attribute.getId());
+    productAttributeDto.setAttributeId(attribute.getAttribute().getId());
 
     return productAttributeDto;
   }
