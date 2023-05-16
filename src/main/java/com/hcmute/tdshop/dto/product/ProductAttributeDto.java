@@ -8,4 +8,5 @@ public class ProductAttributeDto {
   private String name;
   private String value;
   private int priority;
+  private long attributeId;
 }

@@ -576,11 +576,13 @@ public class ProductServiceImpl implements ProductService {
           currentProduct.setImageUrl(url);
         }
       }
-      String url;
-      for (MultipartFile image : images) {
-        url = uploadProductImage(image);
-        if (url != null) {
-          currentProduct.getSetOfImages().add(new Image(null, url, null, currentProduct));
+      if (images != null) {
+        String url;
+        for (MultipartFile image : images) {
+          url = uploadProductImage(image);
+          if (url != null) {
+            currentProduct.getSetOfImages().add(new Image(null, url, null, currentProduct));
+          }
         }
       }
 
