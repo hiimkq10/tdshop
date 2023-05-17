@@ -97,4 +97,9 @@ public class ReviewController {
   public DataResponse addReviewForMobile(@RequestBody @Valid AddReviewRequest request) {
     return reviewService.addReviewForMobile(request);
   }
+
+  @DeleteMapping("/mobile-delete/{id}")
+  public DataResponse deleteReviewForMobile(@PathVariable(name = "id") long id) {
+    return reviewService.deleteReview(id);
+  }
 }
