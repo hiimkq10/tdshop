@@ -92,4 +92,9 @@ public class ReviewController {
   public DataResponse getProductAvgReview(@RequestParam(name = "product-id") long productId) {
     return reviewService.getProductAvgReview(productId);
   }
+
+  @PostMapping("/mobile-add")
+  public DataResponse addReviewForMobile(@RequestBody @Valid AddReviewRequest request) {
+    return reviewService.addReviewForMobile(request);
+  }
 }

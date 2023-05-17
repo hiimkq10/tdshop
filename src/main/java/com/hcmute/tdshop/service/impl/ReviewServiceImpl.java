@@ -202,6 +202,23 @@ public class ReviewServiceImpl implements ReviewService {
     return new DataResponse(new RatingWithStarDto(productId, null, avg, size, star1, star2, star3, star4, star5));
   }
 
+  @Override
+  public DataResponse addReviewForMobile(AddReviewRequest request) {
+    Review review = reviewMapper.AddReviewDtoToReview(request);
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
+    if (!checkIfUserBoughtProduct(request.getProduct(), userId)) {
+      return DataResponse.BAD_REQUEST;
+    }
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException(ApplicationConstants.USER_NOT_FOUND));
+    review.setUser(user);
+    review.setValid(true);
+    review.setVerified(true);
+    review.setCreatedAt(LocalDateTime.now());
+    review = reviewRepository.save(review);
+    return new DataResponse(ApplicationConstants.REVIEW_ADD_SUCCESSFULLY, review);
+  }
+
   public boolean checkIfUserBoughtProduct(long productId, long userId) {
     return orderDetailRepository.existsByProduct_IdAndOrder_User_Id(productId, userId);
   }

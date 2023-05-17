@@ -25,4 +25,5 @@ public interface ReviewService {
 
   DataResponse checkUserBoughtProduct(long productId);
   DataResponse getProductAvgReview(long productId);
+  DataResponse addReviewForMobile(AddReviewRequest request);
 }
