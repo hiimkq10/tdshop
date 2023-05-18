@@ -53,4 +53,10 @@ public class UserController {
   public DataResponse banUser(@PathVariable(name = "id") long id) {
     return userService.banUser(id);
   }
+
+  @PostMapping("/admin/unban/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  public DataResponse unBanUser(@PathVariable(name = "id") long id) {
+    return userService.unBanUser(id);
+  }
 }
