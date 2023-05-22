@@ -19,6 +19,9 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, Long>, Jpa
   Page<ShopOrder> findByUser_IdAndDeletedAtIsNull(Long userId, Pageable pageable);
   Optional<ShopOrder> findByIdAndUser_IdAndDeletedAtIsNull(Long id, Long userId);
 
+  List<ShopOrder> findAllByOrderedAtLessThanEqualAndOrderStatus_IdIsAndDeletedAtIsNull(LocalDateTime dateTime, Long status);
+
+
   @Query(value = "SELECT "
       + "new com.hcmute.tdshop.dto.statistic.OrderDto(s.orderStatus.id as id, s.orderStatus.name as name, COUNT(s.orderStatus.id) as amount) "
       + "FROM ShopOrder s "

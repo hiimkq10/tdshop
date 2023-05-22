@@ -15,11 +15,25 @@ public class AppProperties {
   @Value("${fe.base.url}")
   private String feBaseUrl;
 
+  @Value("${order.payment.time-out}")
+  private Long orderPaymentTimeOut;
+
+  @Value("${order.awaiting-payment.time-out}")
+  private Long orderAwaitingPaymentTimeOut;
+
   public List<String> getAuthorizedRedirectUris() {
     return authorizedRedirectUris;
   }
 
   public String getFeBaseUrl() {
     return feBaseUrl;
+  }
+
+  public Long getOrderPaymentTimeOut() {
+    return orderPaymentTimeOut;
+  }
+
+  public Long getOrderAwaitingPaymentTimeOut() {
+    return orderAwaitingPaymentTimeOut;
   }
 }
