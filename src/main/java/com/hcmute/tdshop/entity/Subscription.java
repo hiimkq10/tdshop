@@ -1,6 +1,5 @@
 package com.hcmute.tdshop.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,24 +17,17 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserNotification {
+public class Subscription {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "is_read", nullable = false)
-  private Boolean isRead = false;
-
-  @Column(name = "is_deleted")
-  private Boolean isDeleted = false;
-
-  @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
   @ManyToOne
-  @JoinColumn(name = "notification_id", nullable = false)
-  private Notification notification;
+  @JoinColumn(name = "product_id", nullable = false)
+  private Product product;
 }

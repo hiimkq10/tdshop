@@ -253,9 +253,24 @@ public class ApplicationConstants {
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_SIGNATURE_INCORRECT = "Signature is incorrect";
 
+  // ------------------------------ NOTIFICATION TYPE -------------------------------------
+  public static final String NOTIFICATION_TYPE_NOT_FOUND = "Notification type not found";
+  public static final String NOTIFICATION_TYPE_NAME_MANDATORY = "Notification type name is mandatory";
+  public static final String NOTIFICATION_TYPE_DESCRIPTION_MANDATORY = "Notification type description is mandatory";
+  public static final String NOTIFICATION_TYPE_TITLE_TEMPLATE_MANDATORY = "Notification type title template is mandatory";
+  public static final String NOTIFICATION_TYPE_CONTENT_TEMPLATE_MANDATORY = "Notification type content template is mandatory";
+  public static final String NOTIFICATION_TYPE_DELETE_SUCCESS = "Notification type deleted";
+
   // ------------------------------ NOTIFICATION -------------------------------------
+  public static final String NOTIFICATION_TITLE_MANDATORY = "Notification title is mandatory";
   public static final String NOTIFICATION_CONTENT_MANDATORY = "Notification content is mandatory";
   public static final String NOTIFICATION_NOT_FOUND = "Notification not found";
+
+  // ------------------------------ SUBSCRIPTION -------------------------------------
+  public static final String FOLLOW_SUCCESS = "Follow success";
+  public static final String FOLLOW_FAILED = "Follow failed";
+  public static final String UN_FOLLOW_SUCCESS = "Unfollow success";
+  public static final String UN_FOLLOW_FAILED = "Unfollow failed";
 
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";

@@ -3,7 +3,6 @@ package com.hcmute.tdshop.repository;
 import com.hcmute.tdshop.dto.statistic.ProductDto;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Product;
-import com.hcmute.tdshop.projection.product.ProductIdView;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +18,8 @@ import org.springframework.stereotype.Repository;
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
   Optional<Product> findByIdAndStatus_IdNotInAndDeletedAtNull(Long id, Long[] ids);
   boolean existsByIdAndStatus_IdNotInAndDeletedAtNull(Long id, Long[] ids);
+  Optional<Product> findByIdAndStatus_IdInAndDeletedAtNull(Long id, Long[] ids);
+  boolean existsByIdAndStatus_IdInAndDeletedAtNull(Long id, Long[] ids);
   Set<Product> findByIdIn(Set<Long> ids);
   long countByBrand_Id(Long id);
   boolean existsBySetOfCategoriesContains(Category category);

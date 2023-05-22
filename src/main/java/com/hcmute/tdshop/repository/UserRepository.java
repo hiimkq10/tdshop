@@ -15,6 +15,8 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
   Optional<User> findByEmail(String email);
+  Optional<User> findByIdAndDeletedAtNullAndIsActiveTrue(Long id);
+  boolean existsByIdAndDeletedAtNullAndIsActiveTrue(Long id);
 
   long countByEmail(String email);
 

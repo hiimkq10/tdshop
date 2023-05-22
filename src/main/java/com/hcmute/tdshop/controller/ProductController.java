@@ -6,8 +6,10 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
+import com.hcmute.tdshop.dto.subscription.FollowDto;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.ProductService;
+import com.hcmute.tdshop.service.SubscriptionService;
 import java.util.List;
 import java.util.Set;
 import javax.validation.Valid;
@@ -32,6 +34,9 @@ public class ProductController {
 
   @Autowired
   private ProductService productService;
+
+  @Autowired
+  private SubscriptionService subscriptionService;
 
   @GetMapping("/get-all")
   public DataResponse getAllProducts(Pageable pageable) {
@@ -145,5 +150,20 @@ public class ProductController {
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse changeProductStatus(@RequestBody @Valid ChangeProductStatusRequest request) {
     return productService.changeProductStatus(request);
+  }
+
+  @PostMapping("/follow/{product-id}")
+  public DataResponse follow(@PathVariable(name = "product-id") long id) {
+    return subscriptionService.subscribe(id);
+  }
+
+  @PostMapping("/un-follow/{product-id}")
+  public DataResponse unFollow(@PathVariable(name = "product-id") long id) {
+    return subscriptionService.unSubscribe(id);
+  }
+
+  @GetMapping("/check-follow/{product-id}")
+  public DataResponse checkFollow(@PathVariable(name = "product-id") long id) {
+    return subscriptionService.checkFollow(id);
   }
 }

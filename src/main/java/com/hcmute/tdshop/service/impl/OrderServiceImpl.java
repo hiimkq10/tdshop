@@ -1,7 +1,6 @@
 package com.hcmute.tdshop.service.impl;
 
 import com.google.gson.Gson;
-import com.hcmute.tdshop.controller.AddressController;
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.dto.order.OrderResponse;
@@ -12,10 +11,13 @@ import com.hcmute.tdshop.dto.serversentevent.Clients;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
+import com.hcmute.tdshop.entity.Notification;
 import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.OrderStatus;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShopOrder;
+import com.hcmute.tdshop.entity.Subscription;
+import com.hcmute.tdshop.entity.UserNotification;
 import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
 import com.hcmute.tdshop.mapper.OrderMapper;
@@ -23,16 +25,20 @@ import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.AddressRepository;
 import com.hcmute.tdshop.repository.CartItemRepository;
 import com.hcmute.tdshop.repository.CartRepository;
+import com.hcmute.tdshop.repository.NotificationRepository;
 import com.hcmute.tdshop.repository.OrderDetailRepository;
 import com.hcmute.tdshop.repository.OrderStatusRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShopOrderRepository;
+import com.hcmute.tdshop.repository.SubscriptionRepository;
+import com.hcmute.tdshop.repository.UserNotificationRepository;
 import com.hcmute.tdshop.service.OrderService;
 import com.hcmute.tdshop.service.payment.PaymentServiceImpl;
 import com.hcmute.tdshop.specification.OrderSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.SpecificationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import com.hcmute.tdshop.utils.notification.NotificationHelper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -42,10 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +93,18 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   private MomoConfig momoConfig;
+
+  @Autowired
+  private NotificationRepository notificationRepository;
+
+  @Autowired
+  private NotificationHelper notificationHelper;
+
+  @Autowired
+  private SubscriptionRepository subscriptionRepository;
+
+  @Autowired
+  private UserNotificationRepository userNotificationRepository;
 
   private Clients clients = new Clients();
   private Gson gson = new Gson();
@@ -159,11 +174,25 @@ public class OrderServiceImpl implements OrderService {
     ShopOrder order = orderMapper.AddOrderRequestToOrder(request);
     Set<OrderDetail> setOfOrderDetails = order.getSetOfOrderDetails();
     List<Product> listOfProducts = new ArrayList<>();
+    List<UserNotification> userNotifications = new ArrayList<>();
     for (OrderDetail orderDetail : setOfOrderDetails) {
       Product product = orderDetail.getProduct();
+      List<Subscription> subscriptions = subscriptionRepository.findByProduct_Id(product.getId());
       if (product.getTotal() >= orderDetail.getQuantity()) {
         product.setTotal(product.getTotal() - orderDetail.getQuantity());
         product.setSelAmount(product.getSelAmount() + orderDetail.getQuantity());
+
+        if (product.getTotal() == 0) {
+          Notification notification = notificationHelper.buildProductOutOfStockNotification(product);
+          notification = notificationRepository.save(notification);
+          Notification finalNotification = notification;
+          userNotifications.addAll(
+              subscriptions.stream().filter(item -> item.getProduct().getId() == product.getId() && item.getUser().getId() != userId)
+                  .map(item -> new UserNotification(null, false, false, item.getUser(), finalNotification))
+                  .collect(
+                  Collectors.toList()));
+        }
+
         listOfProducts.add(product);
       } else {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_QUANTITY_NOT_ENOUGH,
@@ -186,7 +215,6 @@ public class OrderServiceImpl implements OrderService {
     tempAddress = addressRepository.save(tempAddress);
     order.setAddress(tempAddress);
 
-
     Cart cart = cartRepository.findByUser_Id(userId).get();
     Set<CartItem> setOfCartItems = cart.getSetOfCartItems();
     setOfCartItems = setOfCartItems.stream().filter(cartItem -> {
@@ -206,11 +234,19 @@ public class OrderServiceImpl implements OrderService {
       order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.AWAITINGPAYMENT.getId()).get());
       order = orderRepository.save(order);
       orderDetailRepository.saveAll(order.getSetOfOrderDetails());
+
       MomoPaymentResponse momoResponse = paymentService.execute(order);
+
+      // Save user notification
+      userNotificationRepository.saveAll(userNotifications);
+
       return new DataResponse(momoResponse);
     }
     order = orderRepository.save(order);
     orderDetailRepository.saveAll(order.getSetOfOrderDetails());
+
+    // Save user notification
+    userNotificationRepository.saveAll(userNotifications);
 
     return new DataResponse(ApplicationConstants.ORDER_SUCCESSFULLY, orderMapper.OrderToOrderResponse(order));
   }
@@ -262,7 +298,8 @@ public class OrderServiceImpl implements OrderService {
             orderMapper.OrderToOrderResponse(order));
       } else {
         return new DataResponse(ApplicationConstants.BAD_REQUEST,
-            ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED, ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED_CODE);
+            ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED,
+            ApplicationConstants.ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED_CODE);
       }
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
@@ -272,8 +309,10 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public DataResponse updateMomoPaymentOrder(MomoPaymentResultDto momoPaymentResultDto) {
     if (momoPaymentResultDto.checkIfSignatureValid(momoConfig)) {
-      log.info(String.format("momo result: %d with message %s", momoPaymentResultDto.getResultCode(), momoPaymentResultDto.getMessage()));
-      String data = new String(Base64.getDecoder().decode(momoPaymentResultDto.getExtraData().getBytes(StandardCharsets.UTF_8)));
+      log.info(String.format("momo result: %d with message %s", momoPaymentResultDto.getResultCode(),
+          momoPaymentResultDto.getMessage()));
+      String data = new String(
+          Base64.getDecoder().decode(momoPaymentResultDto.getExtraData().getBytes(StandardCharsets.UTF_8)));
       Map map = gson.fromJson(data, Map.class);
       Long orderId = Long.valueOf((String) map.get("orderId"));
       Optional<ShopOrder> optionalOrder = orderRepository.findById(orderId);

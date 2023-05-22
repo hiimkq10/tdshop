@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -69,11 +70,17 @@ public class NotificationServiceImpl implements NotificationService {
     if (optionalNotification.isPresent()) {
       Notification currentNotification = optionalNotification.get();
       Notification notificationToUpdate = notificationMapper.UpdateNotificationRequestToNotification(request);
+      if (Strings.isNotBlank(notificationToUpdate.getTitle())) {
+        currentNotification.setTitle(notificationToUpdate.getTitle());
+      }
       if (!Helper.checkIfStringIsBlank(notificationToUpdate.getContent())) {
         currentNotification.setContent(notificationToUpdate.getContent());
       }
       if (Objects.nonNull(notificationToUpdate.getSendAll())) {
         currentNotification.setSendAll(notificationToUpdate.getSendAll());
+      }
+      if (Strings.isNotBlank(notificationToUpdate.getUrl())) {
+        currentNotification.setUrl(notificationToUpdate.getUrl());
       }
       currentNotification = notificationRepository.save(currentNotification);
       return new DataResponse(currentNotification);

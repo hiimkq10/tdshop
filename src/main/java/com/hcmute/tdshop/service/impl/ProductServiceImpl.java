@@ -11,6 +11,7 @@ import com.hcmute.tdshop.entity.Attribute;
 import com.hcmute.tdshop.entity.Brand;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Image;
+import com.hcmute.tdshop.entity.Notification;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductAttribute;
 import com.hcmute.tdshop.entity.ProductStatus;
@@ -23,6 +24,7 @@ import com.hcmute.tdshop.repository.AttributeRepository;
 import com.hcmute.tdshop.repository.BrandRepository;
 import com.hcmute.tdshop.repository.CategoryRepository;
 import com.hcmute.tdshop.repository.ImageRepository;
+import com.hcmute.tdshop.repository.NotificationRepository;
 import com.hcmute.tdshop.repository.ProductAttributeRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ProductStatusRepository;
@@ -32,6 +34,7 @@ import com.hcmute.tdshop.specification.ProductSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.SpecificationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import com.hcmute.tdshop.utils.notification.NotificationHelper;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -92,6 +95,12 @@ public class ProductServiceImpl implements ProductService {
 
   @Autowired
   private ImageRepository imageRepository;
+
+  @Autowired
+  private NotificationRepository notificationRepository;
+
+  @Autowired
+  private NotificationHelper notificationHelper;
 
   @Override
   public DataResponse getAllProducts(Pageable page) {
@@ -359,6 +368,8 @@ public class ProductServiceImpl implements ProductService {
       }
 
       product = productRepository.save(product);
+      Notification notification = notificationHelper.buildNewProductAddedNotification(product);
+      notificationRepository.save(notification);
 
       // Upload the rest image to server
 //      if (images.size() > 0) {
