@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.specification;
 
 import com.hcmute.tdshop.entity.User;
+import java.util.List;
 import javax.persistence.criteria.Expression;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -8,6 +9,12 @@ public class UserSpecification {
   public static Specification<User> hasId(long id) {
     return ((root, query, criteriaBuilder) -> {
       return criteriaBuilder.equal(root.get("id"), id);
+    });
+  }
+
+  public static Specification<User> exceptId(long id) {
+    return ((root, query, criteriaBuilder) -> {
+      return criteriaBuilder.notEqual(root.get("id"), id);
     });
   }
 
@@ -45,5 +52,11 @@ public class UserSpecification {
     return (((root, query, criteriaBuilder) -> {
       return criteriaBuilder.isNull(root.get("deletedAt"));
     }));
+  }
+
+  public static Specification<User> hasRoles(List<Long> roleIds) {
+    return ((root, query, criteriaBuilder) -> {
+      return root.get("role").get("id").in(roleIds);
+    });
   }
 }

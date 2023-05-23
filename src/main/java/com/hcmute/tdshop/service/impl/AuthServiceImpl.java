@@ -237,6 +237,7 @@ public class AuthServiceImpl implements AuthService {
         }
       }
       else {
+        response.setHeader("Location", feBaseUrl + ApplicationConstants.activateAccountSuccessEndpoint + "?status=10003");
         message = ApplicationConstants.ACCOUNT_ACTIVATED;
       }
     }

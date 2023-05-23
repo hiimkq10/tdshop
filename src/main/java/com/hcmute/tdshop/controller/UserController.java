@@ -28,7 +28,7 @@ public class UserController {
   private UserService userService;
 
   @GetMapping("/admin/get")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse getUsers(
       @RequestParam(name = "id", required = false, defaultValue = "0") long id,
       @RequestParam(name = "keyword", required = false) String keyword,

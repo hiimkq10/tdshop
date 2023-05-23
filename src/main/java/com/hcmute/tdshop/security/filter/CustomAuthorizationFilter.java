@@ -85,6 +85,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     userInfo.setId(Long.valueOf(decodedJWT.getClaim(ApplicationConstants.JWT_CLAIM_ID).asString()));
     userInfo.setFirstName(decodedJWT.getClaim(ApplicationConstants.JWT_CLAIM_FIRST_NAME).asString());
     userInfo.setLastName(decodedJWT.getClaim(ApplicationConstants.JWT_CLAIM_LAST_NAME).asString());
+    userInfo.setRole(decodedJWT.getClaim(ApplicationConstants.JWT_CLAIM_ROLE).asString());
 
     return userInfo;
   }

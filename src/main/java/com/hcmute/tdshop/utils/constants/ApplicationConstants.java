@@ -75,13 +75,13 @@ public class ApplicationConstants {
   public static final String USER_USERNAME_SIZE_INVALID = "Userame is too long";
   public static final String USER_PASSWORD_MANDATORY = "Password is mandatory";
   public static final String USER_PASSWORD_SIZE_INVALID = "Password is too long";
-
   public static final String USER_SALARY_INVALID = "Salary is invalid";
   public static final String USER_ADD_SUCCESSFULLY = "Add user successfully";
   public static final String USER_UPDATE_SUCCESSFULLY = "Update user successfully";
   public static final String USER_BAN_SUCCESSFULLY = "Ban user successfully";
   public static final String USER_UN_BAN_SUCCESSFULLY = "Unban user successfully";
   public static final String USER_ADD_FAILED = "Add user failed";
+  public static final String USER_ID_OR_ROLE_NOT_FOUND = "User %d doesn`t have id or role";
 
   // ------------------------------ ADDRESS -------------------------------------
   public static final String ADDRESS_ID_INVALID = "Address id is invalid";
@@ -277,6 +277,7 @@ public class ApplicationConstants {
   public static final String JWT_CLAIM_ID = "id";
   public static final String JWT_CLAIM_FIRST_NAME = "fname";
   public static final String JWT_CLAIM_LAST_NAME = "lname";
+  public static final String JWT_CLAIM_ROLE = "role";
 
   // ------------------------------ SECURITY -------------------------------------
   public static final String USERNAME_OR_PASSWORD_INCORRECT = "Login failed: username or password is incorrect";

@@ -19,6 +19,7 @@ public class JwtTokenProvider {
         .withClaim(ApplicationConstants.JWT_CLAIM_ID, user.getUser().getId().toString())
         .withClaim(ApplicationConstants.JWT_CLAIM_FIRST_NAME, user.getUser().getFirstName())
         .withClaim(ApplicationConstants.JWT_CLAIM_LAST_NAME, user.getUser().getLastName())
+        .withClaim(ApplicationConstants.JWT_CLAIM_ROLE, user.getUser().getRole().getName())
         .withExpiresAt(expiryDate)
         .withIssuer(request.getRequestURL().toString())
         .withClaim("roles",

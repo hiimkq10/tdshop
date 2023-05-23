@@ -3,9 +3,11 @@ package com.hcmute.tdshop.service.impl;
 import com.hcmute.tdshop.dto.user.UpdateUserInfoRequest;
 import com.hcmute.tdshop.dto.user.UserResponse;
 import com.hcmute.tdshop.entity.User;
+import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.mapper.UserMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.UserRepository;
+import com.hcmute.tdshop.scheduledtask.ProductScheduledTask;
 import com.hcmute.tdshop.service.UserService;
 import com.hcmute.tdshop.specification.UserSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
@@ -16,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
+  private static final Logger logger = LoggerFactory.getLogger(ProductScheduledTask.class);
 
   @Autowired
   private UserRepository userRepository;
@@ -37,8 +43,21 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public DataResponse getUsers(Long id, String keyword, Long roleId, Pageable pageable) {
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
+    String role = AuthenticationHelper.getCurrentLoggedInUserRole();
+    if (userId == 0 || Strings.isBlank(role)) {
+      logger.error(String.format(ApplicationConstants.USER_ID_OR_ROLE_NOT_FOUND, userId));
+    }
+    List<Long> allowedRoles = new ArrayList<>();
+    allowedRoles.add(AccountRoleEnum.ROLE_USER.getId());
+    if (role.equals(AccountRoleEnum.ROLE_ADMIN.getName())) {
+      allowedRoles.add(AccountRoleEnum.ROLE_EMPLOYEE.getId());
+      allowedRoles.add(AccountRoleEnum.ROLE_ADMIN.getId());
+    }
     List<Specification<User>> specifications = new ArrayList<>();
     specifications.add(UserSpecification.isNotDeleted());
+    specifications.add(UserSpecification.hasRoles(allowedRoles));
+    specifications.add(UserSpecification.exceptId(userId));
     if (id > 0) {
       specifications.add(UserSpecification.hasId(id));
     }
