@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -316,8 +317,9 @@ public class ProductServiceImpl implements ProductService {
     if (optionalBrand.isPresent()) {
       Brand brand = optionalBrand.get();
       List<Category> listOfCaregories = categoryRepository.findAllById(request.getSetOfCategoryIds());
+      DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyMMdd");
       product.setBrand(brand);
-      product.setSku(UUID.randomUUID().toString());
+      product.setSku(dateTimeFormatter.format(LocalDateTime.now()) + generateRandom(8));
       product.setSelAmount(0);
       product.setCreatedAt(LocalDateTime.now());
       product.setStatus(productStatusRepository.findById(ProductStatusEnum.HIDE.getId()).get());
@@ -359,11 +361,13 @@ public class ProductServiceImpl implements ProductService {
 
       String url;
       product.setSetOfImages(new HashSet<>());
-      for (int i = 0; i < images.size(); i++) {
-        MultipartFile image = images.get(i);
-        url = uploadProductImage(image);
-        if (url != null) {
-          product.getSetOfImages().add(new Image(null, url, null, product));
+      if (images != null) {
+        for (int i = 0; i < images.size(); i++) {
+          MultipartFile image = images.get(i);
+          url = uploadProductImage(image);
+          if (url != null) {
+            product.getSetOfImages().add(new Image(null, url, null, product));
+          }
         }
       }
 
@@ -923,5 +927,15 @@ public class ProductServiceImpl implements ProductService {
 //    }
     specifications.add(ProductSpecification.isNotHide());
     return specifications;
+  }
+
+  public static String generateRandom(int length) {
+    Random random = new Random();
+    char[] digits = new char[length];
+    digits[0] = (char) (random.nextInt(9) + '1');
+    for (int i = 1; i < length; i++) {
+      digits[i] = (char) (random.nextInt(10) + '0');
+    }
+    return String.valueOf(digits);
   }
 }
