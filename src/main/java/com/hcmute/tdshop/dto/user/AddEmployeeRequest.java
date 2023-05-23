@@ -6,9 +6,13 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AddEmployeeRequest {
   @JsonProperty("FirstName")
   @Size(max = 50, message = ApplicationConstants.USER_FIRST_NAME_SIZE_INVALID)
@@ -43,5 +47,5 @@ public class AddEmployeeRequest {
 
   @JsonProperty("Salary")
   @PositiveOrZero(message = ApplicationConstants.USER_SALARY_INVALID)
-  private long salary;
+  private Long salary;
 }

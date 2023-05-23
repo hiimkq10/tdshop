@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public DataResponse getUserInfo() {
     long id = AuthenticationHelper.getCurrentLoggedInUserId();
-    Optional<User> optionalUser = userRepository.findById(id);
+    Optional<User> optionalUser = userRepository.findByIdAndDeletedAtIsNull(id);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
       UserResponse userResponse = userMapper.UserToUserResponse(user);
@@ -97,11 +97,10 @@ public class UserServiceImpl implements UserService {
   @Override
   public DataResponse updateUserInfo(UpdateUserInfoRequest request) {
     long id = AuthenticationHelper.getCurrentLoggedInUserId();
-    Optional<User> optionalUser = userRepository.findById(id);
+    Optional<User> optionalUser = userRepository.findByIdAndDeletedAtIsNull(id);
     if (optionalUser.isPresent()) {
       User currentUser = optionalUser.get();
       User userToUpdate = userMapper.UpdateUserInfoRequestToUser(request);
-      System.out.println(userToUpdate.getPhone());
       if (!helper.checkIfStringIsBlank(userToUpdate.getFirstName())) {
         currentUser.setFirstName(userToUpdate.getFirstName());
       }

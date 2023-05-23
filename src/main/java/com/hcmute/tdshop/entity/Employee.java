@@ -34,5 +34,5 @@ public class Employee {
   private User userInfo;
 
   @Column(name = "salary")
-  private long salary;
+  private Long salary;
 }
