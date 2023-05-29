@@ -48,7 +48,7 @@ public class ExcelUtil {
   // Temporary use, waiting to be replaced by flyway
   public boolean insertDataToDatabase() throws IOException, NoSuchFieldException, InvocationTargetException,
       NoSuchMethodException, InstantiationException, IllegalAccessException, ParseException {
-    InputStream inputStream = Files.newInputStream(new File(ApplicationConstants.AREAS_FILE).toPath());
+    InputStream inputStream = ExcelUtil.class.getResourceAsStream(ApplicationConstants.AREAS_FILE);
     Workbook workbook = getWorkbook(inputStream);
 
     List<AdministrativeArea> areas =
@@ -68,7 +68,6 @@ public class ExcelUtil {
         wards.add(new Wards(area.getWardId(), area.getWardName(), area.getWardType(), districtMap.get(area.getDistrictId())));
       }
     }
-
     return true;
   }
 
