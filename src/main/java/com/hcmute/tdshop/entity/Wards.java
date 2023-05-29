@@ -30,6 +30,10 @@ public class Wards {
   @JsonProperty("Name")
   private String name;
 
+  @Column(name = "type", columnDefinition = "VARCHAR(100)")
+  @JsonProperty("Type")
+  private String type;
+
   @ManyToOne
   @JoinColumn(name = "district_id", nullable = false)
   @JsonIgnore

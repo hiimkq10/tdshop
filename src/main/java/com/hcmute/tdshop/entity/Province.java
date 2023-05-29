@@ -32,6 +32,10 @@ public class Province {
   @JsonProperty("Name")
   private String name;
 
+  @Column(name = "type", columnDefinition = "VARCHAR(100)")
+  @JsonProperty("Type")
+  private String type;
+
   @OneToMany(mappedBy = "province", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JsonIgnore
   private Set<District> setOfDistricts;

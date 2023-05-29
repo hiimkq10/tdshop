@@ -7,8 +7,12 @@ import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.NotificationRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.service.ReviewService;
+import com.hcmute.tdshop.utils.ExcelUtil;
 import com.hcmute.tdshop.utils.notification.NotificationHelper;
 import com.twilio.rest.microvisor.v1.App;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -42,6 +46,9 @@ public class TestController {
   @Autowired
   NotificationRepository notificationRepository;
 
+  @Autowired
+  ExcelUtil excelUtil;
+
   @GetMapping("/")
   public DataResponse test() {
     AppProperties appProperties = new AppProperties();
@@ -71,5 +78,12 @@ public class TestController {
     Notification notification = notificationHelper.buildProductOutOfStockNotification(product);
     notification = notificationRepository.save(notification);
     return new DataResponse(notification);
+  }
+
+  @GetMapping("/test-excel")
+  public DataResponse testExcel()
+      throws IOException, ParseException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    excelUtil.insertDataToDatabase();
+    return DataResponse.SUCCESSFUL;
   }
 }
