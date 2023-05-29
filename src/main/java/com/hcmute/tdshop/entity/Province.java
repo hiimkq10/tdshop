@@ -24,11 +24,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Province {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "name", columnDefinition = "VARCHAR(100)", nullable = false)
+  @Column(name = "name", columnDefinition = "VARCHAR(100)")
   @JsonProperty("Name")
   private String name;
 
