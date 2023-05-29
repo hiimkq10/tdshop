@@ -9,12 +9,10 @@ import com.hcmute.tdshop.repository.ProvinceRepository;
 import com.hcmute.tdshop.repository.WardsRepository;
 import com.hcmute.tdshop.utils.annotations.ExcelColumnIndex;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -63,9 +61,12 @@ public class ExcelUtil {
   @Transactional
   public boolean insertDataToDatabase() throws IOException, NoSuchFieldException, InvocationTargetException,
       NoSuchMethodException, InstantiationException, IllegalAccessException, ParseException {
+    if (provinceRepository.count() > 0) {
+      throw new RuntimeException("Area initilized");
+    }
     InputStream inputStream = ExcelUtil.class.getResourceAsStream(ApplicationConstants.AREAS_FILE);
     Workbook workbook = getWorkbook(inputStream);
-
+    System.out.println("Initilize areas");
     List<AdministrativeArea> areas =
         GetDataFromSheetAndMapToList(AdministrativeArea.class, ApplicationConstants.AREAS_SHEET_NAME, workbook);
     int tempSize = areas.size();
