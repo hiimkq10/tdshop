@@ -7,6 +7,7 @@ import com.hcmute.tdshop.service.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +19,7 @@ public class LocationController {
   @Autowired
   LocationService locationService;
 
-  @GetMapping("/address-to-coordinates")
+  @PostMapping("/address-to-coordinates")
   public DataResponse addressToCoordinates(
       @RequestBody AddressToLatAndLngDto dto,
       Pageable pageable
@@ -26,7 +27,7 @@ public class LocationController {
     return locationService.addressToLatAndLng(dto);
   }
 
-  @GetMapping("/check-coordinates-valid")
+  @PostMapping("/check-coordinates-valid")
   public DataResponse checkCoordinateValid(
       @RequestBody CheckCoordinateValidDto dto,
       Pageable pageable
