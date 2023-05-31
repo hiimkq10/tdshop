@@ -27,6 +27,11 @@ public class AttributeSetController {
     return attributeSetService.getAll(pageable);
   }
 
+  @GetMapping("/get/{id}")
+  public DataResponse getById(@PathVariable(name = "id") Long id) {
+    return attributeSetService.getById(id);
+  }
+
   @PostMapping("/add")
   public DataResponse insertAttributeSet(@RequestBody @Valid AddAttributeSetRequest request) {
     return attributeSetService.insertAttributeSet(request);

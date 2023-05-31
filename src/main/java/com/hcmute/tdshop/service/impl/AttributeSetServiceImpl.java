@@ -47,6 +47,14 @@ public class AttributeSetServiceImpl implements AttributeSetService {
   }
 
   @Override
+  public DataResponse getById(Long id) {
+    Optional<AttributeSet> optionalData = attributeSetRepository.findById(id);
+    return optionalData.map(DataResponse::new).orElseGet(
+        () -> new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ATTRIBUTE_SET_NOT_FOUND,
+            ApplicationConstants.BAD_REQUEST_CODE));
+  }
+
+  @Override
   public DataResponse insertAttributeSet(AddAttributeSetRequest request) {
     AttributeSet attributeSet = attributeSetMapper.AddAttributeSetRequestToAttributeSet(request);
     if (!checkIfNameExisted(attributeSet.getName())) {

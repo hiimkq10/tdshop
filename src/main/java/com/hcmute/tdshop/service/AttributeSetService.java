@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface AttributeSetService {
   DataResponse getAll(Pageable pageable);
+  DataResponse getById(Long id);
   DataResponse insertAttributeSet(AddAttributeSetRequest request);
   DataResponse updateAttributeSet(long id, UpdateAttributeSetRequest request);
   DataResponse deleteAttributeSet(long id);
