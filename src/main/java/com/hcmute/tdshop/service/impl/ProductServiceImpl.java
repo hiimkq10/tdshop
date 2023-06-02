@@ -503,6 +503,22 @@ public class ProductServiceImpl implements ProductService {
         currentProduct.setTotal(productToUpdate.getTotal());
       }
 
+      if (productToUpdate.getLength() > 0) {
+        currentProduct.setLength(productToUpdate.getLength());
+      }
+
+      if (productToUpdate.getWidth() > 0) {
+        currentProduct.setWidth(productToUpdate.getWidth());
+      }
+
+      if (productToUpdate.getHeight() > 0) {
+        currentProduct.setHeight(productToUpdate.getHeight());
+      }
+
+      if (productToUpdate.getWeight() > 0) {
+        currentProduct.setWeight(productToUpdate.getWeight());
+      }
+
       Optional<Brand> optionalBrand = brandRepository.findById(request.getBrandId());
       currentProduct.setBrand(optionalBrand.orElse(null));
 

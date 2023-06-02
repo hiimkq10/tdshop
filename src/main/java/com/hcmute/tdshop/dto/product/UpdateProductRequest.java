@@ -46,6 +46,18 @@ public class UpdateProductRequest {
   @JsonProperty("Variations")
   private Set<Long> setOfVariationIds;
 
+  @JsonProperty("Length")
+  private Double length = 0.0;
+
+  @JsonProperty("Width")
+  private Double width = 0.0;
+
+  @JsonProperty("Height")
+  private Double height = 0.0;
+
+  @JsonProperty("Weight")
+  private Double weight = 0.0;
+
   @JsonProperty("DeletedImages")
   private List<String> listOfDeletedImageUrls = new ArrayList<>();
 

@@ -71,6 +71,9 @@ public abstract class ProductMapper {
     productInfoDto.setSetOfProductAttributes( productAttributeSetToProductAttributeDtoSet( product.getSetOfProductAttributes() ) );
     productInfoDto.setSetOfVariationOptions( variationOptionSetToProductVariationOptionDtoSet( product.getSetOfVariationOptions() ) );
     productInfoDto.setProductPromotion( ProductPromotionToProductPromotionDto( getCurrentPromotion(product) ) );
+    if (product.getSetOfCategories() != null && product.getSetOfCategories().size() > 0) {
+      productInfoDto.setMCategoryId(product.getSetOfCategories().iterator().next().getMasterCategory().getId());
+    }
 
     return productInfoDto;
   }

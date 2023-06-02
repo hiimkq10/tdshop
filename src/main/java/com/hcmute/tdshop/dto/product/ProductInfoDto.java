@@ -67,4 +67,7 @@ public class ProductInfoDto {
 
   @JsonProperty("Discount")
   private ProductPromotionDto productPromotion;
+
+  @JsonProperty("MCategoryId")
+  private Long mCategoryId;
 }

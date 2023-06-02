@@ -59,6 +59,18 @@ public class Product {
   @Column(name = "selAmount", nullable = false)
   private int selAmount;
 
+  @Column(name = "length")
+  private Double length;
+
+  @Column(name = "width")
+  private Double width;
+
+  @Column(name = "height")
+  private Double height;
+
+  @Column(name = "weight")
+  private Double weight;
+
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
