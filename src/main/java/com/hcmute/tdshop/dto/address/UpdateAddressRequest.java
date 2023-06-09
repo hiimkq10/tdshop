@@ -33,4 +33,10 @@ public class UpdateAddressRequest {
   @JsonProperty("WardsId")
   @PositiveOrZero(message = ApplicationConstants.ADDRESS_WARDS_ID_INVALID)
   private long wardsId;
+
+  @JsonProperty("Lat")
+  private Double lat;
+
+  @JsonProperty("Lng")
+  private Double lng;
 }

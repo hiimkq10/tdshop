@@ -128,6 +128,12 @@ public class AddressServiceImpl implements AddressService {
           currentAddress.setWards(wards);
         }
       }
+      if (addressToUpdate.getLat() != null) {
+        currentAddress.setLat(addressToUpdate.getLat());
+      }
+      if (addressToUpdate.getLng() != null) {
+        currentAddress.setLng(addressToUpdate.getLng());
+      }
       currentAddress = addressRepository.saveAndFlush(currentAddress);
       return new DataResponse(ApplicationConstants.ADDRESS_UPDATE_SUCCESSFULLY, addressMapper.AddressToAddressResponse(currentAddress));
     }

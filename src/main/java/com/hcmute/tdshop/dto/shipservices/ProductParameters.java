@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 public class ProductParameters {
   private String name;
   private int quantity;
-  private double length = 0.0;
-  private double width = 0.0;
-  private double height = 0.0;
-  private double weight = 0.0;
+  private long length = 0;
+  private long width = 0;
+  private long height = 0;
+  private long weight = 0;
 }

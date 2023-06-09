@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.controller;
 
+import com.google.gson.Gson;
 import com.hcmute.tdshop.config.AppProperties;
 import com.hcmute.tdshop.entity.Notification;
 import com.hcmute.tdshop.entity.Product;
@@ -12,11 +13,17 @@ import com.hcmute.tdshop.utils.notification.NotificationHelper;
 import com.twilio.rest.microvisor.v1.App;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -85,5 +92,32 @@ public class TestController {
       throws IOException, ParseException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
     excelUtil.insertDataToDatabase();
     return DataResponse.SUCCESSFUL;
+  }
+
+  @GetMapping("/test-lalamove-auth")
+  public DataResponse testLalamoveAuth() throws Exception {
+    Gson gsonObj = new Gson();
+    long time = 1685698441197L;
+    String apiKey = "pk_test_d7927da311af469288019b4d58759591";
+    String apiSecret = "sk_test_hthbEAkPLAJASotSyzblBSlFegxhN7d8pNELRASkccZ2vKHk0Ddc2pnIi9FkHZGn";
+
+    Map<String, Object> bodyData = new HashMap<>();
+    Map<String, String> data = new HashMap<>();
+    data.put("serviceType", "MOTORCYCLE");
+    bodyData.put("data", data);
+    String json = gsonObj.toJson(bodyData);
+    System.out.println(json);
+    String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, gsonObj.toJson(bodyData));
+    System.out.println(signatureData);
+    String signature = encode(apiSecret, signatureData);
+    return new DataResponse(signature);
+  }
+
+  public static String encode(String key, String data) throws Exception {
+    Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+    SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+    sha256_HMAC.init(secret_key);
+
+    return Hex.encodeHexString(sha256_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8)));
   }
 }

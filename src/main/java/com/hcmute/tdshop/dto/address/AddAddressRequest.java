@@ -40,4 +40,10 @@ public class AddAddressRequest {
   @JsonProperty("WardsId")
   @Positive(message = ApplicationConstants.ADDRESS_WARDS_ID_INVALID)
   private long wardsId;
+
+  @JsonProperty("Lat")
+  private double lat;
+
+  @JsonProperty("Lng")
+  private double lng;
 }

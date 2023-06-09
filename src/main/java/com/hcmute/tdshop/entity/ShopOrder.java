@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -56,4 +58,7 @@ public class ShopOrder {
 
   @OneToMany(mappedBy = "order", fetch = FetchType.EAGER)
   private Set<OrderDetail> setOfOrderDetails;
+
+  @OneToMany(mappedBy = "order", fetch = FetchType.EAGER)
+  private List<ShipData> shipData;
 }

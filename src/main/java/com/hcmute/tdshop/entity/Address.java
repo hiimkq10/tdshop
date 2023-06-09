@@ -53,6 +53,12 @@ public class Address {
   @Column(name = "is_default")
   private Boolean isDefault;
 
+  @Column(name = "Lat")
+  private Double lat;
+
+  @Column(name = "Lng")
+  private Double lng;
+
   @ManyToOne
   @JoinColumn(name = "wards_id", nullable = false)
   private Wards wards;

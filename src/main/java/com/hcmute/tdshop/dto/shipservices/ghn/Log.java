@@ -1,7 +1,7 @@
 package com.hcmute.tdshop.dto.shipservices.ghn;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,13 +9,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class WardsDto {
-  @JsonProperty("WardCode")
-  long WardCode;
+public class Log {
+  @JsonProperty("status")
+  String status;
 
-  @JsonProperty("WardName")
-  String WardName;
+  @JsonProperty("updated_date")
+  LocalDateTime updated_date;
 
-  @JsonProperty("NameExtension")
-  List<String> NameExtension;
 }

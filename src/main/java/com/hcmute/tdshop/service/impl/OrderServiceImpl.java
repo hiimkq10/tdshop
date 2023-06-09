@@ -34,6 +34,7 @@ import com.hcmute.tdshop.repository.SubscriptionRepository;
 import com.hcmute.tdshop.repository.UserNotificationRepository;
 import com.hcmute.tdshop.service.OrderService;
 import com.hcmute.tdshop.service.payment.PaymentServiceImpl;
+import com.hcmute.tdshop.service.shipservices.ShipServices;
 import com.hcmute.tdshop.specification.OrderSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.SpecificationHelper;
@@ -106,6 +107,9 @@ public class OrderServiceImpl implements OrderService {
   @Autowired
   private UserNotificationRepository userNotificationRepository;
 
+  @Autowired
+  private ShipServices shipServices;
+
   private Clients clients = new Clients();
   private Gson gson = new Gson();
 
@@ -175,6 +179,15 @@ public class OrderServiceImpl implements OrderService {
     Set<OrderDetail> setOfOrderDetails = order.getSetOfOrderDetails();
     List<Product> listOfProducts = new ArrayList<>();
     List<UserNotification> userNotifications = new ArrayList<>();
+
+    // Check order valid
+    if (!shipServices.checkRegion(request.getShipId(), order.getAddress())){
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_REGION_NOT_SUPPORT, ApplicationConstants.ORDER_REGION_NOT_SUPPORT_CODE);
+    }
+    if (!shipServices.checkCODAmount(request.getShipId(), setOfOrderDetails)) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT_CODE);
+    }
+
     for (OrderDetail orderDetail : setOfOrderDetails) {
       Product product = orderDetail.getProduct();
       List<Subscription> subscriptions = subscriptionRepository.findByProduct_Id(product.getId());
@@ -209,6 +222,8 @@ public class OrderServiceImpl implements OrderService {
         order.getAddress().getPhone(),
         order.getAddress().getAddressDetail(),
         false,
+        order.getAddress().getLat(),
+        order.getAddress().getLng(),
         order.getAddress().getWards(),
         null,
         null);

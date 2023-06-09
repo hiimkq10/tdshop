@@ -152,6 +152,12 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final String ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED = "Only awaiting payment order can be canceled";
   public static final int ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED_CODE = 20002;
 
+  public static final String ORDER_REGION_NOT_SUPPORT = "Region not support";
+  public static final int ORDER_REGION_NOT_SUPPORT_CODE = 20003;
+
+  public static final String ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT = "COD amount invalid";
+  public static final int ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT_CODE = 20004;
+
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_ID_INVALID = "Payment id invalid";
   public static final String PAYMENT_NOT_FOUND = "Payment method not found";
@@ -274,6 +280,15 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final String FOLLOW_FAILED = "Follow failed";
   public static final String UN_FOLLOW_SUCCESS = "Unfollow success";
   public static final String UN_FOLLOW_FAILED = "Unfollow failed";
+
+  // ------------------------------ SHIPDATA -------------------------------------
+  public static final String SHIP_DATA_ORDER_EXISTED = "Ship order existed";
+  public static final int SHIP_DATA_ORDER_EXISTED_CODE = 80001;
+  public static final String SHIP_DATA_ORDER_NOT_FOUND = "Ship order not found";
+  public static final int SHIP_DATA_ORDER_NOT_FOUND_CODE = 80002;
+  public static final String SHIP_DATA_ORDER_CANCEL_NOT_ALLOW = "Ship order can not be canceled";
+  public static final int SHIP_DATA_ORDER_CANCEL_NOT_ALLOW_CODE = 80003;
+
 
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";
