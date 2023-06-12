@@ -38,7 +38,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
       User user = optionalUser.get();
       List<Notification> notifications = notificationRepository.findAll(NotificationSpecification.isSendAll(true));
       List<Specification<UserNotification>> specifications = new ArrayList<>();
-      specifications.add(UserNotificationSpecification.isNotDeleted());
+//      specifications.add(UserNotificationSpecification.isNotDeleted());
       specifications.add(UserNotificationSpecification.hasUserId(userId));
       Specification<UserNotification> conditions = SpecificationHelper.and(specifications);
       List<UserNotification> userNotifications = userNotificationRepository.findAll(conditions);

@@ -81,6 +81,6 @@ public class NotificationHelper {
   }
 
   public String generateProductUrl(Long id) {
-    return String.format("%s/detail-product/%d", appProperties.getFeBaseUrl(), id);
+    return String.format("detail-product/%d", id);
   }
 }
