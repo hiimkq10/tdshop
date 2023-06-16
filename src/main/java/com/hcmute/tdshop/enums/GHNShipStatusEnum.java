@@ -1,6 +1,6 @@
 package com.hcmute.tdshop.enums;
 
-public enum ShipStatusEnum {
+public enum GHNShipStatusEnum {
   GHN_READY_TO_PICK("ready_to_pick", "Đơn hàng vừa được tạo"),
   GHN_PICKING("picking", "Shipper đang đến lấy hàng"),
   GHN_CANCEL("cancel", "Đơn hàng đã hủy"),
@@ -22,19 +22,12 @@ public enum ShipStatusEnum {
   GHN_RETURNED("returned", "Đã trả hàng cho shop"),
   GHN_EXCEPTIOM("exception", "Lỗi"),
   GHN_DAMAGE("damage", "Hàng hóa bị hư hại"),
-  GHN_LOST("lost", "Hàng hóa bị mất"),
-  LALAMOVE_ASSIGNING_DRIVER("ASSIGNING_DRIVER", "Đang tìm shipper"),
-  LALAMOVE_ON_GOING("ON_GOING", "Shipper đã nhận đơn"),
-  LALAMOVE_PICKED_UP("PICKED_UP", "Shipper đã lấy hàng"),
-  LALAMOVE_COMPLETED("COMPLETED", "Đã giao"),
-  LALAMOVE_CANCELED("CANCELED", "Đã hủy"),
-  LALAMOVE_REJECTED("REJECTED", "Shipper từ chối đơn hàng"),
-  LALAMOVE_EXPIRED("EXPIRED", "Đơn hàng quá hạn");
+  GHN_LOST("lost", "Hàng hóa bị mất");
 
   private String code;
   private String description;
 
-  ShipStatusEnum(String code, String description) {
+  GHNShipStatusEnum(String code, String description) {
     this.code = code;
     this.description = description;
   }
@@ -45,5 +38,14 @@ public enum ShipStatusEnum {
 
   public String getDescription() {
     return this.description;
+  }
+
+  public static GHNShipStatusEnum getShipStatusEnumByCode(String code) {
+    for (GHNShipStatusEnum s : values()) {
+      if (s.getCode().equals(code)) {
+        return s;
+      }
+    }
+    return null;
   }
 }

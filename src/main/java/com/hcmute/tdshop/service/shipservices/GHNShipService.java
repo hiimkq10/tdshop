@@ -2,7 +2,9 @@ package com.hcmute.tdshop.service.shipservices;
 
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
+import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ProductParameters;
+import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
 import com.hcmute.tdshop.dto.shipservices.ghn.CalculateFeeDataResponse;
 import com.hcmute.tdshop.dto.shipservices.ghn.CancelOrderResponse;
 import com.hcmute.tdshop.dto.shipservices.ghn.CreateOrderDataResponse;
@@ -20,6 +22,9 @@ import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
+import com.hcmute.tdshop.enums.GHNShipStatusEnum;
+import com.hcmute.tdshop.enums.PaymentMethodEnum;
+import com.hcmute.tdshop.mapper.OrderMapper;
 import com.hcmute.tdshop.mapper.ShipServicesMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.AddressRepository;
@@ -69,6 +74,9 @@ public class GHNShipService {
   @Autowired
   ShipDataRepository shipDataRepository;
 
+  @Autowired
+  OrderMapper orderMapper;
+
   @Value("${ghn.api.token}")
   String token;
 
@@ -83,6 +91,40 @@ public class GHNShipService {
 
   @Value("${ghn.order.max-cod-amount}")
   double maxCodAmount;
+
+  @Value("${ghn.order.max-length}")
+  double maxLength;
+
+  @Value("${ghn.order.max-width}")
+  double maxWidth;
+
+  @Value("${ghn.order.max-height}")
+  double maxHeight;
+
+  @Value("${ghn.order.max-weight}")
+  double maxWeight;
+
+  @Value("${ghn.order.max-insurance-value}")
+  long maxInsuranceValue;
+
+  public boolean checkProductsSize(OrderSize orderSize) {
+    if (
+        orderSize.getLength() > maxLength ||
+        orderSize.getWidth() > maxWidth ||
+        orderSize.getHeight() > maxHeight ||
+        orderSize.getWeight() > maxWeight
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean checkAllowCancelOrder(String statusCode) {
+    if (cancelAllowedStatus.contains(statusCode)) {
+      return true;
+    }
+    return false;
+  }
 
   public boolean checkCodAmount(Set<OrderDetail> setOfOrderDetails) {
     double total = 0.0;
@@ -189,6 +231,11 @@ public class GHNShipService {
     }
   }
 
+  public ShipOrderDto getShipOrderDto(ShopOrder order) {
+    GetOrderData getOrderData = getOrder(order);
+    return shipServicesMapper.GHNGetOrderDataToShipOrderDto(getOrderData);
+  }
+
   public GetOrderData getOrder(ShopOrder order) {
     try {
       WebClient client = WebClient.builder().baseUrl(baseUrl)
@@ -222,13 +269,17 @@ public class GHNShipService {
     }
   }
 
-  public DataResponse createOrder(ShopOrder order) {
+  public DataResponse createOrder(ShopOrder order, OrderSize orderSize) {
     try {
       Optional<ShipData> optionalShipData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
       if (optionalShipData.isPresent()) {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
-            ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
+        GetOrderData getOrderData = getOrder(order);
+        if (!(getOrderData == null || getOrderData.getLogs().get(getOrderData.getLogs().size() - 1).getStatus().equals(
+            GHNShipStatusEnum.GHN_CANCEL.getCode()))) {
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
+              ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
+        }
       }
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
@@ -243,7 +294,6 @@ public class GHNShipService {
       ProvinceDto provinceDto = getProvince(address.getWards().getDistrict().getProvince().getName());
       DistrictDto districtDto = getDistrict(address.getWards().getDistrict().getName(), provinceDto.getProvinceID());
       WardsDto wardsDto = getWards(address.getWards().getName(), districtDto.getDistrictID());
-      ProductParameters parameters = calculateProductsParameters3(order.getSetOfOrderDetails());
       List<ProductParameters> productParameters = calculateProductsParameters2(order.getSetOfOrderDetails());
 
       Map<String, Object> bodyMap = new HashMap<>();
@@ -253,10 +303,19 @@ public class GHNShipService {
       bodyMap.put("to_ward_name", wardsDto.getWardName());
       bodyMap.put("to_district_name", districtDto.getDistrictName());
       bodyMap.put("to_province_name", provinceDto.getProvinceName());
-      bodyMap.put("length", parameters.getLength());
-      bodyMap.put("width", parameters.getWidth());
-      bodyMap.put("height", parameters.getHeight());
-      bodyMap.put("weight", parameters.getWeight());
+
+      double total = calculateOrderTotal(order);
+      if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
+        bodyMap.put("cod_amount", Math.round(total));
+      }
+
+      bodyMap.put("length", orderSize.getLength());
+      bodyMap.put("width", orderSize.getWidth());
+      bodyMap.put("height", orderSize.getHeight());
+      bodyMap.put("weight", orderSize.getWeight());
+
+      bodyMap.put("insurance_value", total > maxInsuranceValue ? maxInsuranceValue : Math.round(total));
+
       bodyMap.put("service_type_id", 2);
       bodyMap.put("payment_type_id", 1);
       bodyMap.put("required_note", "CHOXEMHANGKHONGTHU");
@@ -281,8 +340,9 @@ public class GHNShipService {
         }
       }
       shipDatas.add(new ShipData(null, createOrderDataResponse.getOrderCode(), now, null, order));
-
-      return new DataResponse(true);
+      shipDataRepository.saveAllAndFlush(shipDatas);
+      ShipOrderDto shipOrderDto = getShipOrderDto(order);
+      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, true));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
@@ -317,7 +377,8 @@ public class GHNShipService {
       Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
       if (!optionalData.isPresent()) {
-        return new DataResponse(true);
+        ShipOrderDto shipOrderDto = getShipOrderDto(order);
+        return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
       }
       ShipData shipData = optionalData.get();
 
@@ -337,12 +398,8 @@ public class GHNShipService {
       if (!(cancelOrderResponse.getCode() == 200)) {
         throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
       }
-
-      LocalDateTime now = LocalDateTime.now();
-      shipData.setDeletedAt(now);
-      shipDataRepository.save(shipData);
-
-      return new DataResponse(true);
+      ShipOrderDto shipOrderDto = getShipOrderDto(order);
+      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
@@ -373,9 +430,9 @@ public class GHNShipService {
       bodyMap.put("service_type_id", 2);
       bodyMap.put("to_ward_code", String.valueOf(wardsDto.getWardCode()));
       bodyMap.put("to_district_id", districtDto.getDistrictID());
-      bodyMap.put("length", parameters.getLength());
-      bodyMap.put("width", parameters.getWidth());
-      bodyMap.put("height", parameters.getHeight());
+//      bodyMap.put("length", parameters.getLength());
+//      bodyMap.put("width", parameters.getWidth());
+//      bodyMap.put("height", parameters.getHeight());
       bodyMap.put("weight", parameters.getWeight());
       bodySpec.body(BodyInserters.fromValue(bodyMap));
 
@@ -412,11 +469,11 @@ public class GHNShipService {
       if (length < product.getLength()) {
         length = product.getLength();
       }
-      if (width < product.getWidth()) {
-        width = product.getWidth();
+      if (height < product.getHeight()) {
+        height = product.getHeight();
       }
+      width += product.getWidth();
       weight += product.getWeight() * quantity;
-      height += product.getHeight() * quantity;
     }
     parameters.setLength(Math.round(length));
     parameters.setWidth(Math.round(width));
@@ -481,16 +538,24 @@ public class GHNShipService {
       if (length < product.getLength()) {
         length = product.getLength();
       }
-      if (width < product.getWidth()) {
-        width = product.getWidth();
+      if (height < product.getHeight()) {
+        height = product.getHeight();
       }
+      width += product.getWidth();
       weight += product.getWeight() * quantity;
-      height += product.getHeight() * quantity;
     }
     parameters.setLength(Math.round(length));
     parameters.setWidth(Math.round(width));
     parameters.setHeight(Math.round(height));
     parameters.setWeight(Math.round(weight));
     return parameters;
+  }
+
+  private double calculateOrderTotal(ShopOrder order) {
+    double total = 0;
+    for (OrderDetail orderDetail : order.getSetOfOrderDetails()) {
+      total += orderDetail.getFinalPrice() * orderDetail.getQuantity();
+    }
+    return total;
   }
 }

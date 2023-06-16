@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateOrderDto {
-  private long orderId;
+public class OrderSize {
   private double length;
   private double width;
   private double height;

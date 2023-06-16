@@ -158,6 +158,9 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final String ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT = "COD amount invalid";
   public static final int ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT_CODE = 20004;
 
+  public static final String ORDER_COD_SIZE_EXCEED_SUPPORT_SIZE = "Size invalid";
+  public static final int ORDER_COD_SIZE_EXCEED_SUPPORT_SIZE_CODE = 20005;
+
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_ID_INVALID = "Payment id invalid";
   public static final String PAYMENT_NOT_FOUND = "Payment method not found";
@@ -288,7 +291,8 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final int SHIP_DATA_ORDER_NOT_FOUND_CODE = 80002;
   public static final String SHIP_DATA_ORDER_CANCEL_NOT_ALLOW = "Ship order can not be canceled";
   public static final int SHIP_DATA_ORDER_CANCEL_NOT_ALLOW_CODE = 80003;
-
+  public static final String SHIP_DATA_STATUS_NOT_FOUND = "Ship status not found";
+  public static final int SHIP_DATA_STATUS_NOT_FOUND_CODE = 80004;
 
   // ------------------------------ JWT -------------------------------------
   public static final String JWT_TOKEN_MISSING = "Jwt token is missing";

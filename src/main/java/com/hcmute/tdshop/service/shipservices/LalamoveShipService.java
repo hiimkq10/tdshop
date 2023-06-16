@@ -5,7 +5,9 @@ import com.google.gson.JsonObject;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.Coordinate;
-import com.hcmute.tdshop.dto.shipservices.FeeResponse;
+import com.hcmute.tdshop.dto.shipservices.OrderSize;
+import com.hcmute.tdshop.dto.shipservices.ProductParameters;
+import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
 import com.hcmute.tdshop.dto.shipservices.lalamove.CreateOrderDto;
 import com.hcmute.tdshop.dto.shipservices.lalamove.CreateOrderResponse;
 import com.hcmute.tdshop.dto.shipservices.lalamove.GetOrderData;
@@ -17,9 +19,13 @@ import com.hcmute.tdshop.dto.shipservices.lalamove.Recipent;
 import com.hcmute.tdshop.dto.shipservices.lalamove.Sender;
 import com.hcmute.tdshop.dto.shipservices.lalamove.Stop;
 import com.hcmute.tdshop.entity.Address;
+import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
+import com.hcmute.tdshop.enums.GHNShipStatusEnum;
+import com.hcmute.tdshop.enums.LalamoveServiceEnum;
+import com.hcmute.tdshop.mapper.OrderMapper;
 import com.hcmute.tdshop.mapper.ShipServicesMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.AddressRepository;
@@ -38,6 +44,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.persistence.criteria.Order;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +75,9 @@ public class LalamoveShipService {
 
   @Autowired
   ShipDataRepository shipDataRepository;
+
+  @Autowired
+  OrderMapper orderMapper;
 
   @Value("${td-shop.lat}")
   String shopLat;
@@ -105,11 +115,38 @@ public class LalamoveShipService {
   @Value("${lalamove.order.create.support-regions}")
   List<Long> supportRegions;
 
+  public boolean checkAllowCancelOrder(String statusCode) {
+    if (cancelAllowedStatus.contains(statusCode)) {
+      return true;
+    }
+    return false;
+  }
+
   public boolean checkRegion(Address address) {
     if (supportRegions.contains(address.getWards().getDistrict().getProvince().getId())) {
       return true;
     }
     return false;
+  }
+
+  public ShipOrderDto getShipOrderDto(ShopOrder order) {
+    GetOrderData getOrderData = getOrder(order);
+    return shipServicesMapper.LalamoveGetOrderDataToShipOrderDto(getOrderData);
+  }
+
+  public String getService(Address address, ProductParameters parameters) {
+    final double mWeight = 30;
+    final double mLength = 500;
+    final double mWidth = 400;
+    final double mHeight = 500;
+    if (address.getWards().getDistrict().getProvince().getId() == 31) {
+      return LalamoveServiceEnum.TRUCK175.name();
+    }
+    if (parameters.getWeight() > mWeight || parameters.getLength() > mLength || parameters.getWidth() > mWidth
+        || parameters.getHeight() > mHeight) {
+      return LalamoveServiceEnum.TRUCK175.name();
+    }
+    return LalamoveServiceEnum.MOTORCYCLE.name();
   }
 
   public GetOrderData getOrder(ShopOrder order) {
@@ -122,7 +159,8 @@ public class LalamoveShipService {
       String signatureData = String.format("%d%nPOST%n/v3/orders%n%n%s", time, json);
       String signature = encode(secret, signatureData);
 
-      Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null).findFirst();
+      Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
+          .findFirst();
       if (!optionalData.isPresent()) {
         return null;
       }
@@ -150,11 +188,17 @@ public class LalamoveShipService {
     }
   }
 
-  public DataResponse createOrder(ShopOrder order) {
+  public DataResponse createOrder(ShopOrder order, OrderSize orderSize) {
     try {
-      Optional<ShipData> optionalShipData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null).findFirst();
+      Optional<ShipData> optionalShipData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
+          .findFirst();
       if (optionalShipData.isPresent()) {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED, ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
+        GetOrderData getOrderData = getOrder(order);
+        if (!(getOrderData == null || getOrderData.getStatus().equals(
+            GHNShipStatusEnum.GHN_CANCEL.getCode()))) {
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
+              ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
+        }
       }
 
       CalculateFeeDto calculateFeeDto = new CalculateFeeDto();
@@ -164,7 +208,7 @@ public class LalamoveShipService {
           order.getSetOfOrderDetails().stream().map(o -> new OrderProductDto(o.getProduct().getId(), o.getQuantity()))
               .collect(
                   Collectors.toSet()));
-      QuotationDto quotationDto = getQuotation(calculateFeeDto);
+      QuotationDto quotationDto = getQuotation(calculateFeeDto, orderSize);
 
       Gson gsonObj = new Gson();
       Address address = order.getAddress();
@@ -224,8 +268,9 @@ public class LalamoveShipService {
         }
       }
       shipDatas.add(new ShipData(null, createOrderDto.getOrderId(), now, null, order));
-
-      return new DataResponse(true);
+      shipDataRepository.saveAllAndFlush(shipDatas);
+      ShipOrderDto shipOrderDto = getShipOrderDto(order);
+      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, true));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
@@ -245,17 +290,20 @@ public class LalamoveShipService {
           }
         }
         shipDataRepository.saveAllAndFlush(shipDatas);
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_NOT_FOUND, ApplicationConstants.SHIP_DATA_ORDER_NOT_FOUND_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_NOT_FOUND,
+            ApplicationConstants.SHIP_DATA_ORDER_NOT_FOUND_CODE);
       }
 
       if (!cancelAllowedStatus.contains(getOrderData.getStatus())) {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW, ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW,
+            ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW_CODE);
       }
 
       Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
       if (!optionalData.isPresent()) {
-        return new DataResponse(true);
+        ShipOrderDto shipOrderDto = getShipOrderDto(order);
+        return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
       }
       ShipData shipData = optionalData.get();
 
@@ -266,11 +314,8 @@ public class LalamoveShipService {
           .build(shipData.getShipOrderId()));
       bodySpec.retrieve();
 
-      LocalDateTime now = LocalDateTime.now();
-      shipData.setDeletedAt(now);
-      shipDataRepository.save(shipData);
-
-      return new DataResponse(true);
+      ShipOrderDto shipOrderDto = getShipOrderDto(order);
+      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
@@ -278,11 +323,11 @@ public class LalamoveShipService {
   }
 
   public DataResponse calculateFee(CalculateFeeDto dto) {
-    QuotationDto quotationDto = getQuotation(dto);
+    QuotationDto quotationDto = getQuotation(dto, null);
     return new DataResponse(shipServicesMapper.LalamoveQuotationDtoToFeeResponse(quotationDto));
   }
 
-  public QuotationDto getQuotation(CalculateFeeDto dto) {
+  public QuotationDto getQuotation(CalculateFeeDto dto, OrderSize orderSize) {
     try {
       Gson gsonObj = new Gson();
       Optional<Address> optionalData = addressRepository.findById(dto.getAddressId());
@@ -298,12 +343,21 @@ public class LalamoveShipService {
               null, null));
       stops.add(generateStop(address));
 
+      ProductParameters parameters = null;
+      if (orderSize != null) {
+        parameters = OrderSizeToProductParameters(orderSize);
+      }
+      else {
+        parameters = calculateProductsParameters(dto.getSetOfProducts());
+      }
+
       Map<String, Object> bodyData = new HashMap<>();
       Map<String, Object> data = new HashMap<>();
-      data.put("serviceType", "MOTORCYCLE");
+      data.put("serviceType", getService(address, parameters));
       data.put("item", item);
       data.put("language", language);
       data.put("stops", stops);
+      data.put("isRouteOptimized", true);
       bodyData.put("data", data);
 
       Date date = new Date();
@@ -333,6 +387,10 @@ public class LalamoveShipService {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
     }
+  }
+
+  private ProductParameters OrderSizeToProductParameters(OrderSize orderSize) {
+    return new ProductParameters("", 0, Math.round(orderSize.getLength()), Math.round(orderSize.getWidth()), Math.round(orderSize.getHeight()), Math.round(orderSize.getWeight()));
   }
 
   private Stop generateStop(Address address) {
@@ -373,5 +431,108 @@ public class LalamoveShipService {
     } catch (Exception e) {
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
     }
+  }
+
+  public ProductParameters calculateProductsParameters3(Set<OrderDetail> orderDetails) {
+    Map<Long, Integer> productQuantityMap = new HashMap<>();
+    for (OrderDetail dto : orderDetails) {
+      productQuantityMap.put(dto.getProduct().getId(), dto.getQuantity());
+    }
+    List<Product> products = orderDetails.stream().map(OrderDetail::getProduct).collect(Collectors.toList());
+    ProductParameters parameters = new ProductParameters();
+    double length = 0.0;
+    double height = 0.0;
+    double width = 0.0;
+    double weight = 0.0;
+    for (Product product : products) {
+      Integer quantity = productQuantityMap.get(product.getId());
+      if (quantity == null) {
+        quantity = 0;
+      }
+      parameters.setName(product.getName());
+      parameters.setQuantity(quantity);
+      if (length < product.getLength()) {
+        length = product.getLength();
+      }
+      if (height < product.getHeight()) {
+        height = product.getHeight();
+      }
+      width += product.getWidth();
+      weight += product.getWeight() * quantity;
+    }
+    parameters.setLength(Math.round(length));
+    parameters.setWidth(Math.round(width));
+    parameters.setHeight(Math.round(height));
+    parameters.setWeight(Math.round(weight));
+    return parameters;
+  }
+
+  public List<ProductParameters> calculateProductsParameters2(Set<OrderDetail> orderDetails) {
+    Map<Long, Integer> productQuantityMap = new HashMap<>();
+    for (OrderDetail dto : orderDetails) {
+      productQuantityMap.put(dto.getProduct().getId(), dto.getQuantity());
+    }
+    List<Product> products = orderDetails.stream().map(OrderDetail::getProduct).collect(Collectors.toList());
+    List<ProductParameters> parametersList = new ArrayList<>();
+    ProductParameters parameters = new ProductParameters();
+    double length = 0.0;
+    double height = 0.0;
+    double width = 0.0;
+    double weight = 0.0;
+    for (Product product : products) {
+      Integer quantity = productQuantityMap.get(product.getId());
+      if (quantity == null) {
+        quantity = 0;
+      }
+      parameters.setName(product.getName());
+      parameters.setQuantity(quantity);
+      length = product.getLength();
+      width = product.getWidth();
+      weight = product.getWeight() * quantity;
+      height = product.getHeight() * quantity;
+
+      parameters.setLength(Math.round(length));
+      parameters.setWidth(Math.round(width));
+      parameters.setHeight(Math.round(height));
+      parameters.setWeight(Math.round(weight));
+
+      parametersList.add(parameters);
+    }
+    return parametersList;
+  }
+
+  public ProductParameters calculateProductsParameters(Set<OrderProductDto> setOfProducts) {
+    List<Long> ids = setOfProducts.stream().map(item -> item.getProductId()).collect(Collectors.toList());
+    Map<Long, Integer> productQuantityMap = new HashMap<>();
+    for (OrderProductDto dto : setOfProducts) {
+      productQuantityMap.put(dto.getProductId(), dto.getQuantity());
+    }
+    List<Product> products = productRepository.findAllById(ids);
+    ProductParameters parameters = new ProductParameters();
+    double length = 0.0;
+    double height = 0.0;
+    double width = 0.0;
+    double weight = 0.0;
+    for (Product product : products) {
+      Integer quantity = productQuantityMap.get(product.getId());
+      if (quantity == null) {
+        quantity = 0;
+      }
+      parameters.setName(product.getName());
+      parameters.setQuantity(quantity);
+      if (length < product.getLength()) {
+        length = product.getLength();
+      }
+      if (height < product.getHeight()) {
+        height = product.getHeight();
+      }
+      width += product.getWidth();
+      weight += product.getWeight() * quantity;
+    }
+    parameters.setLength(Math.round(length));
+    parameters.setWidth(Math.round(width));
+    parameters.setHeight(Math.round(height));
+    parameters.setWeight(Math.round(weight));
+    return parameters;
   }
 }

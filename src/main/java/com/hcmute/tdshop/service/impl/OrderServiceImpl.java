@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.dto.order.OrderResponse;
+import com.hcmute.tdshop.dto.order.OrderWithShipDataResponse;
 import com.hcmute.tdshop.dto.payment.momo.MomoConfig;
 import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResponse;
 import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResultDto;
 import com.hcmute.tdshop.dto.serversentevent.Clients;
+import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
@@ -139,6 +141,17 @@ public class OrderServiceImpl implements OrderService {
 
     Specification<ShopOrder> conditions = SpecificationHelper.and(specifications);
     Page<ShopOrder> pageOfOrders = orderRepository.findAll(conditions, page);
+
+    if (orderId > 0 && pageOfOrders.getContent().size() > 0) {
+      ShipOrderDto shipOrderDto = shipServices.getOrder(pageOfOrders.getContent().get(0));
+      Page<OrderWithShipDataResponse> pageOfOrderResponse = new PageImpl<>(
+          pageOfOrders.getContent().stream().map(item -> orderMapper.OrderToOrderWithShipDataResponse(item, shipOrderDto, shipServices.checkAllowCancelOrder(pageOfOrders.getContent().get(0).getShip().getId(), shipOrderDto.getStatusCode())))
+              .collect(Collectors.toList()),
+          page,
+          pageOfOrders.getTotalElements()
+      );
+      return new DataResponse(pageOfOrderResponse);
+    }
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
         page,
@@ -180,14 +193,6 @@ public class OrderServiceImpl implements OrderService {
     List<Product> listOfProducts = new ArrayList<>();
     List<UserNotification> userNotifications = new ArrayList<>();
 
-    // Check order valid
-    if (!shipServices.checkRegion(request.getShipId(), order.getAddress())){
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_REGION_NOT_SUPPORT, ApplicationConstants.ORDER_REGION_NOT_SUPPORT_CODE);
-    }
-    if (!shipServices.checkCODAmount(request.getShipId(), setOfOrderDetails)) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT_CODE);
-    }
-
     for (OrderDetail orderDetail : setOfOrderDetails) {
       Product product = orderDetail.getProduct();
       List<Subscription> subscriptions = subscriptionRepository.findByProduct_Id(product.getId());
@@ -200,10 +205,11 @@ public class OrderServiceImpl implements OrderService {
           notification = notificationRepository.save(notification);
           Notification finalNotification = notification;
           userNotifications.addAll(
-              subscriptions.stream().filter(item -> item.getProduct().getId() == product.getId() && item.getUser().getId() != userId)
+              subscriptions.stream()
+                  .filter(item -> item.getProduct().getId() == product.getId() && item.getUser().getId() != userId)
                   .map(item -> new UserNotification(null, false, false, item.getUser(), finalNotification))
                   .collect(
-                  Collectors.toList()));
+                      Collectors.toList()));
         }
 
         listOfProducts.add(product);

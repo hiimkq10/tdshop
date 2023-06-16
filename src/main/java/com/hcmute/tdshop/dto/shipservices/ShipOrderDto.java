@@ -7,10 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateOrderDto {
-  private long orderId;
-  private double length;
-  private double width;
-  private double height;
-  private double weight;
+public class ShipOrderDto {
+  String statusCode;
+  String statusDescription;
 }

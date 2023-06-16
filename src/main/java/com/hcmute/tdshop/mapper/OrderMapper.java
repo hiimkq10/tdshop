@@ -4,10 +4,12 @@ import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.OrderDetailDto;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.order.OrderResponse;
+import com.hcmute.tdshop.dto.order.OrderWithShipDataResponse;
 import com.hcmute.tdshop.dto.order.orderaddress.AddressDto;
 import com.hcmute.tdshop.dto.order.orderaddress.DistrictDto;
 import com.hcmute.tdshop.dto.order.orderaddress.ProvinceDto;
 import com.hcmute.tdshop.dto.order.orderaddress.WardsDto;
+import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.District;
 import com.hcmute.tdshop.entity.OrderDetail;
@@ -24,6 +26,7 @@ import com.hcmute.tdshop.repository.PaymentMethodRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShipRepository;
 import com.hcmute.tdshop.repository.UserRepository;
+import com.hcmute.tdshop.service.shipservices.ShipServices;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.math.BigDecimal;
@@ -31,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
@@ -107,6 +111,33 @@ public abstract class OrderMapper {
     order.setSetOfOrderDetails(setOfOrderDetails);
 
     return order;
+  }
+
+  public OrderWithShipDataResponse OrderToOrderWithShipDataResponse(ShopOrder order, ShipOrderDto shipOrderDto, boolean canCancelOrder) {
+    if (order == null) {
+      return null;
+    }
+
+    OrderWithShipDataResponse orderResponse = new OrderWithShipDataResponse();
+    orderResponse.setId(order.getId());
+    orderResponse.setOrderedAt(order.getOrderedAt());
+    orderResponse.setPaymentMethod(order.getPaymentMethod());
+    orderResponse.setShip(order.getShip());
+    orderResponse.setOrderStatus(order.getOrderStatus());
+    orderResponse.setAddress(AddressToAddressDto(order.getAddress()));
+    orderResponse.setSetOfOrderDetailDtos(SetOfOrderDetailsToSetOfOrderDetailDtos(order.getSetOfOrderDetails()));
+    orderResponse.setShipStatusCode(shipOrderDto.getStatusCode());
+    orderResponse.setShipStatusDescription(shipOrderDto.getStatusDescription());
+    if (Objects.equals(shipOrderDto.getStatusCode(), "") && order.getShip().getId() != 1) {
+      orderResponse.setCanCreateShipOrder(true);
+      orderResponse.setCanCancelShipOrder(false);
+    }
+    else {
+      orderResponse.setCanCreateShipOrder(false);
+      orderResponse.setCanCancelShipOrder(canCancelOrder);
+    }
+
+    return orderResponse;
   }
 
   public OrderResponse OrderToOrderResponse(ShopOrder order) {
