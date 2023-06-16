@@ -2,6 +2,8 @@ package com.hcmute.tdshop.service.shipservices;
 
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
+import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
+import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ProductParameters;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
@@ -24,13 +26,7 @@ import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.enums.GHNShipStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
-import com.hcmute.tdshop.mapper.OrderMapper;
-import com.hcmute.tdshop.mapper.ShipServicesMapper;
 import com.hcmute.tdshop.model.DataResponse;
-import com.hcmute.tdshop.repository.AddressRepository;
-import com.hcmute.tdshop.repository.ProductRepository;
-import com.hcmute.tdshop.repository.ShipDataRepository;
-import com.hcmute.tdshop.repository.WardsRepository;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -43,7 +39,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -54,28 +49,10 @@ import org.springframework.web.reactive.function.client.WebClient.RequestBodySpe
 import org.springframework.web.reactive.function.client.WebClient.UriSpec;
 import reactor.core.publisher.Mono;
 
-@Service
-public class GHNShipService {
+@Service("GHNShipService")
+public class GHNShipService extends ShipServices {
 
   Logger logger = LoggerFactory.getLogger(LalamoveShipService.class);
-
-  @Autowired
-  AddressRepository addressRepository;
-
-  @Autowired
-  WardsRepository wardsRepository;
-
-  @Autowired
-  ProductRepository productRepository;
-
-  @Autowired
-  ShipServicesMapper shipServicesMapper;
-
-  @Autowired
-  ShipDataRepository shipDataRepository;
-
-  @Autowired
-  OrderMapper orderMapper;
 
   @Value("${ghn.api.token}")
   String token;
@@ -107,18 +84,20 @@ public class GHNShipService {
   @Value("${ghn.order.max-insurance-value}")
   long maxInsuranceValue;
 
-  public boolean checkProductsSize(OrderSize orderSize) {
+  @Override
+  public boolean checkProductSize(OrderSize orderSize) {
     if (
         orderSize.getLength() > maxLength ||
-        orderSize.getWidth() > maxWidth ||
-        orderSize.getHeight() > maxHeight ||
-        orderSize.getWeight() > maxWeight
+            orderSize.getWidth() > maxWidth ||
+            orderSize.getHeight() > maxHeight ||
+            orderSize.getWeight() > maxWeight
     ) {
       return false;
     }
     return true;
   }
 
+  @Override
   public boolean checkAllowCancelOrder(String statusCode) {
     if (cancelAllowedStatus.contains(statusCode)) {
       return true;
@@ -126,7 +105,8 @@ public class GHNShipService {
     return false;
   }
 
-  public boolean checkCodAmount(Set<OrderDetail> setOfOrderDetails) {
+  @Override
+  public boolean checkCODAmount(Set<OrderDetail> setOfOrderDetails) {
     double total = 0.0;
     for (OrderDetail orderDetail : setOfOrderDetails) {
       total += orderDetail.getFinalPrice() * orderDetail.getQuantity();
@@ -135,6 +115,11 @@ public class GHNShipService {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public boolean checkRegion(Address address) {
+    return true;
   }
 
   public ProvinceDto getProvince(String provinceName) {
@@ -231,7 +216,8 @@ public class GHNShipService {
     }
   }
 
-  public ShipOrderDto getShipOrderDto(ShopOrder order) {
+  @Override
+  public ShipOrderDto getShipOrder(ShopOrder order) {
     GetOrderData getOrderData = getOrder(order);
     return shipServicesMapper.GHNGetOrderDataToShipOrderDto(getOrderData);
   }
@@ -269,7 +255,15 @@ public class GHNShipService {
     }
   }
 
-  public DataResponse createOrder(ShopOrder order, OrderSize orderSize) {
+  @Override
+  public DataResponse createOrder(CreateOrderRequest dto) {
+    Optional<ShopOrder> optionalData = shopOrderRepository.findById(dto.getOrderId());
+    if (!optionalData.isPresent()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
+          ApplicationConstants.BAD_REQUEST_CODE);
+    }
+    ShopOrder order = optionalData.get();
+    OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
     try {
       Optional<ShipData> optionalShipData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
@@ -341,7 +335,7 @@ public class GHNShipService {
       }
       shipDatas.add(new ShipData(null, createOrderDataResponse.getOrderCode(), now, null, order));
       shipDataRepository.saveAllAndFlush(shipDatas);
-      ShipOrderDto shipOrderDto = getShipOrderDto(order);
+      ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, true));
     } catch (Exception e) {
       logger.error(e.getMessage());
@@ -349,7 +343,14 @@ public class GHNShipService {
     }
   }
 
-  public DataResponse cancelOrder(ShopOrder order) {
+  @Override
+  public DataResponse cancelOrder(CancelOrderRequest dto) {
+    Optional<ShopOrder> optionalOrderData = shopOrderRepository.findById(dto.getOrderId());
+    if (!optionalOrderData.isPresent()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
+          ApplicationConstants.BAD_REQUEST_CODE);
+    }
+    ShopOrder order = optionalOrderData.get();
     try {
       GetOrderData getOrderData = getOrder(order);
       if (getOrderData == null) {
@@ -377,7 +378,7 @@ public class GHNShipService {
       Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
       if (!optionalData.isPresent()) {
-        ShipOrderDto shipOrderDto = getShipOrderDto(order);
+        ShipOrderDto shipOrderDto = getShipOrder(order);
         return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
       }
       ShipData shipData = optionalData.get();
@@ -398,7 +399,7 @@ public class GHNShipService {
       if (!(cancelOrderResponse.getCode() == 200)) {
         throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
       }
-      ShipOrderDto shipOrderDto = getShipOrderDto(order);
+      ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
     } catch (Exception e) {
       logger.error(e.getMessage());
@@ -406,6 +407,7 @@ public class GHNShipService {
     }
   }
 
+  @Override
   public DataResponse calculateFee(CalculateFeeDto dto) {
     try {
       WebClient client = WebClient.builder().baseUrl(baseUrl)

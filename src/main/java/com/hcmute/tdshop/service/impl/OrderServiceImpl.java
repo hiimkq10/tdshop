@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -110,7 +111,12 @@ public class OrderServiceImpl implements OrderService {
   private UserNotificationRepository userNotificationRepository;
 
   @Autowired
-  private ShipServices shipServices;
+  @Qualifier("GHNShipService")
+  private ShipServices ghnShipServices;
+
+  @Autowired
+  @Qualifier("LalamoveShipService")
+  private ShipServices lalamoveShipService;
 
   private Clients clients = new Clients();
   private Gson gson = new Gson();
@@ -143,14 +149,17 @@ public class OrderServiceImpl implements OrderService {
     Page<ShopOrder> pageOfOrders = orderRepository.findAll(conditions, page);
 
     if (orderId > 0 && pageOfOrders.getContent().size() > 0) {
-      ShipOrderDto shipOrderDto = shipServices.getOrder(pageOfOrders.getContent().get(0));
-      Page<OrderWithShipDataResponse> pageOfOrderResponse = new PageImpl<>(
-          pageOfOrders.getContent().stream().map(item -> orderMapper.OrderToOrderWithShipDataResponse(item, shipOrderDto, shipServices.checkAllowCancelOrder(pageOfOrders.getContent().get(0).getShip().getId(), shipOrderDto.getStatusCode())))
-              .collect(Collectors.toList()),
-          page,
-          pageOfOrders.getTotalElements()
-      );
-      return new DataResponse(pageOfOrderResponse);
+      ShipServices shipServices = getShipService(pageOfOrders.getContent().get(0).getShip().getId());
+      if (shipServices != null) {
+        ShipOrderDto shipOrderDto = shipServices.getShipOrder(pageOfOrders.getContent().get(0));
+        Page<OrderWithShipDataResponse> pageOfOrderResponse = new PageImpl<>(
+            pageOfOrders.getContent().stream().map(item -> orderMapper.OrderToOrderWithShipDataResponse(item, shipOrderDto, shipServices.checkAllowCancelOrder(shipOrderDto.getStatusCode())))
+                .collect(Collectors.toList()),
+            page,
+            pageOfOrders.getTotalElements()
+        );
+        return new DataResponse(pageOfOrderResponse);
+      }
     }
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),
@@ -397,6 +406,16 @@ public class OrderServiceImpl implements OrderService {
       log.error(e.getMessage());
       sseEmitter.completeWithError(e);
     }
+  }
+
+  private ShipServices getShipService(Long shipId) {
+    if (shipId == 2) {
+      return ghnShipServices;
+    }
+    if (shipId == 3) {
+      return lalamoveShipService;
+    }
+    return null;
   }
 
 }

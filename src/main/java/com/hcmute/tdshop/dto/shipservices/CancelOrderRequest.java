@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateOrderDto {
+public class CancelOrderRequest {
   private long orderId;
-  private double length;
-  private double width;
-  private double height;
-  private double weight;
 }

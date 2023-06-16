@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
+import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.Coordinate;
+import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ProductParameters;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
@@ -25,12 +27,7 @@ import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.enums.GHNShipStatusEnum;
 import com.hcmute.tdshop.enums.LalamoveServiceEnum;
-import com.hcmute.tdshop.mapper.OrderMapper;
-import com.hcmute.tdshop.mapper.ShipServicesMapper;
 import com.hcmute.tdshop.model.DataResponse;
-import com.hcmute.tdshop.repository.AddressRepository;
-import com.hcmute.tdshop.repository.ProductRepository;
-import com.hcmute.tdshop.repository.ShipDataRepository;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -44,11 +41,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import javax.persistence.criteria.Order;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -59,25 +54,10 @@ import org.springframework.web.reactive.function.client.WebClient.RequestBodySpe
 import org.springframework.web.reactive.function.client.WebClient.UriSpec;
 import reactor.core.publisher.Mono;
 
-@Service
-public class LalamoveShipService {
+@Service("LalamoveShipService")
+public class LalamoveShipService extends ShipServices {
 
   Logger logger = LoggerFactory.getLogger(LalamoveShipService.class);
-
-  @Autowired
-  ProductRepository productRepository;
-
-  @Autowired
-  AddressRepository addressRepository;
-
-  @Autowired
-  ShipServicesMapper shipServicesMapper;
-
-  @Autowired
-  ShipDataRepository shipDataRepository;
-
-  @Autowired
-  OrderMapper orderMapper;
 
   @Value("${td-shop.lat}")
   String shopLat;
@@ -115,6 +95,12 @@ public class LalamoveShipService {
   @Value("${lalamove.order.create.support-regions}")
   List<Long> supportRegions;
 
+  @Override
+  public boolean checkProductSize(OrderSize orderSize) {
+    return true;
+  }
+
+  @Override
   public boolean checkAllowCancelOrder(String statusCode) {
     if (cancelAllowedStatus.contains(statusCode)) {
       return true;
@@ -122,6 +108,12 @@ public class LalamoveShipService {
     return false;
   }
 
+  @Override
+  public boolean checkCODAmount(Set<OrderDetail> setOfOrderDetails) {
+    return true;
+  }
+
+  @Override
   public boolean checkRegion(Address address) {
     if (supportRegions.contains(address.getWards().getDistrict().getProvince().getId())) {
       return true;
@@ -129,7 +121,8 @@ public class LalamoveShipService {
     return false;
   }
 
-  public ShipOrderDto getShipOrderDto(ShopOrder order) {
+  @Override
+  public ShipOrderDto getShipOrder(ShopOrder order) {
     GetOrderData getOrderData = getOrder(order);
     return shipServicesMapper.LalamoveGetOrderDataToShipOrderDto(getOrderData);
   }
@@ -188,7 +181,15 @@ public class LalamoveShipService {
     }
   }
 
-  public DataResponse createOrder(ShopOrder order, OrderSize orderSize) {
+  @Override
+  public DataResponse createOrder(CreateOrderRequest dto) {
+    Optional<ShopOrder> optionalData = shopOrderRepository.findById(dto.getOrderId());
+    if (!optionalData.isPresent()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
+          ApplicationConstants.BAD_REQUEST_CODE);
+    }
+    ShopOrder order = optionalData.get();
+    OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
     try {
       Optional<ShipData> optionalShipData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
@@ -269,7 +270,7 @@ public class LalamoveShipService {
       }
       shipDatas.add(new ShipData(null, createOrderDto.getOrderId(), now, null, order));
       shipDataRepository.saveAllAndFlush(shipDatas);
-      ShipOrderDto shipOrderDto = getShipOrderDto(order);
+      ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, true));
     } catch (Exception e) {
       logger.error(e.getMessage());
@@ -277,7 +278,14 @@ public class LalamoveShipService {
     }
   }
 
-  public DataResponse cancelOrder(ShopOrder order) {
+  @Override
+  public DataResponse cancelOrder(CancelOrderRequest dto) {
+    Optional<ShopOrder> optionalOrderData = shopOrderRepository.findById(dto.getOrderId());
+    if (!optionalOrderData.isPresent()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
+          ApplicationConstants.BAD_REQUEST_CODE);
+    }
+    ShopOrder order = optionalOrderData.get();
     try {
       GetOrderData getOrderData = getOrder(order);
       if (getOrderData == null) {
@@ -302,7 +310,7 @@ public class LalamoveShipService {
       Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
       if (!optionalData.isPresent()) {
-        ShipOrderDto shipOrderDto = getShipOrderDto(order);
+        ShipOrderDto shipOrderDto = getShipOrder(order);
         return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
       }
       ShipData shipData = optionalData.get();
@@ -314,7 +322,7 @@ public class LalamoveShipService {
           .build(shipData.getShipOrderId()));
       bodySpec.retrieve();
 
-      ShipOrderDto shipOrderDto = getShipOrderDto(order);
+      ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
     } catch (Exception e) {
       logger.error(e.getMessage());
@@ -322,6 +330,7 @@ public class LalamoveShipService {
     }
   }
 
+  @Override
   public DataResponse calculateFee(CalculateFeeDto dto) {
     QuotationDto quotationDto = getQuotation(dto, null);
     return new DataResponse(shipServicesMapper.LalamoveQuotationDtoToFeeResponse(quotationDto));
@@ -346,8 +355,7 @@ public class LalamoveShipService {
       ProductParameters parameters = null;
       if (orderSize != null) {
         parameters = OrderSizeToProductParameters(orderSize);
-      }
-      else {
+      } else {
         parameters = calculateProductsParameters(dto.getSetOfProducts());
       }
 
@@ -390,7 +398,8 @@ public class LalamoveShipService {
   }
 
   private ProductParameters OrderSizeToProductParameters(OrderSize orderSize) {
-    return new ProductParameters("", 0, Math.round(orderSize.getLength()), Math.round(orderSize.getWidth()), Math.round(orderSize.getHeight()), Math.round(orderSize.getWeight()));
+    return new ProductParameters("", 0, Math.round(orderSize.getLength()), Math.round(orderSize.getWidth()),
+        Math.round(orderSize.getHeight()), Math.round(orderSize.getWeight()));
   }
 
   private Stop generateStop(Address address) {
