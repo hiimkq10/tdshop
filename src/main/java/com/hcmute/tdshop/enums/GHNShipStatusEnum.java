@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.enums;
 
 public enum GHNShipStatusEnum {
+  GHN_NOT_CREATED("not_created", "Không có đơn hàng"),
   GHN_READY_TO_PICK("ready_to_pick", "Đơn hàng vừa được tạo"),
   GHN_PICKING("picking", "Shipper đang đến lấy hàng"),
   GHN_CANCEL("cancel", "Đơn hàng đã hủy"),

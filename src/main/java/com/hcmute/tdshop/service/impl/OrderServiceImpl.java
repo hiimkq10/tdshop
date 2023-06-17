@@ -150,16 +150,19 @@ public class OrderServiceImpl implements OrderService {
 
     if (orderId > 0 && pageOfOrders.getContent().size() > 0) {
       ShipServices shipServices = getShipService(pageOfOrders.getContent().get(0).getShip().getId());
+      ShipOrderDto shipOrderDto = new ShipOrderDto("", "");
       if (shipServices != null) {
-        ShipOrderDto shipOrderDto = shipServices.getShipOrder(pageOfOrders.getContent().get(0));
-        Page<OrderWithShipDataResponse> pageOfOrderResponse = new PageImpl<>(
-            pageOfOrders.getContent().stream().map(item -> orderMapper.OrderToOrderWithShipDataResponse(item, shipOrderDto, shipServices.checkAllowCancelOrder(shipOrderDto.getStatusCode())))
-                .collect(Collectors.toList()),
-            page,
-            pageOfOrders.getTotalElements()
-        );
-        return new DataResponse(pageOfOrderResponse);
+        shipOrderDto = shipServices.getShipOrder(pageOfOrders.getContent().get(0));
       }
+      ShipOrderDto finalShipOrderDto = shipOrderDto;
+      Page<OrderWithShipDataResponse> pageOfOrderResponse = new PageImpl<>(
+          pageOfOrders.getContent().stream().map(item -> orderMapper.OrderToOrderWithShipDataResponse(item,
+                  finalShipOrderDto))
+              .collect(Collectors.toList()),
+          page,
+          pageOfOrders.getTotalElements()
+      );
+      return new DataResponse(pageOfOrderResponse);
     }
     Page<OrderResponse> pageOfOrderResponse = new PageImpl<>(
         pageOfOrders.getContent().stream().map(orderMapper::OrderToOrderResponse).collect(Collectors.toList()),

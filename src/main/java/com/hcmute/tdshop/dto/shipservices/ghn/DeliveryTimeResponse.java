@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CalculateFeeDataResponse {
+public class DeliveryTimeResponse {
   long code;
   String message;
-  CalculateFeeResponse data;
+  DeliveryTimeData data;
 }

@@ -113,7 +113,7 @@ public abstract class OrderMapper {
     return order;
   }
 
-  public OrderWithShipDataResponse OrderToOrderWithShipDataResponse(ShopOrder order, ShipOrderDto shipOrderDto, boolean canCancelOrder) {
+  public OrderWithShipDataResponse OrderToOrderWithShipDataResponse(ShopOrder order, ShipOrderDto shipOrderDto) {
     if (order == null) {
       return null;
     }
@@ -128,14 +128,6 @@ public abstract class OrderMapper {
     orderResponse.setSetOfOrderDetailDtos(SetOfOrderDetailsToSetOfOrderDetailDtos(order.getSetOfOrderDetails()));
     orderResponse.setShipStatusCode(shipOrderDto.getStatusCode());
     orderResponse.setShipStatusDescription(shipOrderDto.getStatusDescription());
-    if (Objects.equals(shipOrderDto.getStatusCode(), "") && order.getShip().getId() != 1) {
-      orderResponse.setCanCreateShipOrder(true);
-      orderResponse.setCanCancelShipOrder(false);
-    }
-    else {
-      orderResponse.setCanCreateShipOrder(false);
-      orderResponse.setCanCancelShipOrder(canCancelOrder);
-    }
 
     return orderResponse;
   }

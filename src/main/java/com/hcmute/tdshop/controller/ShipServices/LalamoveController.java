@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.controller.ShipServices;
 
+import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
@@ -24,14 +25,14 @@ public class LalamoveController {
   @Qualifier("LalamoveShipService")
   private ShipServices lalamoveShipService;
 
-  @GetMapping("/get-all")
-  public DataResponse getAll() {
-    return shipService.getAll();
-  }
-
   @PostMapping("/calculate-fee")
   public DataResponse calculateFee(@RequestBody CalculateFeeDto dto) {
     return lalamoveShipService.calculateFee(dto);
+  }
+
+  @PostMapping("/calculate-delivery-time")
+  public DataResponse calculateDeliveryTime(@RequestBody CalculateDeliveryTimeRequest dto) {
+    return lalamoveShipService.calculateExpectedDeliveryTime(dto);
   }
 
   @PostMapping("/create-order")

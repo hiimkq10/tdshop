@@ -95,23 +95,26 @@ public class GetOrderData {
   long codAmount;
 
   @JsonProperty("cod_collect_date")
-  long codCollectDate;
+  Long codCollectDate;
 
   @JsonProperty("cod_transfer_date")
-  long codTransferDate;
+  Long codTransferDate;
 
   @JsonProperty("required_note")
-  long requiredNote;
+  String requiredNote;
 
   @JsonProperty("content")
-  long content;
+  String content;
 
   @JsonProperty("order_code")
-  long orderCode;
+  String orderCode;
+
+  @JsonProperty("status")
+  String status;
 
   @JsonProperty("tag")
   List<String> tags;
 
-  @JsonProperty("log")
-  List<Log> logs;
+//  @JsonProperty("log")
+//  List<Log> logs;
 }

@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.enums;
 
 public enum LalamoveShipStatusEnum {
+  LALAMOVE_NOT_CREATED("NOT_CREATED", "Không có đơn hàng"),
   LALAMOVE_ASSIGNING_DRIVER("ASSIGNING_DRIVER", "Đang tìm shipper"),
   LALAMOVE_ON_GOING("ON_GOING", "Shipper đã nhận đơn"),
   LALAMOVE_PICKED_UP("PICKED_UP", "Shipper đã lấy hàng"),

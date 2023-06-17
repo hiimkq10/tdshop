@@ -1,16 +1,22 @@
 package com.hcmute.tdshop.service.shipservices;
 
+import com.google.gson.Gson;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
+import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
+import com.hcmute.tdshop.dto.shipservices.DeliveryTimeDto;
 import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ProductParameters;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
-import com.hcmute.tdshop.dto.shipservices.ghn.CalculateFeeDataResponse;
+import com.hcmute.tdshop.dto.shipservices.ghn.CalculateFeeData;
+import com.hcmute.tdshop.dto.shipservices.ghn.CalculateFeeResponse;
 import com.hcmute.tdshop.dto.shipservices.ghn.CancelOrderResponse;
 import com.hcmute.tdshop.dto.shipservices.ghn.CreateOrderDataResponse;
 import com.hcmute.tdshop.dto.shipservices.ghn.CreateOrderResponse;
+import com.hcmute.tdshop.dto.shipservices.ghn.DeliveryTimeData;
+import com.hcmute.tdshop.dto.shipservices.ghn.DeliveryTimeResponse;
 import com.hcmute.tdshop.dto.shipservices.ghn.DistrictDto;
 import com.hcmute.tdshop.dto.shipservices.ghn.DistrictResponse;
 import com.hcmute.tdshop.dto.shipservices.ghn.GetOrderData;
@@ -24,11 +30,15 @@ import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
+import com.hcmute.tdshop.entity.Wards;
 import com.hcmute.tdshop.enums.GHNShipStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,7 +62,7 @@ import reactor.core.publisher.Mono;
 @Service("GHNShipService")
 public class GHNShipService extends ShipServices {
 
-  Logger logger = LoggerFactory.getLogger(LalamoveShipService.class);
+  Logger logger = LoggerFactory.getLogger(GHNShipService.class);
 
   @Value("${ghn.api.token}")
   String token;
@@ -106,11 +116,8 @@ public class GHNShipService extends ShipServices {
   }
 
   @Override
-  public boolean checkCODAmount(Set<OrderDetail> setOfOrderDetails) {
-    double total = 0.0;
-    for (OrderDetail orderDetail : setOfOrderDetails) {
-      total += orderDetail.getFinalPrice() * orderDetail.getQuantity();
-    }
+  public boolean checkCODAmount(ShopOrder order) {
+    double total = calculateOrderTotal(order);
     if (total >= maxCodAmount) {
       return true;
     }
@@ -132,12 +139,14 @@ public class GHNShipService extends ShipServices {
           uriBuilder -> uriBuilder.path("/shiip/public-api/master-data/province").build());
       Mono<ProvinceResponse> response = bodySpec.retrieve().bodyToMono(ProvinceResponse.class);
       ProvinceResponse provinceResponse = response.block();
-      if (!(provinceResponse.getCode() == 200)) {
+      if (provinceResponse == null || provinceResponse.getCode() != 200) {
         throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
       }
       List<ProvinceDto> dtos = provinceResponse.getData().stream()
-          .filter(item -> item.getNameExtension().stream()
-              .anyMatch(name -> name.toLowerCase().trim().equals(provinceName.toLowerCase().trim())))
+          .filter(item -> item.getNameExtension() != null && (
+              item.getProvinceName().toLowerCase().trim().equals(provinceName.toLowerCase().trim())
+                  || item.getNameExtension().stream()
+                  .anyMatch(name -> name.toLowerCase().trim().equals(provinceName.toLowerCase().trim()))))
           .collect(
               Collectors.toList());
       if (dtos.size() <= 0) {
@@ -165,12 +174,14 @@ public class GHNShipService extends ShipServices {
 
       Mono<DistrictResponse> response = bodySpec.retrieve().bodyToMono(DistrictResponse.class);
       DistrictResponse districtResponse = response.block();
-      if (!(districtResponse.getCode() == 200)) {
+      if (districtResponse == null || districtResponse.getCode() != 200) {
         throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
       }
       List<DistrictDto> dtos = districtResponse.getData().stream()
-          .filter(item -> item.getNameExtension().stream()
-              .anyMatch(name -> name.toLowerCase().trim().equals(districtName.toLowerCase().trim())))
+          .filter(item -> item.getNameExtension() != null && (
+              item.getDistrictName().toLowerCase().trim().equals(districtName.toLowerCase().trim())
+                  || item.getNameExtension().stream()
+                  .anyMatch(name -> name.toLowerCase().trim().equals(districtName.toLowerCase().trim()))))
           .collect(
               Collectors.toList());
       if (dtos.size() <= 0) {
@@ -198,12 +209,14 @@ public class GHNShipService extends ShipServices {
 
       Mono<WardsResponse> response = bodySpec.retrieve().bodyToMono(WardsResponse.class);
       WardsResponse wardsResponse = response.block();
-      if (!(wardsResponse.getCode() == 200)) {
+      if (wardsResponse == null || wardsResponse.getCode() != 200) {
         throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
       }
       List<WardsDto> dtos = wardsResponse.getData().stream()
-          .filter(item -> item.getNameExtension().stream()
-              .anyMatch(name -> name.toLowerCase().trim().equals(wardsName.toLowerCase().trim())))
+          .filter(item -> item.getNameExtension() != null && (
+              item.getWardName().toLowerCase().trim().equals(wardsName.toLowerCase().trim()) || item.getNameExtension()
+                  .stream()
+                  .anyMatch(name -> name.toLowerCase().trim().equals(wardsName.toLowerCase().trim()))))
           .collect(
               Collectors.toList());
       if (dtos.size() <= 0) {
@@ -224,13 +237,6 @@ public class GHNShipService extends ShipServices {
 
   public GetOrderData getOrder(ShopOrder order) {
     try {
-      WebClient client = WebClient.builder().baseUrl(baseUrl)
-          .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-          .defaultHeader("Token", token).build();
-      UriSpec<RequestBodySpec> uriSpec = (UriSpec<RequestBodySpec>) client.get();
-      RequestBodySpec bodySpec = uriSpec.uri(
-          uriBuilder -> uriBuilder.path("/shiip/public-api/v2/shipping-order/detail").build());
-
       Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
       if (!optionalData.isPresent()) {
@@ -238,13 +244,20 @@ public class GHNShipService extends ShipServices {
       }
       ShipData shipData = optionalData.get();
 
+      WebClient client = WebClient.builder().baseUrl(baseUrl)
+          .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+          .defaultHeader("Token", token).build();
+      UriSpec<RequestBodySpec> uriSpec = (UriSpec<RequestBodySpec>) client.get();
+      RequestBodySpec bodySpec = uriSpec.uri(
+          uriBuilder -> uriBuilder.path("/shiip/public-api/v2/shipping-order/detail").build());
+
       Map<String, Object> bodyMap = new HashMap<>();
       bodyMap.put("order_code", shipData.getShipOrderId());
       bodySpec.body(BodyInserters.fromValue(bodyMap));
 
       Mono<GetOrderResponse> response = bodySpec.retrieve().bodyToMono(GetOrderResponse.class);
       GetOrderResponse getOrderResponse = response.block();
-      if (!(getOrderResponse.getCode() == 200)) {
+      if (getOrderResponse == null || getOrderResponse.getCode() != 200) {
         return null;
       }
 
@@ -265,15 +278,11 @@ public class GHNShipService extends ShipServices {
     ShopOrder order = optionalData.get();
     OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
     try {
-      Optional<ShipData> optionalShipData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
-          .findFirst();
-      if (optionalShipData.isPresent()) {
-        GetOrderData getOrderData = getOrder(order);
-        if (!(getOrderData == null || getOrderData.getLogs().get(getOrderData.getLogs().size() - 1).getStatus().equals(
-            GHNShipStatusEnum.GHN_CANCEL.getCode()))) {
-          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
-              ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
-        }
+      GetOrderData getOrderData = getOrder(order);
+      if (!(getOrderData == null || getOrderData.getStatus().equals(
+          GHNShipStatusEnum.GHN_CANCEL.getCode()))) {
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
+            ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
       }
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
@@ -303,10 +312,10 @@ public class GHNShipService extends ShipServices {
         bodyMap.put("cod_amount", Math.round(total));
       }
 
-      bodyMap.put("length", orderSize.getLength());
-      bodyMap.put("width", orderSize.getWidth());
-      bodyMap.put("height", orderSize.getHeight());
-      bodyMap.put("weight", orderSize.getWeight());
+      bodyMap.put("length", Math.round(orderSize.getLength()));
+      bodyMap.put("width", Math.round(orderSize.getWidth()));
+      bodyMap.put("height", Math.round(orderSize.getHeight()));
+      bodyMap.put("weight", Math.round(orderSize.getWeight()));
 
       bodyMap.put("insurance_value", total > maxInsuranceValue ? maxInsuranceValue : Math.round(total));
 
@@ -315,6 +324,9 @@ public class GHNShipService extends ShipServices {
       bodyMap.put("required_note", "CHOXEMHANGKHONGTHU");
       bodyMap.put("items", productParameters);
       bodySpec.body(BodyInserters.fromValue(bodyMap));
+
+      Gson gson = new Gson();
+      String json = gson.toJson(bodyMap);
 
       Mono<CreateOrderResponse> response = bodySpec.retrieve().bodyToMono(CreateOrderResponse.class);
       CreateOrderResponse createOrderResponse = response.block();
@@ -325,18 +337,17 @@ public class GHNShipService extends ShipServices {
       CreateOrderDataResponse createOrderDataResponse = createOrderResponse.getData();
 
       // Save Ship Data
-      List<ShipData> shipDatas = shipDataRepository.findByOrder_Id(order.getId());
+      List<ShipData> shipDatas = shipDataRepository.findByOrder_IdAndDeletedAtIsNull(order.getId());
       LocalDateTime now = LocalDateTime.now();
       int size = shipDatas.size();
       for (int i = 0; i < size; i++) {
-        if (shipDatas.get(i).getDeletedAt() == null) {
-          shipDatas.get(i).setDeletedAt(now);
-        }
+        shipDatas.get(i).setDeletedAt(now);
       }
       shipDatas.add(new ShipData(null, createOrderDataResponse.getOrderCode(), now, null, order));
       shipDataRepository.saveAllAndFlush(shipDatas);
+      order.setShipData(shipDatas);
       ShipOrderDto shipOrderDto = getShipOrder(order);
-      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, true));
+      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
@@ -354,34 +365,15 @@ public class GHNShipService extends ShipServices {
     try {
       GetOrderData getOrderData = getOrder(order);
       if (getOrderData == null) {
-        LocalDateTime now = LocalDateTime.now();
-        List<ShipData> shipDatas = shipDataRepository.findByOrder_Id(order.getId());
-        int size = shipDatas.size();
-        for (int i = 0; i < size; i++) {
-          if (shipDatas.get(i).getDeletedAt() == null) {
-            shipDatas.get(i).setDeletedAt(now);
-          }
-        }
-        shipDataRepository.saveAllAndFlush(shipDatas);
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_NOT_FOUND,
-            ApplicationConstants.SHIP_DATA_ORDER_NOT_FOUND_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+            ApplicationConstants.BAD_REQUEST_CODE);
       }
 
-      if (getOrderData.getLogs() != null && getOrderData.getLogs().size() > 0) {
-        if (!cancelAllowedStatus.contains(getOrderData.getLogs().get(getOrderData.getLogs().size() - 1).getStatus())) {
-          return new DataResponse(ApplicationConstants.BAD_REQUEST,
-              ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW,
-              ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW_CODE);
-        }
+      if (!cancelAllowedStatus.contains(getOrderData.getStatus())) {
+        return new DataResponse(ApplicationConstants.BAD_REQUEST,
+            ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW,
+            ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW_CODE);
       }
-
-      Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
-          .findFirst();
-      if (!optionalData.isPresent()) {
-        ShipOrderDto shipOrderDto = getShipOrder(order);
-        return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
-      }
-      ShipData shipData = optionalData.get();
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
           .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -391,16 +383,76 @@ public class GHNShipService extends ShipServices {
           uriBuilder -> uriBuilder.path("/shiip/public-api/v2/switch-status/cancel").build());
 
       Map<String, Object> bodyMap = new HashMap<>();
-      bodyMap.put("order_codes", Arrays.asList(shipData.getShipOrderId()));
+      bodyMap.put("order_codes", Arrays.asList(getOrderData.getOrderCode()));
       bodySpec.body(BodyInserters.fromValue(bodyMap));
 
       Mono<CancelOrderResponse> response = bodySpec.retrieve().bodyToMono(CancelOrderResponse.class);
       CancelOrderResponse cancelOrderResponse = response.block();
-      if (!(cancelOrderResponse.getCode() == 200)) {
+      if (cancelOrderResponse.getCode() != 200) {
         throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
       }
       ShipOrderDto shipOrderDto = getShipOrder(order);
-      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
+      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
+    } catch (Exception e) {
+      logger.error(e.getMessage());
+      throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
+    }
+  }
+
+  @Override
+  public DataResponse calculateExpectedDeliveryTime(CalculateDeliveryTimeRequest dto) {
+    try {
+      WebClient client = WebClient.builder().baseUrl(baseUrl)
+          .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+          .defaultHeader("Token", token)
+          .defaultHeader("ShopId", shopId).build();
+      UriSpec<RequestBodySpec> uriSpec = (UriSpec<RequestBodySpec>) client.get();
+      RequestBodySpec bodySpec = uriSpec.uri(
+          uriBuilder -> uriBuilder.path("/shiip/public-api/v2/shipping-order/leadtime").build());
+
+      Optional<Address> optionalData = addressRepository.findById(dto.getAddressId());
+      if (!optionalData.isPresent()) {
+        throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
+      }
+      Address address = optionalData.get();
+
+      // Td-shop location
+      Optional<Wards> optionalWards = wardsRepository.findById(shopWardsId);
+      if (!optionalWards.isPresent()) {
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+            ApplicationConstants.BAD_REQUEST_CODE);
+      }
+      Wards shopWards = optionalWards.get();
+      ProvinceDto shopProvinceDto = getProvince(shopWards.getDistrict().getProvince().getName());
+      DistrictDto shopDistrictDto = getDistrict(shopWards.getDistrict().getName(), shopProvinceDto.getProvinceID());
+      WardsDto shopWardsDto = getWards(shopWards.getName(), shopDistrictDto.getDistrictID());
+
+      ProvinceDto provinceDto = getProvince(address.getWards().getDistrict().getProvince().getName());
+      DistrictDto districtDto = getDistrict(address.getWards().getDistrict().getName(), provinceDto.getProvinceID());
+      WardsDto wardsDto = getWards(address.getWards().getName(), districtDto.getDistrictID());
+
+      Map<String, Object> bodyMap = new HashMap<>();
+      bodyMap.put("from_district_id", shopDistrictDto.getDistrictID());
+      bodyMap.put("from_ward_code", String.valueOf(shopWardsDto.getWardCode()));
+      bodyMap.put("to_district_id", districtDto.getDistrictID());
+      bodyMap.put("to_ward_code", String.valueOf(wardsDto.getWardCode()));
+      bodyMap.put("service_id", 2);
+      bodySpec.body(BodyInserters.fromValue(bodyMap));
+
+      Gson gson = new Gson();
+      String json = gson.toJson(bodyMap);
+
+      Mono<DeliveryTimeResponse> response = bodySpec.retrieve().bodyToMono(DeliveryTimeResponse.class);
+      DeliveryTimeResponse deliveryTimeResponse = response.block();
+      if (!(deliveryTimeResponse.getCode() == 200)) {
+        throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
+      }
+
+      DeliveryTimeData deliveryTimeData = deliveryTimeResponse.getData();
+      LocalDateTime deliveryTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(deliveryTimeData.getLeadtime() * 1000),
+          ZoneId.systemDefault());
+      deliveryTime = deliveryTime.plus(orderProgressTime, ChronoUnit.MILLIS);
+      return new DataResponse(new DeliveryTimeDto(deliveryTime));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
@@ -432,56 +484,20 @@ public class GHNShipService extends ShipServices {
       bodyMap.put("service_type_id", 2);
       bodyMap.put("to_ward_code", String.valueOf(wardsDto.getWardCode()));
       bodyMap.put("to_district_id", districtDto.getDistrictID());
-//      bodyMap.put("length", parameters.getLength());
-//      bodyMap.put("width", parameters.getWidth());
-//      bodyMap.put("height", parameters.getHeight());
       bodyMap.put("weight", parameters.getWeight());
       bodySpec.body(BodyInserters.fromValue(bodyMap));
 
-      Mono<CalculateFeeDataResponse> response = bodySpec.retrieve().bodyToMono(CalculateFeeDataResponse.class);
-      CalculateFeeDataResponse calculateFeeDataResponse = response.block();
-      if (!(calculateFeeDataResponse.getCode() == 200)) {
+      Mono<CalculateFeeResponse> response = bodySpec.retrieve().bodyToMono(CalculateFeeResponse.class);
+      CalculateFeeResponse calculateFeeResponse = response.block();
+      if (!(calculateFeeResponse.getCode() == 200)) {
         throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
       }
-      return new DataResponse(shipServicesMapper.GHNCalculateFeeDataResponseToFeeResponse(calculateFeeDataResponse));
+      CalculateFeeData calculateFeeData = calculateFeeResponse.getData();
+      return new DataResponse(shipServicesMapper.GHNCalculateFeeDataResponseToFeeResponse(calculateFeeData));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
     }
-  }
-
-  public ProductParameters calculateProductsParameters3(Set<OrderDetail> orderDetails) {
-    Map<Long, Integer> productQuantityMap = new HashMap<>();
-    for (OrderDetail dto : orderDetails) {
-      productQuantityMap.put(dto.getProduct().getId(), dto.getQuantity());
-    }
-    List<Product> products = orderDetails.stream().map(OrderDetail::getProduct).collect(Collectors.toList());
-    ProductParameters parameters = new ProductParameters();
-    double length = 0.0;
-    double height = 0.0;
-    double width = 0.0;
-    double weight = 0.0;
-    for (Product product : products) {
-      Integer quantity = productQuantityMap.get(product.getId());
-      if (quantity == null) {
-        quantity = 0;
-      }
-      parameters.setName(product.getName());
-      parameters.setQuantity(quantity);
-      if (length < product.getLength()) {
-        length = product.getLength();
-      }
-      if (height < product.getHeight()) {
-        height = product.getHeight();
-      }
-      width += product.getWidth();
-      weight += product.getWeight() * quantity;
-    }
-    parameters.setLength(Math.round(length));
-    parameters.setWidth(Math.round(width));
-    parameters.setHeight(Math.round(height));
-    parameters.setWeight(Math.round(weight));
-    return parameters;
   }
 
   public List<ProductParameters> calculateProductsParameters2(Set<OrderDetail> orderDetails) {
@@ -491,12 +507,13 @@ public class GHNShipService extends ShipServices {
     }
     List<Product> products = orderDetails.stream().map(OrderDetail::getProduct).collect(Collectors.toList());
     List<ProductParameters> parametersList = new ArrayList<>();
-    ProductParameters parameters = new ProductParameters();
+    ProductParameters parameters = null;
     double length = 0.0;
     double height = 0.0;
     double width = 0.0;
     double weight = 0.0;
     for (Product product : products) {
+      parameters = new ProductParameters();
       Integer quantity = productQuantityMap.get(product.getId());
       if (quantity == null) {
         quantity = 0;
@@ -505,8 +522,8 @@ public class GHNShipService extends ShipServices {
       parameters.setQuantity(quantity);
       length = product.getLength();
       width = product.getWidth();
-      weight = product.getWeight() * quantity;
-      height = product.getHeight() * quantity;
+      weight = product.getWeight();
+      height = product.getHeight();
 
       parameters.setLength(Math.round(length));
       parameters.setWidth(Math.round(width));

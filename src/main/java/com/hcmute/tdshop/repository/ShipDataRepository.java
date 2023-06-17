@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ShipDataRepository extends JpaRepository<ShipData, Long> {
   List<ShipData> findByOrder_Id(Long id);
+  List<ShipData> findByOrder_IdAndDeletedAtIsNull(Long id);
 }

@@ -1,12 +1,12 @@
 package com.hcmute.tdshop.service.shipservices;
 
+import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
 import com.hcmute.tdshop.entity.Address;
-import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.mapper.OrderMapper;
 import com.hcmute.tdshop.mapper.ShipServicesMapper;
@@ -16,8 +16,9 @@ import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShipDataRepository;
 import com.hcmute.tdshop.repository.ShipRepository;
 import com.hcmute.tdshop.repository.ShopOrderRepository;
-import java.util.Set;
+import com.hcmute.tdshop.repository.WardsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,14 +43,44 @@ public abstract class ShipServices {
   ShipDataRepository shipDataRepository;
 
   @Autowired
+  WardsRepository wardsRepository;
+
+  @Autowired
   OrderMapper orderMapper;
+
+  @Value("${td-shop.lat}")
+  String shopLat;
+
+  @Value("${td-shop.lng}")
+  String shopLng;
+
+  @Value("${td-shop.address-detail}")
+  String shopAddressDetail;
+
+  @Value("${td-shop.name}")
+  String shopName;
+
+  @Value("${td-shop.phone}")
+  String shopPhone;
+
+  @Value("${td-shop.order.progress-time}")
+  int orderProgressTime;
+
+  @Value("${td-shop.location.province-id}")
+  long shopProvinceId;
+
+  @Value("${td-shop.location.district-id}")
+  long shopDistrictId;
+
+  @Value("${td-shop.location.wards-id}")
+  long shopWardsId;
 
 
   public abstract boolean checkProductSize(OrderSize orderSize);
 
   public abstract boolean checkAllowCancelOrder(String statusCode);
 
-  public abstract boolean checkCODAmount(Set<OrderDetail> setOfOrderDetails);
+  public abstract boolean checkCODAmount(ShopOrder order);
 
   public abstract boolean checkRegion(Address address);
 
@@ -60,6 +91,8 @@ public abstract class ShipServices {
   public abstract DataResponse createOrder(CreateOrderRequest dto);
 
   public abstract DataResponse cancelOrder(CancelOrderRequest dto);
+
+  public abstract DataResponse calculateExpectedDeliveryTime(CalculateDeliveryTimeRequest dto);
 
 //  @Autowired
 //  GHNShipService ghnShipService;

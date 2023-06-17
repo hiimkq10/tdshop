@@ -3,10 +3,12 @@ package com.hcmute.tdshop.service.shipservices;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
+import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.Coordinate;
 import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
+import com.hcmute.tdshop.dto.shipservices.DeliveryTimeDto;
 import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ProductParameters;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
@@ -59,21 +61,6 @@ public class LalamoveShipService extends ShipServices {
 
   Logger logger = LoggerFactory.getLogger(LalamoveShipService.class);
 
-  @Value("${td-shop.lat}")
-  String shopLat;
-
-  @Value("${td-shop.lng}")
-  String shopLng;
-
-  @Value("${td-shop.address-detail}")
-  String shopAddressDetail;
-
-  @Value("${td-shop.name}")
-  String shopName;
-
-  @Value("${td-shop.phone}")
-  String shopPhone;
-
   @Value("${lalamove.api.key}")
   String key;
 
@@ -109,7 +96,7 @@ public class LalamoveShipService extends ShipServices {
   }
 
   @Override
-  public boolean checkCODAmount(Set<OrderDetail> setOfOrderDetails) {
+  public boolean checkCODAmount(ShopOrder order) {
     return true;
   }
 
@@ -191,15 +178,11 @@ public class LalamoveShipService extends ShipServices {
     ShopOrder order = optionalData.get();
     OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
     try {
-      Optional<ShipData> optionalShipData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
-          .findFirst();
-      if (optionalShipData.isPresent()) {
-        GetOrderData getOrderData = getOrder(order);
-        if (!(getOrderData == null || getOrderData.getStatus().equals(
-            GHNShipStatusEnum.GHN_CANCEL.getCode()))) {
-          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
-              ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
-        }
+      GetOrderData getOrderData = getOrder(order);
+      if (!(getOrderData == null || getOrderData.getStatus().equals(
+          GHNShipStatusEnum.GHN_CANCEL.getCode()))) {
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
+            ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
       }
 
       CalculateFeeDto calculateFeeDto = new CalculateFeeDto();
@@ -260,18 +243,17 @@ public class LalamoveShipService extends ShipServices {
       CreateOrderDto createOrderDto = createOrderResponse.getData();
 
       // Save Ship Data
-      List<ShipData> shipDatas = shipDataRepository.findByOrder_Id(order.getId());
+      List<ShipData> shipDatas = shipDataRepository.findByOrder_IdAndDeletedAtIsNull(order.getId());
       LocalDateTime now = LocalDateTime.now();
       int size = shipDatas.size();
       for (int i = 0; i < size; i++) {
-        if (shipDatas.get(i).getDeletedAt() == null) {
-          shipDatas.get(i).setDeletedAt(now);
-        }
+        shipDatas.get(i).setDeletedAt(now);
       }
       shipDatas.add(new ShipData(null, createOrderDto.getOrderId(), now, null, order));
       shipDataRepository.saveAllAndFlush(shipDatas);
+      order.setShipData(shipDatas);
       ShipOrderDto shipOrderDto = getShipOrder(order);
-      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, true));
+      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
@@ -289,17 +271,8 @@ public class LalamoveShipService extends ShipServices {
     try {
       GetOrderData getOrderData = getOrder(order);
       if (getOrderData == null) {
-        LocalDateTime now = LocalDateTime.now();
-        List<ShipData> shipDatas = shipDataRepository.findByOrder_Id(order.getId());
-        int size = shipDatas.size();
-        for (int i = 0; i < size; i++) {
-          if (shipDatas.get(i).getDeletedAt() == null) {
-            shipDatas.get(i).setDeletedAt(now);
-          }
-        }
-        shipDataRepository.saveAllAndFlush(shipDatas);
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_NOT_FOUND,
-            ApplicationConstants.SHIP_DATA_ORDER_NOT_FOUND_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+            ApplicationConstants.BAD_REQUEST_CODE);
       }
 
       if (!cancelAllowedStatus.contains(getOrderData.getStatus())) {
@@ -307,27 +280,40 @@ public class LalamoveShipService extends ShipServices {
             ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW_CODE);
       }
 
-      Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
-          .findFirst();
-      if (!optionalData.isPresent()) {
-        ShipOrderDto shipOrderDto = getShipOrder(order);
-        return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
-      }
-      ShipData shipData = optionalData.get();
-
       WebClient client = WebClient.builder().baseUrl(baseUrl)
           .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
       UriSpec<RequestBodySpec> uriSpec = (UriSpec<RequestBodySpec>) client.delete();
       RequestBodySpec bodySpec = uriSpec.uri(uriBuilder -> uriBuilder.path("/v3/orders/{orderId}")
-          .build(shipData.getShipOrderId()));
+          .build(getOrderData.getOrderId()));
       bodySpec.retrieve();
 
       ShipOrderDto shipOrderDto = getShipOrder(order);
-      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto, false));
+      return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
     }
+  }
+
+  @Override
+  public DataResponse calculateExpectedDeliveryTime(CalculateDeliveryTimeRequest dto) {
+    Optional<Address> optionalData = addressRepository.findById(dto.getAddressId());
+    if (!optionalData.isPresent()) {
+      throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
+    }
+    Address address = optionalData.get();
+    Long provinceId = address.getWards().getDistrict().getProvince().getId();
+    LocalDateTime time = LocalDateTime.now();
+    if (provinceId == 79) {
+      time = time.plusDays(3);
+    }
+    else if (provinceId == 31) {
+      time = time.plusDays(5);
+    }
+    else {
+      time = time.plusDays(7);
+    }
+    return new DataResponse(new DeliveryTimeDto(time));
   }
 
   @Override
@@ -440,74 +426,6 @@ public class LalamoveShipService extends ShipServices {
     } catch (Exception e) {
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
     }
-  }
-
-  public ProductParameters calculateProductsParameters3(Set<OrderDetail> orderDetails) {
-    Map<Long, Integer> productQuantityMap = new HashMap<>();
-    for (OrderDetail dto : orderDetails) {
-      productQuantityMap.put(dto.getProduct().getId(), dto.getQuantity());
-    }
-    List<Product> products = orderDetails.stream().map(OrderDetail::getProduct).collect(Collectors.toList());
-    ProductParameters parameters = new ProductParameters();
-    double length = 0.0;
-    double height = 0.0;
-    double width = 0.0;
-    double weight = 0.0;
-    for (Product product : products) {
-      Integer quantity = productQuantityMap.get(product.getId());
-      if (quantity == null) {
-        quantity = 0;
-      }
-      parameters.setName(product.getName());
-      parameters.setQuantity(quantity);
-      if (length < product.getLength()) {
-        length = product.getLength();
-      }
-      if (height < product.getHeight()) {
-        height = product.getHeight();
-      }
-      width += product.getWidth();
-      weight += product.getWeight() * quantity;
-    }
-    parameters.setLength(Math.round(length));
-    parameters.setWidth(Math.round(width));
-    parameters.setHeight(Math.round(height));
-    parameters.setWeight(Math.round(weight));
-    return parameters;
-  }
-
-  public List<ProductParameters> calculateProductsParameters2(Set<OrderDetail> orderDetails) {
-    Map<Long, Integer> productQuantityMap = new HashMap<>();
-    for (OrderDetail dto : orderDetails) {
-      productQuantityMap.put(dto.getProduct().getId(), dto.getQuantity());
-    }
-    List<Product> products = orderDetails.stream().map(OrderDetail::getProduct).collect(Collectors.toList());
-    List<ProductParameters> parametersList = new ArrayList<>();
-    ProductParameters parameters = new ProductParameters();
-    double length = 0.0;
-    double height = 0.0;
-    double width = 0.0;
-    double weight = 0.0;
-    for (Product product : products) {
-      Integer quantity = productQuantityMap.get(product.getId());
-      if (quantity == null) {
-        quantity = 0;
-      }
-      parameters.setName(product.getName());
-      parameters.setQuantity(quantity);
-      length = product.getLength();
-      width = product.getWidth();
-      weight = product.getWeight() * quantity;
-      height = product.getHeight() * quantity;
-
-      parameters.setLength(Math.round(length));
-      parameters.setWidth(Math.round(width));
-      parameters.setHeight(Math.round(height));
-      parameters.setWeight(Math.round(weight));
-
-      parametersList.add(parameters);
-    }
-    return parametersList;
   }
 
   public ProductParameters calculateProductsParameters(Set<OrderProductDto> setOfProducts) {

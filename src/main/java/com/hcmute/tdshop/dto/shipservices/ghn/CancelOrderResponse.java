@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.dto.shipservices.ghn;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,5 +11,5 @@ import lombok.NoArgsConstructor;
 public class CancelOrderResponse {
   long code;
   String message;
-  CancelOrderData data;
+  List<CancelOrderData> data;
 }

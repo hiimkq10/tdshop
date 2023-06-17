@@ -41,4 +41,10 @@ public class AddressResponse {
 
   @JsonProperty("WardsName")
   private String wardsName;
+
+  @JsonProperty("Lat")
+  private Double lat;
+
+  @JsonProperty("Lng")
+  private Double lng;
 }
