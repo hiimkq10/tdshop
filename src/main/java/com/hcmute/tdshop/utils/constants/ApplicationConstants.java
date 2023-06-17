@@ -152,14 +152,16 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final String ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED = "Only awaiting payment order can be canceled";
   public static final int ONLY_AWAITING_PAYMENT_ORDER_CAN_BE_CANCELED_CODE = 20002;
 
-  public static final String ORDER_REGION_NOT_SUPPORT = "Region not support";
-  public static final int ORDER_REGION_NOT_SUPPORT_CODE = 20003;
+  public static final String ORDER_LALAMOVE_REGION_NOT_SUPPORT = "Only support HN, HCM, ĐN";
+  public static final int ORDER_LALAMOVE_REGION_NOT_SUPPORT_CODE = 20003;
 
   public static final String ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT = "COD amount invalid";
   public static final int ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT_CODE = 20004;
 
-  public static final String ORDER_COD_SIZE_EXCEED_SUPPORT_SIZE = "Size invalid";
-  public static final int ORDER_COD_SIZE_EXCEED_SUPPORT_SIZE_CODE = 20005;
+  public static final String ORDER_SIZE_EXCEED_SUPPORT_SIZE = "Size invalid";
+  public static final int ORDER_SIZE_EXCEED_SUPPORT_SIZE_CODE = 20005;
+  public static final String ORDER_LALAMOVE_COD_NOT_SUPPORT = "Lalamove cod not support";
+  public static final int ORDER_LALAMOVE_COD_NOT_SUPPORT_CODE = 20006;
 
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_ID_INVALID = "Payment id invalid";

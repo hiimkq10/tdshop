@@ -5,6 +5,7 @@ import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
+import com.hcmute.tdshop.dto.shipservices.CheckShipConditionDto;
 import com.hcmute.tdshop.dto.shipservices.Coordinate;
 import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.DeliveryTimeDto;
@@ -29,6 +30,7 @@ import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.enums.LalamoveServiceEnum;
 import com.hcmute.tdshop.enums.LalamoveShipStatusEnum;
 import com.hcmute.tdshop.enums.LalamoveWeightEnum;
+import com.hcmute.tdshop.enums.PaymentMethodEnum;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.nio.charset.StandardCharsets;
@@ -81,6 +83,11 @@ public class LalamoveShipService extends ShipServices {
 
   @Value("${lalamove.order.create.support-regions}")
   List<Long> supportRegions;
+
+  @Override
+  public boolean checkSize(ShopOrder order) {
+    return true;
+  }
 
   @Override
   public boolean checkProductSize(OrderSize orderSize) {
@@ -172,6 +179,12 @@ public class LalamoveShipService extends ShipServices {
     }
     ShopOrder order = optionalData.get();
     OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
+
+    CheckShipConditionDto checkShipConditionDto = checkShipCondition(order);
+    if (!checkShipConditionDto.isResult()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(), checkShipConditionDto.getMessageCode());
+    }
+
     try {
       GetOrderData getOrderData = getOrder(order);
       if (!(getOrderData == null || getOrderData.getStatus().equals(
@@ -314,6 +327,17 @@ public class LalamoveShipService extends ShipServices {
       time = time.plusDays(7);
     }
     return new DataResponse(new DeliveryTimeDto(time));
+  }
+
+  @Override
+  public CheckShipConditionDto checkShipCondition(ShopOrder order) {
+    if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT, ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT_CODE);
+    }
+    if (!checkRegion(order.getAddress())) {
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_LALAMOVE_REGION_NOT_SUPPORT, ApplicationConstants.ORDER_LALAMOVE_REGION_NOT_SUPPORT_CODE);
+    }
+    return new CheckShipConditionDto(true, ApplicationConstants.SUCCESSFUL, ApplicationConstants.SUCCESSFUL_CODE);
   }
 
   @Override

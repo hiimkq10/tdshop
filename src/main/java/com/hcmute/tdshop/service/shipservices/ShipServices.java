@@ -3,6 +3,7 @@ package com.hcmute.tdshop.service.shipservices;
 import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
+import com.hcmute.tdshop.dto.shipservices.CheckShipConditionDto;
 import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
@@ -75,7 +76,7 @@ public abstract class ShipServices {
   @Value("${td-shop.location.wards-id}")
   long shopWardsId;
 
-
+  public abstract boolean checkSize(ShopOrder order);
   public abstract boolean checkProductSize(OrderSize orderSize);
 
   public abstract boolean checkAllowCancelOrder(String statusCode);
@@ -93,6 +94,8 @@ public abstract class ShipServices {
   public abstract DataResponse cancelOrder(CancelOrderRequest dto);
 
   public abstract DataResponse calculateExpectedDeliveryTime(CalculateDeliveryTimeRequest dto);
+
+  public abstract CheckShipConditionDto checkShipCondition(ShopOrder order);
 
 //  @Autowired
 //  GHNShipService ghnShipService;

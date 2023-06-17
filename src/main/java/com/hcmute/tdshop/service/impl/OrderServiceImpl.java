@@ -9,6 +9,7 @@ import com.hcmute.tdshop.dto.payment.momo.MomoConfig;
 import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResponse;
 import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResultDto;
 import com.hcmute.tdshop.dto.serversentevent.Clients;
+import com.hcmute.tdshop.dto.shipservices.CheckShipConditionDto;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.Cart;
@@ -22,6 +23,7 @@ import com.hcmute.tdshop.entity.Subscription;
 import com.hcmute.tdshop.entity.UserNotification;
 import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
+import com.hcmute.tdshop.enums.ShipEnum;
 import com.hcmute.tdshop.mapper.OrderMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.AddressRepository;
@@ -204,6 +206,13 @@ public class OrderServiceImpl implements OrderService {
     Set<OrderDetail> setOfOrderDetails = order.getSetOfOrderDetails();
     List<Product> listOfProducts = new ArrayList<>();
     List<UserNotification> userNotifications = new ArrayList<>();
+
+    // Check ship conditions
+    ShipServices shipServices = getShipService(order.getShip().getId());
+    CheckShipConditionDto checkShipConditionDto = shipServices.checkShipCondition(order);
+    if (!checkShipConditionDto.isResult()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(), checkShipConditionDto.getMessageCode());
+    }
 
     for (OrderDetail orderDetail : setOfOrderDetails) {
       Product product = orderDetail.getProduct();
@@ -412,10 +421,10 @@ public class OrderServiceImpl implements OrderService {
   }
 
   private ShipServices getShipService(Long shipId) {
-    if (shipId == 2) {
+    if (shipId == ShipEnum.FASTDELIVERY.getId()) {
       return ghnShipServices;
     }
-    if (shipId == 3) {
+    if (shipId == ShipEnum.LALAMOVE.getId()) {
       return lalamoveShipService;
     }
     return null;

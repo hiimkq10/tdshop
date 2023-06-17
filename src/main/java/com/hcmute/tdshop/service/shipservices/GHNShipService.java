@@ -5,6 +5,7 @@ import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
+import com.hcmute.tdshop.dto.shipservices.CheckShipConditionDto;
 import com.hcmute.tdshop.dto.shipservices.CreateOrderRequest;
 import com.hcmute.tdshop.dto.shipservices.DeliveryTimeDto;
 import com.hcmute.tdshop.dto.shipservices.OrderSize;
@@ -95,6 +96,15 @@ public class GHNShipService extends ShipServices {
   long maxInsuranceValue;
 
   @Override
+  public boolean checkSize(ShopOrder order) {
+    ProductParameters parameters = calculateProductsParameters3(order.getSetOfOrderDetails());
+    if (parameters.getWeight() > maxWeight) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
   public boolean checkProductSize(OrderSize orderSize) {
     if (
         orderSize.getLength() > maxLength ||
@@ -119,9 +129,9 @@ public class GHNShipService extends ShipServices {
   public boolean checkCODAmount(ShopOrder order) {
     double total = calculateOrderTotal(order);
     if (total >= maxCodAmount) {
-      return true;
+      return false;
     }
-    return false;
+    return true;
   }
 
   @Override
@@ -277,6 +287,15 @@ public class GHNShipService extends ShipServices {
     }
     ShopOrder order = optionalData.get();
     OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
+
+    CheckShipConditionDto checkShipConditionDto = checkShipCondition(order);
+    if (!checkShipConditionDto.isResult()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(), checkShipConditionDto.getMessageCode());
+    }
+    if (!checkProductSize(orderSize)) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE_CODE);
+    }
+
     try {
       GetOrderData getOrderData = getOrder(order);
       if (!(getOrderData == null || getOrderData.getStatus().equals(
@@ -460,6 +479,19 @@ public class GHNShipService extends ShipServices {
   }
 
   @Override
+  public CheckShipConditionDto checkShipCondition(ShopOrder order) {
+    if (!checkSize(order)) {
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE_CODE);
+    }
+    if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
+      if (!checkCODAmount(order)) {
+        return new CheckShipConditionDto(false, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT_CODE);
+      }
+    }
+    return new CheckShipConditionDto(true, ApplicationConstants.SUCCESSFUL, ApplicationConstants.SUCCESSFUL_CODE);
+  }
+
+  @Override
   public DataResponse calculateFee(CalculateFeeDto dto) {
     try {
       WebClient client = WebClient.builder().baseUrl(baseUrl)
@@ -498,6 +530,40 @@ public class GHNShipService extends ShipServices {
       logger.error(e.getMessage());
       throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
     }
+  }
+
+  public ProductParameters calculateProductsParameters3(Set<OrderDetail> orderDetails) {
+    Map<Long, Integer> productQuantityMap = new HashMap<>();
+    for (OrderDetail dto : orderDetails) {
+      productQuantityMap.put(dto.getProduct().getId(), dto.getQuantity());
+    }
+    List<Product> products = orderDetails.stream().map(OrderDetail::getProduct).collect(Collectors.toList());
+    ProductParameters parameters = new ProductParameters();
+    double length = 0.0;
+    double height = 0.0;
+    double width = 0.0;
+    double weight = 0.0;
+    for (Product product : products) {
+      Integer quantity = productQuantityMap.get(product.getId());
+      if (quantity == null) {
+        quantity = 0;
+      }
+      parameters.setName(product.getName());
+      parameters.setQuantity(quantity);
+      if (length < product.getLength()) {
+        length = product.getLength();
+      }
+      if (height < product.getHeight()) {
+        height = product.getHeight();
+      }
+      width += product.getWidth();
+      weight += product.getWeight() * quantity;
+    }
+    parameters.setLength(Math.round(length));
+    parameters.setWidth(Math.round(width));
+    parameters.setHeight(Math.round(height));
+    parameters.setWeight(Math.round(weight));
+    return parameters;
   }
 
   public List<ProductParameters> calculateProductsParameters2(Set<OrderDetail> orderDetails) {
