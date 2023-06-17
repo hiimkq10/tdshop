@@ -144,6 +144,7 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   // ------------------------------ ORDER -------------------------------------
   public static final String ORDER_PRODUCTS_EMPTY = "You must choose at least 1 product to make order";
   public static final String ORDER_NOT_FOUND = "Order not found";
+  public static final int ORDER_NOT_FOUND_CODE = 20007;
   public static final String ORDER_SUCCESSFULLY = "Order successfully";
   public static final String ORDER_CANCEL_SUCCESSFULLY = "Cancel order successfully";
 

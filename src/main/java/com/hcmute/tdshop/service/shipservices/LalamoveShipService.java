@@ -175,20 +175,22 @@ public class LalamoveShipService extends ShipServices {
     Optional<ShopOrder> optionalData = shopOrderRepository.findById(dto.getOrderId());
     if (!optionalData.isPresent()) {
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
-          ApplicationConstants.BAD_REQUEST_CODE);
+          ApplicationConstants.ORDER_NOT_FOUND_CODE);
     }
     ShopOrder order = optionalData.get();
     OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
 
     CheckShipConditionDto checkShipConditionDto = checkShipCondition(order);
     if (!checkShipConditionDto.isResult()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(), checkShipConditionDto.getMessageCode());
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(),
+          checkShipConditionDto.getMessageCode());
     }
 
     try {
       GetOrderData getOrderData = getOrder(order);
       if (!(getOrderData == null || getOrderData.getStatus().equals(
-          LalamoveShipStatusEnum.LALAMOVE_CANCELED.getCode()))) {
+          LalamoveShipStatusEnum.LALAMOVE_CANCELED.getCode()) || getOrderData.getStatus().equals(
+          LalamoveShipStatusEnum.LALAMOVE_EXPIRED.getCode()))) {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
             ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
       }
@@ -273,7 +275,7 @@ public class LalamoveShipService extends ShipServices {
     Optional<ShopOrder> optionalOrderData = shopOrderRepository.findById(dto.getOrderId());
     if (!optionalOrderData.isPresent()) {
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
-          ApplicationConstants.BAD_REQUEST_CODE);
+          ApplicationConstants.ORDER_NOT_FOUND_CODE);
     }
     ShopOrder order = optionalOrderData.get();
     try {
@@ -332,10 +334,12 @@ public class LalamoveShipService extends ShipServices {
   @Override
   public CheckShipConditionDto checkShipCondition(ShopOrder order) {
     if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
-      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT, ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT_CODE);
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT,
+          ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT_CODE);
     }
     if (!checkRegion(order.getAddress())) {
-      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_LALAMOVE_REGION_NOT_SUPPORT, ApplicationConstants.ORDER_LALAMOVE_REGION_NOT_SUPPORT_CODE);
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_LALAMOVE_REGION_NOT_SUPPORT,
+          ApplicationConstants.ORDER_LALAMOVE_REGION_NOT_SUPPORT_CODE);
     }
     return new CheckShipConditionDto(true, ApplicationConstants.SUCCESSFUL, ApplicationConstants.SUCCESSFUL_CODE);
   }

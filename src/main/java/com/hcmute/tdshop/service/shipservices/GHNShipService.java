@@ -283,7 +283,7 @@ public class GHNShipService extends ShipServices {
     Optional<ShopOrder> optionalData = shopOrderRepository.findById(dto.getOrderId());
     if (!optionalData.isPresent()) {
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
-          ApplicationConstants.BAD_REQUEST_CODE);
+          ApplicationConstants.ORDER_NOT_FOUND_CODE);
     }
     ShopOrder order = optionalData.get();
     OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
@@ -378,7 +378,7 @@ public class GHNShipService extends ShipServices {
     Optional<ShopOrder> optionalOrderData = shopOrderRepository.findById(dto.getOrderId());
     if (!optionalOrderData.isPresent()) {
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
-          ApplicationConstants.BAD_REQUEST_CODE);
+          ApplicationConstants.ORDER_NOT_FOUND_CODE);
     }
     ShopOrder order = optionalOrderData.get();
     try {
