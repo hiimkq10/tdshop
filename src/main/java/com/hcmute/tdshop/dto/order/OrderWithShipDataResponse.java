@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderWithShipDataResponse {
+
   @JsonProperty("Id")
   private Long id;
 
@@ -41,10 +42,4 @@ public class OrderWithShipDataResponse {
 
   @JsonProperty("ShipStatusDescription")
   private String ShipStatusDescription;
-
-  @JsonProperty("CanCreateShipOrder")
-  private boolean canCreateShipOrder = false;
-
-  @JsonProperty("CanCancelShipOrder")
-  private boolean canCancelShipOrder = false;
 }

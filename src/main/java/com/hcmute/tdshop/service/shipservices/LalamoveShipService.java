@@ -1,7 +1,6 @@
 package com.hcmute.tdshop.service.shipservices;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
@@ -12,6 +11,7 @@ import com.hcmute.tdshop.dto.shipservices.DeliveryTimeDto;
 import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ProductParameters;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
+import com.hcmute.tdshop.dto.shipservices.lalamove.CancelOrderResponse;
 import com.hcmute.tdshop.dto.shipservices.lalamove.CreateOrderDto;
 import com.hcmute.tdshop.dto.shipservices.lalamove.CreateOrderResponse;
 import com.hcmute.tdshop.dto.shipservices.lalamove.GetOrderData;
@@ -23,12 +23,12 @@ import com.hcmute.tdshop.dto.shipservices.lalamove.Recipent;
 import com.hcmute.tdshop.dto.shipservices.lalamove.Sender;
 import com.hcmute.tdshop.dto.shipservices.lalamove.Stop;
 import com.hcmute.tdshop.entity.Address;
-import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
-import com.hcmute.tdshop.enums.GHNShipStatusEnum;
 import com.hcmute.tdshop.enums.LalamoveServiceEnum;
+import com.hcmute.tdshop.enums.LalamoveShipStatusEnum;
+import com.hcmute.tdshop.enums.LalamoveWeightEnum;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.nio.charset.StandardCharsets;
@@ -131,20 +131,17 @@ public class LalamoveShipService extends ShipServices {
 
   public GetOrderData getOrder(ShopOrder order) {
     try {
-      Gson gsonObj = new Gson();
-      JsonObject jsonObject = new JsonObject();
-      Date date = new Date();
-      long time = date.getTime();
-      String json = gsonObj.toJson(jsonObject);
-      String signatureData = String.format("%d%nPOST%n/v3/orders%n%n%s", time, json);
-      String signature = encode(secret, signatureData);
-
       Optional<ShipData> optionalData = order.getShipData().stream().filter(sD -> sD.getDeletedAt() == null)
           .findFirst();
       if (!optionalData.isPresent()) {
         return null;
       }
       ShipData shipData = optionalData.get();
+
+      Date date = new Date();
+      long time = date.getTime();
+      String signatureData = String.format("%d%nGET%n/v3/orders/%s%n%n", time, shipData.getShipOrderId());
+      String signature = encode(secret, signatureData);
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
           .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -153,8 +150,6 @@ public class LalamoveShipService extends ShipServices {
       UriSpec<RequestBodySpec> uriSpec = (UriSpec<RequestBodySpec>) client.get();
       RequestBodySpec bodySpec = uriSpec.uri(
           uriBuilder -> uriBuilder.path("/v3/orders/{id}").build(shipData.getShipOrderId()));
-
-      bodySpec.body(BodyInserters.fromValue(json));
 
       Mono<GetOrderResponse> response = bodySpec.retrieve().bodyToMono(GetOrderResponse.class);
       GetOrderResponse getOrderResponse = response.block();
@@ -180,7 +175,7 @@ public class LalamoveShipService extends ShipServices {
     try {
       GetOrderData getOrderData = getOrder(order);
       if (!(getOrderData == null || getOrderData.getStatus().equals(
-          GHNShipStatusEnum.GHN_CANCEL.getCode()))) {
+          LalamoveShipStatusEnum.LALAMOVE_CANCELED.getCode()))) {
         return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.SHIP_DATA_ORDER_EXISTED,
             ApplicationConstants.SHIP_DATA_ORDER_EXISTED_CODE);
       }
@@ -280,12 +275,19 @@ public class LalamoveShipService extends ShipServices {
             ApplicationConstants.SHIP_DATA_ORDER_CANCEL_NOT_ALLOW_CODE);
       }
 
+      Date date = new Date();
+      long time = date.getTime();
+      String signatureData = String.format("%d%nDELETE%n/v3/orders/%s%n%n", time, getOrderData.getOrderId());
+      String signature = encode(secret, signatureData);
+
       WebClient client = WebClient.builder().baseUrl(baseUrl)
-          .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
+          .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+          .defaultHeader("Authorization", String.format("hmac %s:%d:%s", key, time, signature))
+          .defaultHeader("Market", market).build();
       UriSpec<RequestBodySpec> uriSpec = (UriSpec<RequestBodySpec>) client.delete();
       RequestBodySpec bodySpec = uriSpec.uri(uriBuilder -> uriBuilder.path("/v3/orders/{orderId}")
           .build(getOrderData.getOrderId()));
-      bodySpec.retrieve();
+      bodySpec.retrieve().bodyToMono(CancelOrderResponse.class).block();
 
       ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
@@ -306,11 +308,9 @@ public class LalamoveShipService extends ShipServices {
     LocalDateTime time = LocalDateTime.now();
     if (provinceId == 79) {
       time = time.plusDays(3);
-    }
-    else if (provinceId == 31) {
+    } else if (provinceId == 31) {
       time = time.plusDays(5);
-    }
-    else {
+    } else {
       time = time.plusDays(7);
     }
     return new DataResponse(new DeliveryTimeDto(time));
@@ -405,12 +405,24 @@ public class LalamoveShipService extends ShipServices {
       productQuantityMap.put(dto.getProductId(), dto.getQuantity());
     }
     List<Product> products = productRepository.findAllById(ids);
-    Item item = new Item();
-    item.setQuantity(0);
-    item.setWeight(0.0);
+    int quantity = 0;
+    double weight = 0;
     for (Product product : products) {
-      item.setWeight(item.getWeight() + product.getWeight());
-      item.setQuantity(item.getQuantity() + productQuantityMap.get(product.getId()));
+      quantity += productQuantityMap.get(product.getId());
+      if (weight < product.getWeight()) {
+        weight = product.getWeight();
+      }
+    }
+    Item item = new Item();
+    item.setQuantity(quantity);
+    if (weight < 10) {
+      item.setWeight(LalamoveWeightEnum.LESS_THAN_10_KG.getCode());
+    } else if (weight < 30) {
+      item.setWeight(LalamoveWeightEnum.BETWEEN_10_KG_AND_30_KG.getCode());
+    } else if (weight < 50) {
+      item.setWeight(LalamoveWeightEnum.BETWEEN_30_KG_AND_50_KG.getCode());
+    } else {
+      item.setWeight(LalamoveWeightEnum.MORE_THAN_50_KG.getCode());
     }
     return item;
   }

@@ -40,6 +40,9 @@ public class ShopOrder {
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
+  @Column(name = "ship_price")
+  private double shipPrice;
+
   @ManyToOne
   @JoinColumn(name = "ship_id", nullable = false)
   private Ship ship;

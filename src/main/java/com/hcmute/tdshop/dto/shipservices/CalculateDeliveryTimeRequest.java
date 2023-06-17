@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CalculateDeliveryTimeRequest {
+
   @JsonProperty("Address")
   @Positive(message = ApplicationConstants.ADDRESS_ID_INVALID)
   private long addressId;

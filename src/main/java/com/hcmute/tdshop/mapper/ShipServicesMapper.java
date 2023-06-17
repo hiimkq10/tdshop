@@ -12,14 +12,24 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public abstract class ShipServicesMapper {
-  public abstract FeeResponse GHNCalculateFeeDataResponseToFeeResponse(CalculateFeeData data);
+  public FeeResponse GHNCalculateFeeDataResponseToFeeResponse(CalculateFeeData data) {
+    if ( data == null ) {
+      return null;
+    }
+
+    FeeResponse feeResponse = new FeeResponse();
+
+    feeResponse.setTotal( roundDouble( data.getTotal() ) );
+
+    return feeResponse;
+  }
 
   public FeeResponse LalamoveQuotationDtoToFeeResponse(QuotationDto data) {
     if (data == null) {
       return null;
     }
     FeeResponse feeResponse = new FeeResponse();
-    feeResponse.setTotal(data.getPriceBreakdown().getTotal());
+    feeResponse.setTotal(roundDouble(data.getPriceBreakdown().getTotal()));
     return feeResponse;
   }
 
@@ -45,5 +55,9 @@ public abstract class ShipServicesMapper {
     shipOrderDto.setStatusDescription(shipStatusEnum.getDescription());
 
     return shipOrderDto;
+  }
+
+  public double roundDouble(Double num) {
+    return Math.round(num / 1000) * 1000;
   }
 }

@@ -9,7 +9,6 @@ import com.hcmute.tdshop.service.ShipService;
 import com.hcmute.tdshop.service.shipservices.ShipServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/ghn")
 public class GHNController {
+
   @Autowired
   ShipService shipService;
 
@@ -40,7 +40,7 @@ public class GHNController {
     return ghnShipServices.createOrder(dto);
   }
 
-  @PostMapping("/cancle-order")
+  @PostMapping("/cancel-order")
   public DataResponse cancleOrder(@RequestBody CancelOrderRequest dto) {
     return ghnShipServices.cancelOrder(dto);
   }

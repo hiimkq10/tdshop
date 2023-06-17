@@ -29,4 +29,7 @@ public class AddOrderRequest {
   @JsonProperty("Address")
   @Positive(message = ApplicationConstants.ADDRESS_ID_INVALID)
   private long addressId;
+
+  @JsonProperty("ShipPrice")
+  private double shipPrice;
 }

@@ -26,7 +26,6 @@ import com.hcmute.tdshop.repository.PaymentMethodRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShipRepository;
 import com.hcmute.tdshop.repository.UserRepository;
-import com.hcmute.tdshop.service.shipservices.ShipServices;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.math.BigDecimal;
@@ -34,7 +33,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
@@ -88,7 +86,8 @@ public abstract class OrderMapper {
     LocalDateTime now = LocalDateTime.now();
     for (Product product : setOfProduct) {
       for (ProductPromotion productPromotion : product.getSetOfProductPromotions()) {
-        if (isBeforeOrEqual(productPromotion.getStartDate(), now) && isAfterOrEqual(productPromotion.getEndDate(), now)) {
+        if (isBeforeOrEqual(productPromotion.getStartDate(), now) && isAfterOrEqual(productPromotion.getEndDate(),
+            now)) {
           discountRate = productPromotion.getDiscountRate();
         }
       }
@@ -103,6 +102,7 @@ public abstract class OrderMapper {
       ));
     }
 
+    order.setShipPrice(request.getShipPrice());
     order.setOrderedAt(LocalDateTime.now());
     order.setUser(user);
     order.setPaymentMethod(paymentMethod);
@@ -123,6 +123,7 @@ public abstract class OrderMapper {
     orderResponse.setOrderedAt(order.getOrderedAt());
     orderResponse.setPaymentMethod(order.getPaymentMethod());
     orderResponse.setShip(order.getShip());
+    orderResponse.getShip().setPrice(order.getShipPrice());
     orderResponse.setOrderStatus(order.getOrderStatus());
     orderResponse.setAddress(AddressToAddressDto(order.getAddress()));
     orderResponse.setSetOfOrderDetailDtos(SetOfOrderDetailsToSetOfOrderDetailDtos(order.getSetOfOrderDetails()));
@@ -142,6 +143,7 @@ public abstract class OrderMapper {
     orderResponse.setOrderedAt(order.getOrderedAt());
     orderResponse.setPaymentMethod(order.getPaymentMethod());
     orderResponse.setShip(order.getShip());
+    orderResponse.getShip().setPrice(order.getShipPrice());
     orderResponse.setOrderStatus(order.getOrderStatus());
     orderResponse.setAddress(AddressToAddressDto(order.getAddress()));
     orderResponse.setSetOfOrderDetailDtos(SetOfOrderDetailsToSetOfOrderDetailDtos(order.getSetOfOrderDetails()));
@@ -197,18 +199,20 @@ public abstract class OrderMapper {
   }
 
   public abstract WardsDto WardsToWardsDto(Wards wards);
+
   public abstract DistrictDto DistrictToDistrictDto(District district);
+
   public abstract ProvinceDto ProvinceToProvinceDto(Province province);
 
   public String DoubleToString(Double d) {
     return new BigDecimal(d).toPlainString();
   }
 
-  private boolean isBeforeOrEqual(LocalDateTime date1, LocalDateTime date2){
+  private boolean isBeforeOrEqual(LocalDateTime date1, LocalDateTime date2) {
     return date1.isBefore(date2) || date1.isEqual(date2);
   }
 
-  private boolean isAfterOrEqual(LocalDateTime date1, LocalDateTime date2){
+  private boolean isAfterOrEqual(LocalDateTime date1, LocalDateTime date2) {
     return date1.isAfter(date2) || date1.isEqual(date2);
   }
 }

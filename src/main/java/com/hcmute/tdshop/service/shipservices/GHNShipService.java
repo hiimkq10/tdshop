@@ -571,7 +571,7 @@ public class GHNShipService extends ShipServices {
   }
 
   private double calculateOrderTotal(ShopOrder order) {
-    double total = 0;
+    double total = order.getShipPrice();
     for (OrderDetail orderDetail : order.getSetOfOrderDetails()) {
       total += orderDetail.getFinalPrice() * orderDetail.getQuantity();
     }
