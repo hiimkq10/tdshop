@@ -70,4 +70,16 @@ public class ProductInfoDto {
 
   @JsonProperty("MCategoryId")
   private Long mCategoryId;
+
+  @JsonProperty("Length")
+  private Double length;
+
+  @JsonProperty("Width")
+  private Double width;
+
+  @JsonProperty("Height")
+  private Double height;
+
+  @JsonProperty("Weight")
+  private Double weight;
 }

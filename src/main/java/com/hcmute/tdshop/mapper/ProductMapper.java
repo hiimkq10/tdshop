@@ -74,6 +74,10 @@ public abstract class ProductMapper {
     if (product.getSetOfCategories() != null && product.getSetOfCategories().size() > 0) {
       productInfoDto.setMCategoryId(product.getSetOfCategories().iterator().next().getMasterCategory().getId());
     }
+    productInfoDto.setLength(product.getLength());
+    productInfoDto.setWidth(product.getWidth());
+    productInfoDto.setHeight(product.getHeight());
+    productInfoDto.setWeight(product.getWeight());
 
     return productInfoDto;
   }
