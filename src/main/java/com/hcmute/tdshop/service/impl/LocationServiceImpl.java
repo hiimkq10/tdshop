@@ -76,7 +76,7 @@ public class LocationServiceImpl implements LocationService {
       List<LatLng> latLngs = locationCoors.stream()
           .map(item -> new LatLng(Double.parseDouble(item.get(1)), Double.parseDouble(item.get(0)))).collect(
               Collectors.toList());
-      if (PolyUtil.containsLocation(chosenPoint, latLngs, false) || PolyUtil.isLocationOnEdge(chosenPoint, latLngs, false, 400)) {
+      if (PolyUtil.containsLocation(chosenPoint, latLngs, false) || PolyUtil.isLocationOnEdge(chosenPoint, latLngs, false, 300)) {
         result = true;
         break;
       }
