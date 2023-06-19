@@ -72,9 +72,9 @@ public class LocationServiceImpl implements LocationService {
         break;
       }
     }
-    for (List<List<String>> locationCoors : polygons.get(0).getGeojson().getCoordinates()) {
+    for (List<List<Double>> locationCoors : polygons.get(0).getGeojson().getCoordinates()) {
       List<LatLng> latLngs = locationCoors.stream()
-          .map(item -> new LatLng(Double.parseDouble(item.get(1)), Double.parseDouble(item.get(0)))).collect(
+          .map(item -> new LatLng(item.get(1), item.get(0))).collect(
               Collectors.toList());
       if (PolyUtil.containsLocation(chosenPoint, latLngs, false) || PolyUtil.isLocationOnEdge(chosenPoint, latLngs, false, 300)) {
         result = true;

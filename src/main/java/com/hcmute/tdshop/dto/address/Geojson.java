@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 public class Geojson {
 
   String type;
-  List<List<List<String>>> coordinates;
+  List<List<List<Double>>> coordinates;
 }
