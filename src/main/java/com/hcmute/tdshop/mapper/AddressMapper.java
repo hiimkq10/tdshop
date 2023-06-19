@@ -25,6 +25,8 @@ public abstract class AddressMapper {
     addressResponse.setDistrictName(address.getWards().getDistrict().getName());
     addressResponse.setWardsId(address.getWards().getId());
     addressResponse.setWardsName(address.getWards().getName());
+    addressResponse.setLat(address.getLat());
+    addressResponse.setLng(address.getLng());
 
     return addressResponse;
   }
