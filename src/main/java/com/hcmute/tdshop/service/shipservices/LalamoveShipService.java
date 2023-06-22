@@ -388,6 +388,12 @@ public class LalamoveShipService extends ShipServices {
       String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, json);
       String signature = encode(secret, signatureData);
 
+      logger.info("Data");
+      logger.info(json);
+      logger.info(signatureData);
+      logger.info(key);
+      logger.info(secret);
+
       WebClient client = WebClient.builder().baseUrl(baseUrl)
           .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
           .defaultHeader("Authorization", String.format("hmac %s:%d:%s", key, time, signature))
