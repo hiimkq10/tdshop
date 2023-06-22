@@ -111,9 +111,9 @@ public class TestController {
     bodyData.put("data", data);
     String json = gsonObj.toJson(bodyData);
     logger.info(json);
-    String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, "Hello world");
+    String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, json);
     logger.info(signatureData);
-    String signature = myEncode(apiSecret, "1685698441197%nPOST%n/v3/quotations%n%nHello world");
+    String signature = myEncode(apiSecret, "1685698441197%nPOST%n/v3/quotations\r\nHello world");
     return new DataResponse(signature);
   }
 
