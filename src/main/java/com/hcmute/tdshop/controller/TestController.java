@@ -109,11 +109,11 @@ public class TestController {
     System.out.println(json);
     String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, gsonObj.toJson(bodyData));
     System.out.println(signatureData);
-    String signature = encode(apiSecret, signatureData);
+    String signature = myEncode(apiSecret, signatureData);
     return new DataResponse(signature);
   }
 
-  public static String encode(String key, String data) throws Exception {
+  public static String myEncode(String key, String data) throws Exception {
     Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
     SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
     sha256_HMAC.init(secret_key);
