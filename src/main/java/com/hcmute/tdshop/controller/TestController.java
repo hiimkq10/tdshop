@@ -113,7 +113,7 @@ public class TestController {
     logger.info(json);
     String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, "Hello world");
     logger.info(signatureData);
-    String signature = myEncode(apiSecret, "1685698441197POST/v3/quotationsHello world");
+    String signature = myEncode(apiSecret, "1685698441197POST/v3/quotations%nHello world");
     return new DataResponse(signature);
   }
 
