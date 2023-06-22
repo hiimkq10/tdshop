@@ -147,7 +147,7 @@ public class LalamoveShipService extends ShipServices {
 
       Date date = new Date();
       long time = date.getTime();
-      String signatureData = String.format("%d%nGET%n/v3/orders/%s%n%n", time, shipData.getShipOrderId());
+      String signatureData = String.format("%d\r\nGET%n/v3/orders/%s\r\n\r\n", time, shipData.getShipOrderId());
       String signature = encode(secret, signatureData);
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
@@ -231,7 +231,7 @@ public class LalamoveShipService extends ShipServices {
       Date date = new Date();
       long time = date.getTime();
       String json = gsonObj.toJson(bodyData);
-      String signatureData = String.format("%d%nPOST%n/v3/orders%n%n%s", time, json);
+      String signatureData = String.format("%d\r\nPOST\r\n/v3/orders\r\n\r\n%s", time, json);
       String signature = encode(secret, signatureData);
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
@@ -292,7 +292,7 @@ public class LalamoveShipService extends ShipServices {
 
       Date date = new Date();
       long time = date.getTime();
-      String signatureData = String.format("%d%nDELETE%n/v3/orders/%s%n%n", time, getOrderData.getOrderId());
+      String signatureData = String.format("%d\r\nDELETE%n/v3/orders/%s\r\n\r\n", time, getOrderData.getOrderId());
       String signature = encode(secret, signatureData);
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
@@ -383,18 +383,10 @@ public class LalamoveShipService extends ShipServices {
       bodyData.put("data", data);
 
       Date date = new Date();
-//      long time = date.getTime();
-      long time = 1687405853692L;
+      long time = date.getTime();
       String json = gsonObj.toJson(bodyData);
-      String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, json);
+      String signatureData = String.format("%d\r\nPOST\r\n/v3/quotations\r\n\r\n%s", time, json);
       String signature = encode(secret, signatureData);
-//      String signature = "6de45229460bc607e08634850b2148ad8948d288594214a4ed33cac7d7c110c1";
-      logger.info("Data");
-      logger.info(json);
-      logger.info(signatureData);
-      logger.info(key);
-      logger.info(secret);
-      logger.info(signature);
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
           .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
