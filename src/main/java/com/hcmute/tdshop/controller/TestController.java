@@ -8,6 +8,7 @@ import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.NotificationRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.service.ReviewService;
+import com.hcmute.tdshop.service.shipservices.LalamoveShipService;
 import com.hcmute.tdshop.utils.ExcelUtil;
 import com.hcmute.tdshop.utils.notification.NotificationHelper;
 import com.twilio.rest.microvisor.v1.App;
@@ -24,6 +25,8 @@ import java.util.Map;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +41,7 @@ import reactor.core.publisher.Flux;
 @RestController
 @RequestMapping("/test")
 public class TestController {
+  Logger logger = LoggerFactory.getLogger(TestController.class);
   @Autowired
   AppProperties appProperties;
 
@@ -106,9 +110,9 @@ public class TestController {
     data.put("serviceType", "MOTORCYCLE");
     bodyData.put("data", data);
     String json = gsonObj.toJson(bodyData);
-    System.out.println(json);
+    logger.info(json);
     String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, gsonObj.toJson(bodyData));
-    System.out.println(signatureData);
+    logger.info(signatureData);
     String signature = myEncode(apiSecret, signatureData);
     return new DataResponse(signature);
   }
