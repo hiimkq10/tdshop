@@ -393,6 +393,7 @@ public class LalamoveShipService extends ShipServices {
       logger.info(signatureData);
       logger.info(key);
       logger.info(secret);
+      logger.info(signature);
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
           .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
