@@ -383,11 +383,12 @@ public class LalamoveShipService extends ShipServices {
       bodyData.put("data", data);
 
       Date date = new Date();
-      long time = date.getTime();
+//      long time = date.getTime();
+      long time = 1687405853692L;
       String json = gsonObj.toJson(bodyData);
       String signatureData = String.format("%d%nPOST%n/v3/quotations%n%n%s", time, json);
       String signature = encode(secret, signatureData);
-
+//      String signature = "6de45229460bc607e08634850b2148ad8948d288594214a4ed33cac7d7c110c1";
       logger.info("Data");
       logger.info(json);
       logger.info(signatureData);
