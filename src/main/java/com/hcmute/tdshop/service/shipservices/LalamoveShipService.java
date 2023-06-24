@@ -147,7 +147,7 @@ public class LalamoveShipService extends ShipServices {
 
       Date date = new Date();
       long time = date.getTime();
-      String signatureData = String.format("%d\r\nGET%n/v3/orders/%s\r\n\r\n", time, shipData.getShipOrderId());
+      String signatureData = String.format("%d\r\nGET\r\n/v3/orders/%s\r\n\r\n", time, shipData.getShipOrderId());
       String signature = encode(secret, signatureData);
 
       WebClient client = WebClient.builder().baseUrl(baseUrl)
