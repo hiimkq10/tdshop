@@ -31,7 +31,6 @@ public class PaymentServiceImpl {
     try {
       MomoPaymentRequest momoPaymentDto = ShopOrderToMoMoPaymentDto(order);
       String payload = gson.toJson(momoPaymentDto, MomoPaymentRequest.class);
-      System.out.println(payload);
       Execute execute = new Execute();
       HttpResponse response = execute.sendToMoMo(momoPaymentDto.getEndpoint(), payload);
 
@@ -50,7 +49,7 @@ public class PaymentServiceImpl {
   }
 
   public MomoPaymentRequest ShopOrderToMoMoPaymentDto(ShopOrder order) {
-    double total = 0;
+    double total = order.getShipPrice();
     for (OrderDetail orderDetail : order.getSetOfOrderDetails()) {
       total += (orderDetail.getFinalPrice() * orderDetail.getQuantity());
     }
