@@ -28,4 +28,6 @@ public interface OrderService {
   public SseEmitter registerClient(Long userId);
   public void sendMessage(Long userId, int result);
   public void sendDummyMessage(Long userId);
+
+  public DataResponse rePayment(long orderId);
 }

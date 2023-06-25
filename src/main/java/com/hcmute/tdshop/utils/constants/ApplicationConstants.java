@@ -163,6 +163,10 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final int ORDER_SIZE_EXCEED_SUPPORT_SIZE_CODE = 20005;
   public static final String ORDER_LALAMOVE_COD_NOT_SUPPORT = "Lalamove cod not support";
   public static final int ORDER_LALAMOVE_COD_NOT_SUPPORT_CODE = 20006;
+  public static final String ORDER_PAID = "Order paid";
+  public static final int ORDER_PAID_CODE = 20008;
+  public static final String ORDER_PAYMENT_EXPIRED = "Order payment expired";
+  public static final int ORDER_PAYMENT_EXPIRED_CODE = 20009;
 
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_ID_INVALID = "Payment id invalid";

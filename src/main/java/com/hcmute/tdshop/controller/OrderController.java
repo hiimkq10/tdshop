@@ -74,4 +74,9 @@ public class OrderController {
     orderService.sendDummyMessage(userId);
     return DataResponse.SUCCESSFUL;
   }
+
+  @PostMapping("/re-payment/{id}")
+  public DataResponse rePayment(@PathVariable(name = "id") Long orderId) {
+    return orderService.rePayment(orderId);
+  }
 }

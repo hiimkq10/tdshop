@@ -117,7 +117,6 @@ public class PolyUtil {
       lat1 = lat2;
       lng1 = lng2;
     }
-    int abc = 0;
     return (nIntersect & 1) != 0;
   }
 

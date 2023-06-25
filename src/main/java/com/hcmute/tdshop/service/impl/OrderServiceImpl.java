@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.service.impl;
 
 import com.google.gson.Gson;
+import com.hcmute.tdshop.config.AppProperties;
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.dto.order.OrderResponse;
@@ -46,6 +47,7 @@ import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import com.hcmute.tdshop.utils.notification.NotificationHelper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Iterator;
@@ -56,6 +58,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -69,6 +73,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Service
 @Slf4j
 public class OrderServiceImpl implements OrderService {
+  private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+
+  @Autowired
+  AppProperties appProperties;
 
   @Autowired
   private OrderMapper orderMapper;
@@ -418,6 +426,50 @@ public class OrderServiceImpl implements OrderService {
       log.error(e.getMessage());
       sseEmitter.completeWithError(e);
     }
+  }
+
+  @Override
+  public DataResponse rePayment(long orderId) {
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
+    Optional<ShopOrder> optionalData = orderRepository.findByIdAndUser_IdAndDeletedAtIsNull(orderId, userId);
+    if (!optionalData.isPresent()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND, ApplicationConstants.ORDER_NOT_FOUND_CODE);
+    }
+    ShopOrder order = optionalData.get();
+    if (order.getOrderStatus().getId() != OrderStatusEnum.AWAITINGPAYMENT.getId()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_PAID, ApplicationConstants.ORDER_PAID_CODE);
+    }
+    final Long awaitingPaymentTimeout = appProperties.getOrderAwaitingPaymentTimeOut();
+    final Long paymentTimeout = appProperties.getOrderPaymentTimeOut();
+    if (awaitingPaymentTimeout < paymentTimeout) {
+      logger.error("Payment timeout config is incorrect");
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+    }
+    final LocalDateTime now = LocalDateTime.now();
+    LocalDateTime end = now.minusSeconds((awaitingPaymentTimeout - paymentTimeout) / 1000);
+    if (order.getOrderedAt().isBefore(end) || order.getOrderedAt().isEqual(end)) {
+      OrderStatus cancelStatus = orderStatusRepository.findById(OrderStatusEnum.CANCELED.getId()).orElse(null);
+      if (cancelStatus == null) {
+        logger.error("Order status config is incorrect");
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      }
+      order.setOrderStatus(cancelStatus);
+      List<Product> listOfProducts = new ArrayList<>();
+      Iterator<OrderDetail> orderDetailIterator = order.getSetOfOrderDetails().iterator();
+      int selAmount;
+      while (orderDetailIterator.hasNext()) {
+        OrderDetail orderDetail = orderDetailIterator.next();
+        orderDetail.getProduct().setTotal(orderDetail.getProduct().getTotal() + orderDetail.getQuantity());
+        selAmount = orderDetail.getProduct().getSelAmount() - orderDetail.getQuantity();
+        orderDetail.getProduct().setSelAmount(Math.max(selAmount, 0));
+        listOfProducts.add(orderDetail.getProduct());
+      }
+      orderRepository.saveAndFlush(order);
+      productRepository.saveAllAndFlush(listOfProducts);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_PAYMENT_EXPIRED, orderMapper.OrderToOrderResponse(order), ApplicationConstants.ORDER_PAYMENT_EXPIRED_CODE);
+    }
+    MomoPaymentResponse momoResponse = paymentService.execute(order);
+    return new DataResponse(momoResponse);
   }
 
   private ShipServices getShipService(Long shipId) {

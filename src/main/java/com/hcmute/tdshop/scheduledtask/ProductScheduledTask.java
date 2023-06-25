@@ -60,9 +60,12 @@ public class ProductScheduledTask {
     while (iterator.hasNext()) {
       ShopOrder order = iterator.next();
       Iterator<OrderDetail> orderDetailIterator = order.getSetOfOrderDetails().iterator();
+      int selAmount;
       while (orderDetailIterator.hasNext()) {
         OrderDetail orderDetail = orderDetailIterator.next();
         orderDetail.getProduct().setTotal(orderDetail.getProduct().getTotal() + orderDetail.getQuantity());
+        selAmount = orderDetail.getProduct().getSelAmount() - orderDetail.getQuantity();
+        orderDetail.getProduct().setSelAmount(Math.max(selAmount, 0));
         listOfProducts.add(orderDetail.getProduct());
       }
       order.setOrderStatus(status);
