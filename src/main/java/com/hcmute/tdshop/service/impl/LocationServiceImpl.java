@@ -4,17 +4,26 @@ import com.hcmute.tdshop.dto.address.AddressToLatAndLngDto;
 import com.hcmute.tdshop.dto.address.CheckCoordinateValidDto;
 import com.hcmute.tdshop.dto.address.CheckCoordinateValidResponse;
 import com.hcmute.tdshop.dto.address.Coordinate;
+import com.hcmute.tdshop.dto.address.Geojson;
 import com.hcmute.tdshop.dto.address.Polygon;
+import com.hcmute.tdshop.dto.address.RawPolygon;
 import com.hcmute.tdshop.dto.address.ReverseAddressDto;
+import com.hcmute.tdshop.entity.District;
+import com.hcmute.tdshop.entity.Province;
 import com.hcmute.tdshop.entity.Wards;
 import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.repository.DistrictRepository;
+import com.hcmute.tdshop.repository.ProvinceRepository;
 import com.hcmute.tdshop.repository.WardsRepository;
 import com.hcmute.tdshop.service.LocationService;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import com.hcmute.tdshop.utils.location.LatLng;
 import com.hcmute.tdshop.utils.location.PolyUtil;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.util.Strings;
@@ -22,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -32,10 +42,34 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class LocationServiceImpl implements LocationService {
+
   Logger logger = LoggerFactory.getLogger(LocationServiceImpl.class);
 
   @Autowired
+  ProvinceRepository provinceRepository;
+
+  @Autowired
+  DistrictRepository districtRepository;
+
+  @Autowired
   WardsRepository wardsRepository;
+
+  final List<String> ignoredAreaTags = Arrays.asList(
+      "bakery",
+      "road",
+      "construction",
+      "continent",
+      "house_number",
+      "public_building",
+      "country",
+      "footway",
+      "street",
+      "farm"
+  );
+
+  final List<String> allowedAreaCategories = Arrays.asList("boundary");
+  final List<String> allowedTypes = Arrays.asList("administrative");
+
 
   @Override
   public DataResponse addressToLatAndLng(AddressToLatAndLngDto dto) {
@@ -45,7 +79,9 @@ public class LocationServiceImpl implements LocationService {
     }
     Wards wards = optionalData.get();
     for (int i = 1; i <= 4; i++) {
-      List<Coordinate> coordinates = searchAddressLatLng(generateAddress(i, wards, dto.getAddressDetail()));
+      List<Coordinate> coordinates = searchAddressLatLng(
+          generateAddress(i, wards.getName(), wards.getDistrict().getName(), wards.getDistrict().getName(),
+              dto.getAddressDetail()));
       if (coordinates.size() > 0) {
         return new DataResponse(coordinates.get(0));
       }
@@ -65,18 +101,40 @@ public class LocationServiceImpl implements LocationService {
     int type = 2;
     boolean result = false;
     List<Polygon> polygons = new ArrayList<>();
+    int size = 0;
+    Polygon polygon = null;
     for (int i = 2; i <= 4; i++) {
-      polygons = searchPolygon(generateAddress(i, wards, ""));
-      if (polygons.size() > 0) {
-        type = i;
-        break;
+      polygons = searchPolygon(generateAddress(i, wards.getName(), wards.getDistrict().getName(),
+          wards.getDistrict().getProvince().getName(), ""));
+      size = polygons.size();
+      if (size > 0) {
+        for (int j = 0; j <= size; j++) {
+          Polygon tempPolygon = polygons.get(j);
+          if (
+              (Strings.isNotBlank(tempPolygon.getCategory()) && allowedAreaCategories.contains(
+                  tempPolygon.getCategory()))
+                  && (Strings.isNotBlank(tempPolygon.getType()) && allowedTypes.contains(tempPolygon.getType()))
+          ) {
+            type = i;
+            polygon = tempPolygon;
+            break;
+          }
+        }
+        if (polygon != null) {
+          break;
+        }
       }
     }
-    for (List<List<Double>> locationCoors : polygons.get(0).getGeojson().getCoordinates()) {
+    if (polygon == null) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+          ApplicationConstants.BAD_REQUEST_CODE);
+    }
+    for (List<List<Double>> locationCoors : polygon.getGeojson().getCoordinates()) {
       List<LatLng> latLngs = locationCoors.stream()
           .map(item -> new LatLng(item.get(1), item.get(0))).collect(
               Collectors.toList());
-      if (PolyUtil.containsLocation(chosenPoint, latLngs, false) || PolyUtil.isLocationOnEdge(chosenPoint, latLngs, false, 300)) {
+      if (PolyUtil.containsLocation(chosenPoint, latLngs, false) || PolyUtil.isLocationOnEdge(chosenPoint, latLngs,
+          false, 300)) {
         result = true;
         break;
       }
@@ -87,21 +145,107 @@ public class LocationServiceImpl implements LocationService {
     response.setChosenLocation(wards.getName());
     if (!result) {
       ReverseAddressDto reverseAddressDto = reverseAddress(dto.getLat(), dto.getLng());
+      List<String> addressList = new ArrayList<>();
+      for (Map.Entry<String, String> entry : reverseAddressDto.getAddress().entrySet()) {
+        if (!ignoredAreaTags.contains(entry.getKey())) {
+          addressList.add(entry.getValue());
+        }
+      }
+      Province cProvince = null;
+      District cDistrict = null;
+      Wards cWards = null;
+      List<Province> provinceList = provinceRepository.findAll();
+      Iterator<Province> provinceIterator = provinceList.iterator();
+      while (provinceIterator.hasNext()) {
+        Province p = provinceIterator.next();
+        if (addressList.stream().anyMatch(item -> item.contains(p.getShortName())) && checkContainLocation(chosenPoint,
+            p.getName())) {
+          cProvince = p;
+          break;
+        }
+      }
+      if (cProvince != null) {
+        List<District> districtList = districtRepository.findByProvince_Id(cProvince.getId(), Sort.unsorted());
+        Iterator<District> districtIterator = districtList.iterator();
+        while (districtIterator.hasNext()) {
+          District d = districtIterator.next();
+          System.out.println(addressList.stream().anyMatch(item -> item.contains(d.getShortName())));
+          if (addressList.stream().anyMatch(item -> item.contains(d.getShortName())) && checkContainLocation(
+              chosenPoint, generateAddress(3, "", d.getName(), d.getProvince().getName(), ""))) {
+            cDistrict = d;
+            break;
+          }
+        }
+        if (cDistrict != null) {
+          List<Wards> wardsList = wardsRepository.findByDistrict_Id(cDistrict.getId(), Sort.unsorted());
+          Iterator<Wards> wardsIterator = wardsList.iterator();
+          while (wardsIterator.hasNext()) {
+            Wards w = wardsIterator.next();
+            if (addressList.stream().anyMatch(item -> item.contains(w.getShortName())) && checkContainLocation(
+                chosenPoint,
+                generateAddress(2, w.getName(), w.getDistrict().getName(), w.getDistrict().getProvince().getName(),
+                    ""))) {
+              cWards = w;
+            }
+          }
+        }
+      }
+      response.setChosenLocation("Không tìm thấy");
       switch (type) {
         case 2:
-          response.setChosenLocation(reverseAddressDto.getAddress().getSuburb());
-          break;
+          if (cWards != null && !cWards.getName().equals(wards.getName())) {
+            response.setChosenLocation(cWards.getName());
+            break;
+          }
         case 3:
-          response.setAddressLocation(wards.getDistrict().getName());
-          response.setChosenLocation(reverseAddressDto.getAddress().getCity());
-          break;
+          if (cDistrict != null && !cDistrict.getName().equals(wards.getDistrict().getName())) {
+            response.setAddressLocation(wards.getDistrict().getName());
+            response.setChosenLocation(cDistrict.getName());
+            break;
+          }
         case 4:
-          response.setAddressLocation(wards.getDistrict().getProvince().getName());
-          response.setChosenLocation(reverseAddressDto.getAddress().getState());
+          if (cProvince != null && !cProvince.getName().equals(wards.getDistrict().getProvince().getName())) {
+            response.setAddressLocation(wards.getDistrict().getProvince().getName());
+            response.setChosenLocation(cProvince.getName());
+            break;
+          }
           break;
       }
     }
     return new DataResponse(response);
+  }
+
+  private boolean checkContainLocation(LatLng chosenPoint, String choosenLocation) {
+    int size = 0;
+    Polygon polygon = null;
+    List<Polygon> polygons = searchPolygon(choosenLocation);
+    size = polygons.size();
+    if (size <= 0) {
+      return false;
+    }
+    for (int j = 0; j <= size; j++) {
+      Polygon tempPolygon = polygons.get(j);
+      if (
+          (Strings.isNotBlank(tempPolygon.getCategory()) && allowedAreaCategories.contains(tempPolygon.getCategory()))
+              && (Strings.isNotBlank(tempPolygon.getType()) && allowedTypes.contains(tempPolygon.getType()))
+      ) {
+        polygon = tempPolygon;
+        break;
+      }
+    }
+    if (polygon == null) {
+      return false;
+    }
+    for (List<List<Double>> locationCoors : polygon.getGeojson().getCoordinates()) {
+      List<LatLng> latLngs = locationCoors.stream()
+          .map(item -> new LatLng(item.get(1), item.get(0))).collect(
+              Collectors.toList());
+      if (PolyUtil.containsLocation(chosenPoint, latLngs, false) || PolyUtil.isLocationOnEdge(chosenPoint, latLngs,
+          false, 0)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private List<Polygon> searchPolygon(String address) {
@@ -113,10 +257,17 @@ public class LocationServiceImpl implements LocationService {
         .queryParam("polygon_geojson", 1)
         .queryParam("format", "jsonv2")
         .queryParam("accept-language", "vi").build());
-    Mono<List<Polygon>> response = bodySpec.retrieve()
-        .bodyToMono(new ParameterizedTypeReference<List<Polygon>>() {
+    Mono<List<RawPolygon>> response = bodySpec.retrieve()
+        .bodyToMono(new ParameterizedTypeReference<List<RawPolygon>>() {
         });
-    return response.block();
+    List<RawPolygon> rawPolygons = response.block();
+    if (rawPolygons == null) {
+      return new ArrayList<>();
+    }
+    List<Polygon> polygons = rawPolygons.stream()
+        .filter(item -> item.getGeojson() != null && item.getGeojson().getType().equals("Polygon"))
+        .map(Polygon::toPolygon).collect(Collectors.toList());
+    return polygons;
   }
 
   private List<Coordinate> searchAddressLatLng(String address) {
@@ -151,7 +302,8 @@ public class LocationServiceImpl implements LocationService {
   // type = 2 only wards district province
   // type = 3 only district province
   // type = 4 only province
-  private String generateAddress(int type, Wards wards, String addressDetail) {
+  private String generateAddress(int type, String wardsName, String districtName, String provinceName,
+      String addressDetail) {
     List<String> address = new ArrayList<>();
     switch (type) {
       case 1:
@@ -159,16 +311,16 @@ public class LocationServiceImpl implements LocationService {
           address.add(addressDetail);
         }
       case 2:
-        if (Strings.isNotBlank(wards.getName())) {
-          address.add(wards.getName());
+        if (Strings.isNotBlank(wardsName)) {
+          address.add(wardsName);
         }
       case 3:
-        if (Strings.isNotBlank(wards.getDistrict().getName())) {
-          address.add(wards.getDistrict().getName());
+        if (Strings.isNotBlank(districtName)) {
+          address.add(districtName);
         }
       case 4:
-        if (Strings.isNotBlank(wards.getDistrict().getProvince().getName())) {
-          address.add(wards.getDistrict().getProvince().getName());
+        if (Strings.isNotBlank(provinceName)) {
+          address.add(provinceName);
         }
     }
     return String.join(",", address);

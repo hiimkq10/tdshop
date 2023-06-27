@@ -2,6 +2,7 @@ package com.hcmute.tdshop.utils;
 
 import com.auth0.jwt.algorithms.Algorithm;
 import com.hcmute.tdshop.entity.User;
+import com.hcmute.tdshop.enums.AdministrativeTypeEnum;
 import com.hcmute.tdshop.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -77,5 +78,13 @@ public class Helper {
 
   public static boolean checkIfStringIsBlank(String str) {
     return str == null || str.isEmpty();
+  }
+
+  private static String AdministrativeType(String name) {
+    AdministrativeTypeEnum typeEnum = AdministrativeTypeEnum.getAdministrativeTypeEnumByName(name);
+    if (typeEnum == null) {
+      return "";
+    }
+    return typeEnum.getName();
   }
 }

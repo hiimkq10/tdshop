@@ -3,6 +3,7 @@ package com.hcmute.tdshop.utils;
 import com.hcmute.tdshop.entity.District;
 import com.hcmute.tdshop.entity.Province;
 import com.hcmute.tdshop.entity.Wards;
+import com.hcmute.tdshop.enums.AdministrativeTypeEnum;
 import com.hcmute.tdshop.model.AdministrativeArea;
 import com.hcmute.tdshop.repository.DistrictRepository;
 import com.hcmute.tdshop.repository.ProvinceRepository;
@@ -24,6 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -61,44 +65,61 @@ public class ExcelUtil {
   @Transactional
   public boolean insertDataToDatabase() throws IOException, NoSuchFieldException, InvocationTargetException,
       NoSuchMethodException, InstantiationException, IllegalAccessException, ParseException {
+    AdministrativeArea area = null;
+    Area tempArea;
     if (provinceRepository.count() > 0) {
       throw new RuntimeException("Area initilized");
     }
     InputStream inputStream = ExcelUtil.class.getResourceAsStream(ApplicationConstants.AREAS_FILE);
     Workbook workbook = getWorkbook(inputStream);
-    System.out.println("Initilize areas");
     List<AdministrativeArea> areas =
         GetDataFromSheetAndMapToList(AdministrativeArea.class, ApplicationConstants.AREAS_SHEET_NAME, workbook);
     int tempSize = areas.size();
     Map<Long, Province> provinceMap = new HashMap<>();
     Map<Long, District> districtMap = new HashMap<>();
     List<Wards> wards = new ArrayList<>();
-    AdministrativeArea area;
     for (int i = 0; i < tempSize; i++) {
       area = areas.get(i);
       if (area.getProvinceId() == 0) {
         continue;
       }
       if (!provinceMap.containsKey(area.getProvinceId())) {
-        provinceMap.put(area.getProvinceId(), new Province(area.getProvinceId(), area.getProvinceName(), "", null));
+        tempArea = generateArea(area.getProvinceName());
+        provinceMap.put(area.getProvinceId(), new Province(area.getProvinceId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(), tempArea.getPriority(), null));
       }
 
       if (area.getDistrictId() == 0) {
         continue;
       }
       if (!districtMap.containsKey(area.getDistrictId())) {
-        districtMap.put(area.getDistrictId(), new District(area.getDistrictId(), area.getDistrictName(), "", provinceMap.get(area.getProvinceId()), null));
+        tempArea = generateArea(area.getDistrictName());
+        districtMap.put(area.getDistrictId(), new District(area.getDistrictId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(), tempArea.getPriority(), provinceMap.get(area.getProvinceId()), null));
       }
 
       if (area.getWardId() == 0) {
         continue;
       }
-      wards.add(new Wards(area.getWardId(), area.getWardName(), area.getWardType(), districtMap.get(area.getDistrictId())));
+      tempArea = generateArea(area.getWardName());
+      wards.add(new Wards(area.getWardId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(), tempArea.getPriority(), districtMap.get(area.getDistrictId())));
     }
     provinceRepository.saveAll(provinceMap.values());
     districtRepository.saveAll(districtMap.values());
     wardsRepository.saveAll(wards);
     return true;
+  }
+
+  private Area generateArea(String rawName) {
+    String processedName = rawName.trim().replaceAll(" +", " ");
+    AdministrativeTypeEnum typeEnum = AdministrativeTypeEnum.getAdministrativeTypeEnumByName(processedName);
+    if (typeEnum == null) {
+      return new Area("", processedName, processedName, 1000);
+    }
+    String shortName = processedName.split(String.format("(?i)%s ", typeEnum.getName()), 2)[1];
+    return new Area(
+        typeEnum.getName(),
+        String.format("%s %s", typeEnum.getName(), shortName),
+        shortName,
+        typeEnum.getPriority());
   }
 
   // Read data from Excel Sheet (row by row)
@@ -160,5 +181,15 @@ public class ExcelUtil {
       listOfObjects.add(object);
     }
     return listOfObjects;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  class Area {
+    private String type;
+    private String name;
+    private String shortName;
+    private int priority;
   }
 }

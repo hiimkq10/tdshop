@@ -33,9 +33,17 @@ public class District {
   @JsonProperty("Name")
   private String name;
 
+  @Column(name = "short_name", columnDefinition = "VARCHAR(100)")
+  @JsonProperty("ShortName")
+  private String shortName;
+
   @Column(name = "type", columnDefinition = "VARCHAR(100)")
   @JsonProperty("Type")
   private String type;
+
+  @Column(name = "type_priority")
+  @JsonProperty("TypePriority")
+  private int typePriority;
 
   @ManyToOne
   @JoinColumn(name = "province_id", nullable = false)
