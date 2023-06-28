@@ -30,4 +30,6 @@ public interface OrderService {
   public void sendDummyMessage(Long userId);
 
   public DataResponse rePayment(long orderId);
+
+  public DataResponse adminCancelOrder(long orderId);
 }

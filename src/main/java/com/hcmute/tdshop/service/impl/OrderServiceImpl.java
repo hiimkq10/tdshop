@@ -2,6 +2,7 @@ package com.hcmute.tdshop.service.impl;
 
 import com.google.gson.Gson;
 import com.hcmute.tdshop.config.AppProperties;
+import com.hcmute.tdshop.dto.ResultDto;
 import com.hcmute.tdshop.dto.order.AddOrderRequest;
 import com.hcmute.tdshop.dto.order.ChangeOrderStatusRequest;
 import com.hcmute.tdshop.dto.order.OrderResponse;
@@ -12,6 +13,7 @@ import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResultDto;
 import com.hcmute.tdshop.dto.serversentevent.Clients;
 import com.hcmute.tdshop.dto.shipservices.CheckShipConditionDto;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
+import com.hcmute.tdshop.dto.shipservices.ghn.GetOrderData;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
@@ -161,9 +163,23 @@ public class OrderServiceImpl implements OrderService {
     if (orderId > 0 && pageOfOrders.getContent().size() > 0) {
       ShipServices shipServices = getShipService(pageOfOrders.getContent().get(0).getShip().getId());
       ShipOrderDto shipOrderDto = new ShipOrderDto("", "");
+      ShopOrder order = pageOfOrders.getContent().get(0);
       if (shipServices != null) {
-        shipOrderDto = shipServices.getShipOrder(pageOfOrders.getContent().get(0));
+        shipOrderDto = shipServices.getShipOrder(order);
       }
+      if (order.getOrderStatus().getId() !=  OrderStatusEnum.CANCELED.getId()) {
+        OrderStatusEnum orderStatusEnum = shipServices.getShopOrderStatus(order);
+        if (orderStatusEnum.getId() != order.getOrderStatus().getId()) {
+          OrderStatus status = orderStatusRepository.findById(orderStatusEnum.getId()).orElse(null);
+          if (status == null) {
+            logger.error("Order status config is incorrect");
+            return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+          }
+          order.setOrderStatus(status);
+          orderRepository.saveAndFlush(order);
+        }
+      }
+
       ShipOrderDto finalShipOrderDto = shipOrderDto;
       Page<OrderWithShipDataResponse> pageOfOrderResponse = new PageImpl<>(
           pageOfOrders.getContent().stream().map(item -> orderMapper.OrderToOrderWithShipDataResponse(item,
@@ -217,9 +233,11 @@ public class OrderServiceImpl implements OrderService {
 
     // Check ship conditions
     ShipServices shipServices = getShipService(order.getShip().getId());
-    CheckShipConditionDto checkShipConditionDto = shipServices.checkShipCondition(order);
-    if (!checkShipConditionDto.isResult()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(), checkShipConditionDto.getMessageCode());
+    if (shipServices != null) {
+      CheckShipConditionDto checkShipConditionDto = shipServices.checkShipCondition(order, false);
+      if (!checkShipConditionDto.isResult()) {
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(), checkShipConditionDto.getMessageCode());
+      }
     }
 
     for (OrderDetail orderDetail : setOfOrderDetails) {
@@ -305,7 +323,6 @@ public class OrderServiceImpl implements OrderService {
   public DataResponse changeOrderStatus(ChangeOrderStatusRequest request) {
     long orderId = request.getOrderId();
     long statusId = request.getStatusId();
-    System.out.println("test: " + orderId);
     Optional<ShopOrder> optionalShopOrder = orderRepository.findById(orderId);
     if (optionalShopOrder.isPresent()) {
       ShopOrder order = optionalShopOrder.get();
@@ -470,6 +487,44 @@ public class OrderServiceImpl implements OrderService {
     }
     MomoPaymentResponse momoResponse = paymentService.execute(order);
     return new DataResponse(momoResponse);
+  }
+
+  @Override
+  public DataResponse adminCancelOrder(long orderId) {
+    Optional<ShopOrder> optionalData = orderRepository.findByIdAndDeletedAtIsNull(orderId);
+    if (!optionalData.isPresent()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND, ApplicationConstants.ORDER_NOT_FOUND_CODE);
+    }
+    ShopOrder order = optionalData.get();
+    if (order.getOrderStatus().getId() == OrderStatusEnum.CANCELED.getId()) {
+      return new DataResponse(orderMapper.OrderToOrderResponse(order));
+    }
+    ShipServices shipServices = getShipService(order.getShip().getId());
+    if (shipServices != null) {
+      ResultDto result = shipServices.checkAllowCancelShopOrder(order);
+      if (!result.isResult()) {
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, result.getMessage(), result.getStatus());
+      }
+    }
+    OrderStatus cancelStatus = orderStatusRepository.findById(OrderStatusEnum.CANCELED.getId()).orElse(null);
+    if (cancelStatus == null) {
+      logger.error("Order status config is incorrect");
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+    }
+    order.setOrderStatus(cancelStatus);
+    List<Product> listOfProducts = new ArrayList<>();
+    Iterator<OrderDetail> orderDetailIterator = order.getSetOfOrderDetails().iterator();
+    int selAmount;
+    while (orderDetailIterator.hasNext()) {
+      OrderDetail orderDetail = orderDetailIterator.next();
+      orderDetail.getProduct().setTotal(orderDetail.getProduct().getTotal() + orderDetail.getQuantity());
+      selAmount = orderDetail.getProduct().getSelAmount() - orderDetail.getQuantity();
+      orderDetail.getProduct().setSelAmount(Math.max(selAmount, 0));
+      listOfProducts.add(orderDetail.getProduct());
+    }
+    orderRepository.saveAndFlush(order);
+    productRepository.saveAllAndFlush(listOfProducts);
+    return new DataResponse(orderMapper.OrderToOrderResponse(order));
   }
 
   private ShipServices getShipService(Long shipId) {

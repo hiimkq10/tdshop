@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.service.shipservices;
 
 import com.google.gson.Gson;
+import com.hcmute.tdshop.dto.ResultDto;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
@@ -28,13 +29,18 @@ import com.hcmute.tdshop.dto.shipservices.ghn.WardsDto;
 import com.hcmute.tdshop.dto.shipservices.ghn.WardsResponse;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.OrderDetail;
+import com.hcmute.tdshop.entity.OrderStatus;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.entity.Wards;
 import com.hcmute.tdshop.enums.GHNShipStatusEnum;
+import com.hcmute.tdshop.enums.LalamoveShipStatusEnum;
+import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
 import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.repository.OrderStatusRepository;
+import com.hcmute.tdshop.repository.ShopOrderRepository;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -50,6 +56,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -64,6 +71,12 @@ import reactor.core.publisher.Mono;
 public class GHNShipService extends ShipServices {
 
   Logger logger = LoggerFactory.getLogger(GHNShipService.class);
+
+  @Autowired
+  private OrderStatusRepository orderStatusRepository;
+
+  @Autowired
+  private ShopOrderRepository shopOrderRepository;
 
   @Value("${ghn.api.token}")
   String token;
@@ -94,6 +107,11 @@ public class GHNShipService extends ShipServices {
 
   @Value("${ghn.order.max-insurance-value}")
   long maxInsuranceValue;
+
+  List<String> allowCancelShopOrderStatus = Arrays.asList(
+      GHNShipStatusEnum.GHN_NOT_CREATED.getCode(),
+      GHNShipStatusEnum.GHN_CANCEL.getCode()
+  );
 
   @Override
   public boolean checkSize(ShopOrder order) {
@@ -288,12 +306,14 @@ public class GHNShipService extends ShipServices {
     ShopOrder order = optionalData.get();
     OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
 
-    CheckShipConditionDto checkShipConditionDto = checkShipCondition(order);
+    CheckShipConditionDto checkShipConditionDto = checkShipCondition(order, true);
     if (!checkShipConditionDto.isResult()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(), checkShipConditionDto.getMessageCode());
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(),
+          checkShipConditionDto.getMessageCode());
     }
     if (!checkProductSize(orderSize)) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE,
+          ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE_CODE);
     }
 
     try {
@@ -365,6 +385,15 @@ public class GHNShipService extends ShipServices {
       shipDatas.add(new ShipData(null, createOrderDataResponse.getOrderCode(), now, null, order));
       shipDataRepository.saveAllAndFlush(shipDatas);
       order.setShipData(shipDatas);
+
+      OrderStatus deliveringStatus = orderStatusRepository.findById(OrderStatusEnum.DELIVERING.getId()).orElse(null);
+      if (deliveringStatus == null) {
+        logger.error("Order status config is incorrect");
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      }
+      order.setOrderStatus(deliveringStatus);
+      shopOrderRepository.saveAndFlush(order);
+
       ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
     } catch (Exception e) {
@@ -381,6 +410,10 @@ public class GHNShipService extends ShipServices {
           ApplicationConstants.ORDER_NOT_FOUND_CODE);
     }
     ShopOrder order = optionalOrderData.get();
+    ResultDto result = checkCancelShipOrderCondition(order);
+    if (!result.isResult()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, order, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
+    }
     try {
       GetOrderData getOrderData = getOrder(order);
       if (getOrderData == null) {
@@ -410,6 +443,15 @@ public class GHNShipService extends ShipServices {
       if (cancelOrderResponse.getCode() != 200) {
         throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
       }
+
+      OrderStatus proccessingStatus = orderStatusRepository.findById(OrderStatusEnum.PROCCESSING.getId()).orElse(null);
+      if (proccessingStatus == null) {
+        logger.error("Order status config is incorrect");
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      }
+      order.setOrderStatus(proccessingStatus);
+      shopOrderRepository.saveAndFlush(order);
+
       ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
     } catch (Exception e) {
@@ -479,16 +521,58 @@ public class GHNShipService extends ShipServices {
   }
 
   @Override
-  public CheckShipConditionDto checkShipCondition(ShopOrder order) {
+  public CheckShipConditionDto checkShipCondition(ShopOrder order, boolean statusCheck) {
+    if (statusCheck && order.getOrderStatus().getId() != OrderStatusEnum.PROCCESSING.getId()) {
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING_CODE);
+    }
     if (!checkSize(order)) {
-      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE_CODE);
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE,
+          ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE_CODE);
     }
     if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
       if (!checkCODAmount(order)) {
-        return new CheckShipConditionDto(false, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT_CODE);
+        return new CheckShipConditionDto(false, ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT,
+            ApplicationConstants.ORDER_COD_AMOUNT_EXCEED_SUPPORT_AMOUNT_CODE);
       }
     }
     return new CheckShipConditionDto(true, ApplicationConstants.SUCCESSFUL, ApplicationConstants.SUCCESSFUL_CODE);
+  }
+
+  @Override
+  public ResultDto checkAllowCancelShopOrder(ShopOrder order) {
+    ShipOrderDto shipOrderDto = getShipOrder(order);
+    if (allowCancelShopOrderStatus.contains(shipOrderDto.getStatusCode())) {
+      return ResultDto.SUCCESS;
+    }
+    return new ResultDto(false, ApplicationConstants.ORDER_SHIP_NOT_CANCELED,
+        ApplicationConstants.ORDER_SHIP_NOT_CANCELED_CODE);
+  }
+
+  @Override
+  public OrderStatusEnum getShopOrderStatus(ShopOrder order) {
+    ShipOrderDto shipOrderDto = getShipOrder(order);
+    List<String> proccessingStatuses = Arrays.asList(
+        GHNShipStatusEnum.GHN_NOT_CREATED.getCode(),
+        GHNShipStatusEnum.GHN_CANCEL.getCode()
+    );
+    List<String> diliveredStatuses = Arrays.asList(
+        GHNShipStatusEnum.GHN_DELIVERED.getCode()
+    );
+    if (proccessingStatuses.contains(shipOrderDto.getStatusCode())) {
+      return OrderStatusEnum.PROCCESSING;
+    }
+    if (diliveredStatuses.contains(shipOrderDto.getStatusCode())) {
+      return OrderStatusEnum.DELIVERED;
+    }
+    return OrderStatusEnum.DELIVERING;
+  }
+
+  @Override
+  public ResultDto checkCancelShipOrderCondition(ShopOrder order) {
+    if (order.getOrderStatus().getId() != OrderStatusEnum.DELIVERING.getId()) {
+      return new ResultDto(false, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
+    }
+    return ResultDto.SUCCESS;
   }
 
   @Override

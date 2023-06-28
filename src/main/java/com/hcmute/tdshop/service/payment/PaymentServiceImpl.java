@@ -53,7 +53,7 @@ public class PaymentServiceImpl {
     for (OrderDetail orderDetail : order.getSetOfOrderDetails()) {
       total += (orderDetail.getFinalPrice() * orderDetail.getQuantity());
     }
-    total = total / 1000;
+//    total = total / 1000;
     Map<String, String> map = new HashMap<>();
     map.put("orderId", String.valueOf(order.getId()));
     String extraData = Base64.getEncoder().encodeToString(gson.toJson(map).getBytes(StandardCharsets.UTF_8));

@@ -79,4 +79,10 @@ public class OrderController {
   public DataResponse rePayment(@PathVariable(name = "id") Long orderId) {
     return orderService.rePayment(orderId);
   }
+
+  @PostMapping("/admin/cancel/{id}")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
+  public DataResponse adminCancelOrder(@PathVariable(name = "id") long orderId) {
+    return orderService.adminCancelOrder(orderId);
+  }
 }

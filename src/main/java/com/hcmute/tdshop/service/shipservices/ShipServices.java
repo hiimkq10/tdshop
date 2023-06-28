@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.service.shipservices;
 
+import com.hcmute.tdshop.dto.ResultDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
 import com.hcmute.tdshop.dto.shipservices.CancelOrderRequest;
@@ -9,6 +10,7 @@ import com.hcmute.tdshop.dto.shipservices.OrderSize;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.ShopOrder;
+import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.mapper.OrderMapper;
 import com.hcmute.tdshop.mapper.ShipServicesMapper;
 import com.hcmute.tdshop.model.DataResponse;
@@ -95,7 +97,10 @@ public abstract class ShipServices {
 
   public abstract DataResponse calculateExpectedDeliveryTime(CalculateDeliveryTimeRequest dto);
 
-  public abstract CheckShipConditionDto checkShipCondition(ShopOrder order);
+  public abstract CheckShipConditionDto checkShipCondition(ShopOrder order, boolean statusCheck);
+  public abstract ResultDto checkAllowCancelShopOrder(ShopOrder order);
+  public abstract OrderStatusEnum getShopOrderStatus(ShopOrder order);
+  public abstract ResultDto checkCancelShipOrderCondition(ShopOrder order);
 
 //  @Autowired
 //  GHNShipService ghnShipService;

@@ -21,7 +21,7 @@ public enum GHNShipStatusEnum {
   GHN_RETURNING("returning", "Đang giao (trả hàng shop)"),
   GHN_RETURN_FAIL("return_fail", "Trả hàng shop thất bại"),
   GHN_RETURNED("returned", "Đã trả hàng cho shop"),
-  GHN_EXCEPTIOM("exception", "Lỗi"),
+  GHN_EXCEPTION("exception", "Lỗi"),
   GHN_DAMAGE("damage", "Hàng hóa bị hư hại"),
   GHN_LOST("lost", "Hàng hóa bị mất");
 

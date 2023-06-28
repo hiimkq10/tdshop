@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.service.shipservices;
 
 import com.google.gson.Gson;
+import com.hcmute.tdshop.dto.ResultDto;
 import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.dto.shipservices.CalculateDeliveryTimeRequest;
 import com.hcmute.tdshop.dto.shipservices.CalculateFeeDto;
@@ -24,18 +25,23 @@ import com.hcmute.tdshop.dto.shipservices.lalamove.Recipent;
 import com.hcmute.tdshop.dto.shipservices.lalamove.Sender;
 import com.hcmute.tdshop.dto.shipservices.lalamove.Stop;
 import com.hcmute.tdshop.entity.Address;
+import com.hcmute.tdshop.entity.OrderStatus;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.enums.LalamoveServiceEnum;
 import com.hcmute.tdshop.enums.LalamoveShipStatusEnum;
 import com.hcmute.tdshop.enums.LalamoveWeightEnum;
+import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
 import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.repository.OrderStatusRepository;
+import com.hcmute.tdshop.repository.ShopOrderRepository;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +54,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -62,6 +69,12 @@ import reactor.core.publisher.Mono;
 public class LalamoveShipService extends ShipServices {
 
   Logger logger = LoggerFactory.getLogger(LalamoveShipService.class);
+
+  @Autowired
+  private OrderStatusRepository orderStatusRepository;
+
+  @Autowired
+  private ShopOrderRepository shopOrderRepository;
 
   @Value("${lalamove.api.key}")
   String key;
@@ -83,6 +96,12 @@ public class LalamoveShipService extends ShipServices {
 
   @Value("${lalamove.order.create.support-regions}")
   List<Long> supportRegions;
+
+  List<String> allowCancelShopOrderStatus = Arrays.asList(
+      LalamoveShipStatusEnum.LALAMOVE_NOT_CREATED.getCode(),
+      LalamoveShipStatusEnum.LALAMOVE_CANCELED.getCode(),
+      LalamoveShipStatusEnum.LALAMOVE_EXPIRED.getCode()
+  );
 
   @Override
   public boolean checkSize(ShopOrder order) {
@@ -180,7 +199,7 @@ public class LalamoveShipService extends ShipServices {
     ShopOrder order = optionalData.get();
     OrderSize orderSize = new OrderSize(dto.getLength(), dto.getWidth(), dto.getHeight(), dto.getWeight());
 
-    CheckShipConditionDto checkShipConditionDto = checkShipCondition(order);
+    CheckShipConditionDto checkShipConditionDto = checkShipCondition(order, true);
     if (!checkShipConditionDto.isResult()) {
       return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(),
           checkShipConditionDto.getMessageCode());
@@ -262,6 +281,15 @@ public class LalamoveShipService extends ShipServices {
       shipDatas.add(new ShipData(null, createOrderDto.getOrderId(), now, null, order));
       shipDataRepository.saveAllAndFlush(shipDatas);
       order.setShipData(shipDatas);
+
+      OrderStatus deliveringStatus = orderStatusRepository.findById(OrderStatusEnum.DELIVERING.getId()).orElse(null);
+      if (deliveringStatus == null) {
+        logger.error("Order status config is incorrect");
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      }
+      order.setOrderStatus(deliveringStatus);
+      shopOrderRepository.saveAndFlush(order);
+
       ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
     } catch (Exception e) {
@@ -278,6 +306,10 @@ public class LalamoveShipService extends ShipServices {
           ApplicationConstants.ORDER_NOT_FOUND_CODE);
     }
     ShopOrder order = optionalOrderData.get();
+    ResultDto result = checkCancelShipOrderCondition(order);
+    if (!result.isResult()) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, order, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
+    }
     try {
       GetOrderData getOrderData = getOrder(order);
       if (getOrderData == null) {
@@ -303,6 +335,14 @@ public class LalamoveShipService extends ShipServices {
       RequestBodySpec bodySpec = uriSpec.uri(uriBuilder -> uriBuilder.path("/v3/orders/{orderId}")
           .build(getOrderData.getOrderId()));
       bodySpec.retrieve().bodyToMono(CancelOrderResponse.class).block();
+
+      OrderStatus proccessingStatus = orderStatusRepository.findById(OrderStatusEnum.PROCCESSING.getId()).orElse(null);
+      if (proccessingStatus == null) {
+        logger.error("Order status config is incorrect");
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      }
+      order.setOrderStatus(proccessingStatus);
+      shopOrderRepository.saveAndFlush(order);
 
       ShipOrderDto shipOrderDto = getShipOrder(order);
       return new DataResponse(orderMapper.OrderToOrderWithShipDataResponse(order, shipOrderDto));
@@ -332,7 +372,10 @@ public class LalamoveShipService extends ShipServices {
   }
 
   @Override
-  public CheckShipConditionDto checkShipCondition(ShopOrder order) {
+  public CheckShipConditionDto checkShipCondition(ShopOrder order, boolean statusCheck) {
+    if (statusCheck && order.getOrderStatus().getId() != OrderStatusEnum.PROCCESSING.getId()) {
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING_CODE);
+    }
     if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
       return new CheckShipConditionDto(false, ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT,
           ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT_CODE);
@@ -342,6 +385,44 @@ public class LalamoveShipService extends ShipServices {
           ApplicationConstants.ORDER_LALAMOVE_REGION_NOT_SUPPORT_CODE);
     }
     return new CheckShipConditionDto(true, ApplicationConstants.SUCCESSFUL, ApplicationConstants.SUCCESSFUL_CODE);
+  }
+
+  @Override
+  public ResultDto checkAllowCancelShopOrder(ShopOrder order) {
+    ShipOrderDto shipOrderDto = getShipOrder(order);
+    if (allowCancelShopOrderStatus.contains(shipOrderDto.getStatusCode())) {
+      return ResultDto.SUCCESS;
+    }
+    return new ResultDto(false, ApplicationConstants.ORDER_SHIP_NOT_CANCELED,
+        ApplicationConstants.ORDER_SHIP_NOT_CANCELED_CODE);
+  }
+
+  @Override
+  public OrderStatusEnum getShopOrderStatus(ShopOrder order) {
+    ShipOrderDto shipOrderDto = getShipOrder(order);
+    List<String> proccessingStatuses = Arrays.asList(
+        LalamoveShipStatusEnum.LALAMOVE_NOT_CREATED.getCode(),
+        LalamoveShipStatusEnum.LALAMOVE_CANCELED.getCode(),
+        LalamoveShipStatusEnum.LALAMOVE_EXPIRED.getCode()
+    );
+    List<String> diliveredStatuses = Arrays.asList(
+        LalamoveShipStatusEnum.LALAMOVE_COMPLETED.getCode()
+    );
+    if (proccessingStatuses.contains(shipOrderDto.getStatusCode())) {
+      return OrderStatusEnum.PROCCESSING;
+    }
+    if (diliveredStatuses.contains(shipOrderDto.getStatusCode())) {
+      return OrderStatusEnum.DELIVERED;
+    }
+    return OrderStatusEnum.DELIVERING;
+  }
+
+  @Override
+  public ResultDto checkCancelShipOrderCondition(ShopOrder order) {
+    if (order.getOrderStatus().getId() != OrderStatusEnum.DELIVERING.getId()) {
+      return new ResultDto(false, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
+    }
+    return ResultDto.SUCCESS;
   }
 
   @Override

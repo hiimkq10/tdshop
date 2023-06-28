@@ -168,6 +168,13 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final String ORDER_PAYMENT_EXPIRED = "Order payment expired";
   public static final int ORDER_PAYMENT_EXPIRED_CODE = 20009;
 
+  public static final String ORDER_SHIP_NOT_CANCELED = "Ship order not cancled";
+  public static final int ORDER_SHIP_NOT_CANCELED_CODE = 20010;
+  public static final String ORDER_STATUS_NOT_PROCESSING = "Order status not processing";
+  public static final int ORDER_STATUS_NOT_PROCESSING_CODE = 20011;
+  public static final String ORDER_STATUS_NOT_DILIVERING = "Order status not delivering";
+  public static final int ORDER_STATUS_NOT_DILIVERING_CODE = 20012;
+
   // ------------------------------ PAYMENT -------------------------------------
   public static final String PAYMENT_ID_INVALID = "Payment id invalid";
   public static final String PAYMENT_NOT_FOUND = "Payment method not found";
