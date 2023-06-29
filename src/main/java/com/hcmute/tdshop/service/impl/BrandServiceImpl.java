@@ -169,7 +169,7 @@ public class BrandServiceImpl implements BrandService {
           "unique_filename", true,
           "overwrite", true,
           "resource_type", "raw",
-          "public_id", imagePath + "/" + publicId
+          "public_id", publicId
       );
       Map result = cloudinary.uploader().upload(image.getBytes(), params);
       return result.get("secure_url").toString();
