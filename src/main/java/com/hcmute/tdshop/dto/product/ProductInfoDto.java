@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hcmute.tdshop.entity.AttributeSet;
 import com.hcmute.tdshop.entity.Brand;
 import com.hcmute.tdshop.entity.Image;
 import com.hcmute.tdshop.entity.ProductStatus;
@@ -61,6 +62,12 @@ public class ProductInfoDto {
 
   @JsonProperty("Attributes")
   private Set<ProductAttributeDto> setOfProductAttributes;
+
+  @JsonProperty("AttributeSetId")
+  private Long attributeSetId;
+
+  @JsonProperty("AttributeSetName")
+  private String attributeSetName;
 
   @JsonProperty("Variations")
   private Set<ProductVariationOptionDto> setOfVariationOptions;

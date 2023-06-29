@@ -8,6 +8,8 @@ import com.hcmute.tdshop.dto.product.ProductPromotionDto;
 import com.hcmute.tdshop.dto.product.ProductVariationOptionDto;
 import com.hcmute.tdshop.dto.product.SimpleProductDto;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
+import com.hcmute.tdshop.entity.Attribute;
+import com.hcmute.tdshop.entity.AttributeSet;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.Image;
 import com.hcmute.tdshop.entity.Product;
@@ -17,8 +19,13 @@ import com.hcmute.tdshop.entity.VariationOption;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
@@ -69,6 +76,24 @@ public abstract class ProductMapper {
       productInfoDto.setSetOfImages( new LinkedHashSet<Image>( set1 ) );
     }
     productInfoDto.setSetOfProductAttributes( productAttributeSetToProductAttributeDtoSet( product.getSetOfProductAttributes() ) );
+
+    if (product.getSetOfProductAttributes().size() > 0) {
+      if (productInfoDto.getSetOfProductAttributes() == null) {
+        productInfoDto.setSetOfProductAttributes(new HashSet<>());
+      }
+      ProductAttribute productAttribute = product.getSetOfProductAttributes().stream().findFirst().get();
+      AttributeSet attributeSet = productAttribute.getAttribute().getAttributeSet();
+      productInfoDto.setAttributeSetId(attributeSet.getId());
+      productInfoDto.setAttributeSetName(attributeSet.getName());
+      List<Long> ids = productInfoDto.getSetOfProductAttributes().stream().map(item -> item.getAttributeId()).collect(
+          Collectors.toList());
+      for (Attribute attribute : attributeSet.getSetOfAttributes()) {
+        if (!ids.contains(attribute.getId())) {
+          productInfoDto.getSetOfProductAttributes().add(new ProductAttributeDto(0, attribute.getName(), "", attribute.getPriority(), attribute.getId()));
+        }
+      }
+    }
+
     productInfoDto.setSetOfVariationOptions( variationOptionSetToProductVariationOptionDtoSet( product.getSetOfVariationOptions() ) );
     productInfoDto.setProductPromotion( ProductPromotionToProductPromotionDto( getCurrentPromotion(product) ) );
     if (product.getSetOfCategories() != null && product.getSetOfCategories().size() > 0) {
