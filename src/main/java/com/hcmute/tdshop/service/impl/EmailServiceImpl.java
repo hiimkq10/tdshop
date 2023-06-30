@@ -77,7 +77,7 @@ public class EmailServiceImpl implements EmailService {
             "activate_account_email_template.ftl");
       }
       else {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ACCOUNT_ACTIVATED, ApplicationConstants.BAD_REQUEST_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ACCOUNT_ACTIVATED, ApplicationConstants.ACCOUNT_ACTIVATED_CODE);
       }
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND,

@@ -58,6 +58,7 @@ public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final String TOKEN_USED = "Token has been used";
   public static final String RESET_PASSWORD_DURATION_OVER = "Reset password time is over!!";
   public static final String ACCOUNT_ACTIVATED = "Account activated";
+  public static final int ACCOUNT_ACTIVATED_CODE = 10003;
   public static final String USER_NOT_LOGIN = "Please log in to use this function";
   public static final String USER_BAN_THEMSELF = "You can not ban your account";
   public static final String USER_UN_BAN_THEMSELF = "You can not unban your account";
