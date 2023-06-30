@@ -109,7 +109,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .successHandler((AuthenticationSuccessHandler) new OAuth2AuthenticationSuccessHandler(appProperties, httpCookieOAuth2AuthorizationRequestRepository))
         .failureHandler((AuthenticationFailureHandler) new OAuth2AuthenticationFailureHandler(httpCookieOAuth2AuthorizationRequestRepository));
-    http.addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManagerBean()));
+    http.addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManagerBean(), customUserDetailsService));
     http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 

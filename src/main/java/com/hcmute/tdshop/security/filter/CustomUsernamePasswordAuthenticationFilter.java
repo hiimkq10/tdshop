@@ -9,8 +9,11 @@ import com.hcmute.tdshop.dto.security.UserInfo;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.security.jwt.JwtTokenProvider;
 import com.hcmute.tdshop.security.model.CustomUserDetails;
+import com.hcmute.tdshop.security.service.CustomUserDetailsService;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +26,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.util.StringUtils;
 
@@ -30,9 +34,11 @@ import org.springframework.util.StringUtils;
 public class CustomUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
   private final AuthenticationManager authenticationManager;
+  private final CustomUserDetailsService customUserDetailsService;
 
-  public CustomUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager) {
+  public CustomUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager, CustomUserDetailsService customUserDetailsService) {
     this.authenticationManager = authenticationManager;
+    this.customUserDetailsService = customUserDetailsService;
   }
 
   @Override
@@ -42,11 +48,14 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
     LoginRequest loginRequest;
     String errorMessage = "";
     int status = ApplicationConstants.UNAUTHORIZED_CODE;
+    Map<String, Long> errorData = new HashMap<>();
     response.setContentType(APPLICATION_JSON_VALUE);
+    String username = "";
+    String password = "";
     try {
       loginRequest = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
-      String username = loginRequest.getUsername();
-      String password = loginRequest.getPassword();
+      username = loginRequest.getUsername();
+      password = loginRequest.getPassword();
       if (StringUtils.hasText(username) && StringUtils.hasText(password)) {
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(username, password);
@@ -57,6 +66,8 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
     } catch (DisabledException ex) {
       status = 10001;
       errorMessage = ApplicationConstants.ACCOUNT_INACTIVE;
+      CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername(username);
+      errorData.put("id", userDetails.getUser().getId());
     } catch (BadCredentialsException ex) {
       errorMessage = ApplicationConstants.USERNAME_OR_PASSWORD_INCORRECT;
     } catch (LockedException ex) {
@@ -70,7 +81,7 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
     try {
       objectMapper.writeValue(
           response.getOutputStream(),
-          new DataResponse(ApplicationConstants.UNAUTHORIZED, errorMessage, status)
+          new DataResponse(ApplicationConstants.UNAUTHORIZED, errorMessage, errorData, status)
       );
     } catch (IOException ex) {
       log.error("Error logging in: {}", ex.getMessage());
