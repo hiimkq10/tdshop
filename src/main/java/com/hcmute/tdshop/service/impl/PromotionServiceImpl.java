@@ -196,7 +196,7 @@ public class PromotionServiceImpl implements PromotionService {
               .collect(Collectors.toSet())));
 
       List<ProductPromotion> listOfProductPromotions = productPromotionRepository.findByProductId(product.getId());
-      if (product.getSetOfProductAttributes() != null && product.getSetOfProductAttributes().size() > 0) {
+      if (product.getSetOfProductPromotions() != null && product.getSetOfProductPromotions().size() > 0) {
         productPromotionRepository.deleteAll(listOfProductPromotions);
         product.getSetOfProductPromotions().clear();
       }

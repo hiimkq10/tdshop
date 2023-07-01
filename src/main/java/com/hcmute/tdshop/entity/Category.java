@@ -32,7 +32,7 @@ public class Category {
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "name", columnDefinition = "VARCHAR(50)", nullable = false, unique = true)
+  @Column(name = "name", columnDefinition = "VARCHAR(50)", nullable = false)
   private String name;
 
   @ManyToOne

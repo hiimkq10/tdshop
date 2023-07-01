@@ -68,10 +68,10 @@ public class CategoryServiceImpl implements CategoryService {
   @Override
   public DataResponse insertCategory(AddCategoryRequest request) {
     Category category = categoryMapper.AddCategoryRequestToCategory(request);
-    if (checkIfNameExisted(category.getName())) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NAME_EXISTED,
-          ApplicationConstants.BAD_REQUEST_CODE);
-    }
+//    if (checkIfNameExisted(category.getName())) {
+//      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NAME_EXISTED,
+//          ApplicationConstants.BAD_REQUEST_CODE);
+//    }
     Optional<MasterCategory> optionalMasterCategory = masterCategoryRepository.findById(request.getMasterCategoryId());
     if (optionalMasterCategory.isPresent()) {
       category.setMasterCategory(optionalMasterCategory.get());
@@ -102,13 +102,14 @@ public class CategoryServiceImpl implements CategoryService {
     if (optionalCategory.isPresent()) {
       Category currentCategory = optionalCategory.get();
       if (categoryToUpdate.getName() != null && !categoryToUpdate.getName().equals(currentCategory.getName())) {
-        if (!checkIfNameExisted(categoryToUpdate.getName())) {
-          currentCategory.setName(categoryToUpdate.getName());
-        }
-        else {
-          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NAME_EXISTED,
-              ApplicationConstants.BAD_REQUEST_CODE);
-        }
+//        if (!checkIfNameExisted(categoryToUpdate.getName())) {
+//          currentCategory.setName(categoryToUpdate.getName());
+//        }
+//        else {
+//          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NAME_EXISTED,
+//              ApplicationConstants.BAD_REQUEST_CODE);
+//        }
+        currentCategory.setName(categoryToUpdate.getName());
       }
       if (request.getParentCategoryId() > 0 && request.getParentCategoryId() != id && (currentCategory.getParent() == null || request.getParentCategoryId() != currentCategory.getParent().getId())) {
         Optional<Category> optionalParentCategory = categoryRepository.findById(request.getParentCategoryId());
