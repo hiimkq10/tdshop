@@ -1,12 +1,29 @@
 package com.hcmute.tdshop.utils;
 
+import com.hcmute.tdshop.entity.Attribute;
+import com.hcmute.tdshop.entity.Brand;
+import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.District;
+import com.hcmute.tdshop.entity.Image;
+import com.hcmute.tdshop.entity.Product;
+import com.hcmute.tdshop.entity.ProductAttribute;
+import com.hcmute.tdshop.entity.ProductStatus;
 import com.hcmute.tdshop.entity.Province;
+import com.hcmute.tdshop.entity.VariationOption;
 import com.hcmute.tdshop.entity.Wards;
 import com.hcmute.tdshop.enums.AdministrativeTypeEnum;
+import com.hcmute.tdshop.enums.ProductStatusEnum;
 import com.hcmute.tdshop.model.AdministrativeArea;
+import com.hcmute.tdshop.model.ProductExcel;
+import com.hcmute.tdshop.repository.AttributeRepository;
+import com.hcmute.tdshop.repository.BrandRepository;
+import com.hcmute.tdshop.repository.CategoryRepository;
 import com.hcmute.tdshop.repository.DistrictRepository;
+import com.hcmute.tdshop.repository.ProductRepository;
+import com.hcmute.tdshop.repository.ProductStatusRepository;
 import com.hcmute.tdshop.repository.ProvinceRepository;
+import com.hcmute.tdshop.repository.VariationOptionRepository;
+import com.hcmute.tdshop.repository.VariationRepository;
 import com.hcmute.tdshop.repository.WardsRepository;
 import com.hcmute.tdshop.utils.annotations.ExcelColumnIndex;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
@@ -22,6 +39,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javax.transaction.Transactional;
@@ -50,6 +68,24 @@ public class ExcelUtil {
   @Autowired
   WardsRepository wardsRepository;
 
+  @Autowired
+  ProductStatusRepository productStatusRepository;
+
+  @Autowired
+  CategoryRepository categoryRepository;
+
+  @Autowired
+  BrandRepository brandRepository;
+
+  @Autowired
+  AttributeRepository attributeRepository;
+
+  @Autowired
+  VariationOptionRepository variationOptionRepository;
+
+  @Autowired
+  ProductRepository productRepository;
+
   public Workbook getWorkbook(InputStream inputStream) throws IOException {
     return new XSSFWorkbook(inputStream);
   }
@@ -59,6 +95,92 @@ public class ExcelUtil {
       InstantiationException, IllegalAccessException, ParseException {
     Workbook workbook = getWorkbook(listObjectFile.getInputStream());
     return GetDataFromSheetAndMapToList(objectClass, sheetName, workbook);
+  }
+
+  @Transactional
+  public boolean insertProductToDatabase() throws IOException, NoSuchFieldException, InvocationTargetException,
+      NoSuchMethodException, InstantiationException, IllegalAccessException, ParseException {
+    InputStream inputStream = ExcelUtil.class.getResourceAsStream(ApplicationConstants.PRODUCTS_FILE);
+    Workbook workbook = getWorkbook(inputStream);
+    List<ProductExcel> productExcels =
+        GetDataFromSheetAndMapToList(ProductExcel.class, ApplicationConstants.PRODUCTS_SHEET_NAME, workbook);
+    ProductStatus productStatus = productStatusRepository.findById(ProductStatusEnum.ONSALE.getId()).get();
+    int size = productExcels.size();
+    LocalDateTime now = LocalDateTime.now();
+    ProductExcel productExcel = null;
+    Product product = null;
+    List<Category> categories = categoryRepository.findByParentIsNotNull();
+    Map<Long, Category> categoryMap = new HashMap<>();
+    for (Category category : categories) {
+      categoryMap.put(category.getId(), category);
+    }
+    List<Brand> brands = brandRepository.findAll();
+    Map<Long, Brand> brandMap = new HashMap<>();
+    for (Brand brand : brands) {
+      brandMap.put(brand.getId(), brand);
+    }
+    List<Attribute> attributes = attributeRepository.findAll();
+    Map<Long, Attribute> attributeMap = new HashMap<>();
+    for (Attribute attribute : attributes) {
+      attributeMap.put(attribute.getId(), attribute);
+    }
+    List<VariationOption> variationOptions = variationOptionRepository.findAll();
+    Map<Long, VariationOption> variationOptionMap = new HashMap<>();
+    for (VariationOption variationOption : variationOptions) {
+      variationOptionMap.put(variationOption.getId(), variationOption);
+    }
+    List<Product> products = new ArrayList<>();
+
+    for (int i = 0; i < size; i++) {
+      productExcel = productExcels.get(i);
+
+      product = new Product();
+      product.setSku(productExcel.getSku());
+      product.setName(productExcel.getName());
+      product.setImageUrl(productExcel.getImageUrl());
+      product.setPrice(productExcel.getPrice());
+      product.setDescription(productExcel.getDescription());
+      product.setShortDescription(productExcel.getShortDescription());
+      product.setTotal(productExcel.getTotal());
+      product.setSelAmount(0);
+      product.setLength(productExcel.getLength());
+      product.setWidth(productExcel.getWidth());
+      product.setHeight(productExcel.getHeight());
+      product.setWeight(productExcel.getWeight());
+      product.setCreatedAt(now);
+      product.setStatus(productStatus);
+      product.setSetOfCategories(new HashSet<>());
+      for (String cateId : productExcel.getCategories().split(", ")) {
+        product.getSetOfCategories().add(categoryMap.get(Long.valueOf(cateId)));
+        categoryMap.get(Long.valueOf(cateId)).getSetOfProducts().add(product);
+      }
+      product.setBrand(brandMap.get(productExcel.getBrandId()));
+      product.setSetOfImages(new HashSet<>());
+      for (String url : productExcel.getImageUrls().split(", ")) {
+        product.getSetOfImages().add(new Image(null, url, "", product));
+      }
+
+      Long id = product.getSetOfCategories().stream().findFirst().get().getMasterCategory().getId();
+      product.setSetOfProductAttributes(new HashSet<>());
+      if (id == 1) {
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(1), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(2), product));
+      } else if (id == 2) {
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(47), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(48), product));
+      } else if (id == 4) {
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(39), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(37), product));
+      }
+
+      product.setSetOfVariationOptions(new HashSet<>());
+      for (String variationOptionId : productExcel.getVariations().split(", ")) {
+        product.getSetOfVariationOptions().add(variationOptionMap.get(Long.valueOf(variationOptionId)));
+      }
+      products.add(product);
+    }
+    productRepository.saveAll(products);
+    return true;
   }
 
   // Temporary use, waiting to be replaced by flyway

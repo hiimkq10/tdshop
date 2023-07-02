@@ -1,8 +1,10 @@
 package com.hcmute.tdshop.utils.constants;
 
 public class ApplicationConstants {
+  public static final String PRODUCTS_FILE = "/data/products.xlsx";
+  public static final String PRODUCTS_SHEET_NAME = "Sheet1";
 //  public static final String AREAS_FILE = "src\\main\\resources\\data\\areas.xlsx";
-public static final String AREAS_FILE = "/data/areas.xlsx";
+  public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final String AREAS_SHEET_NAME = "Sheet1";
   // BE Endpoint
   public static final String activateAccountEndpoint= "/api/v1/auth/activate";

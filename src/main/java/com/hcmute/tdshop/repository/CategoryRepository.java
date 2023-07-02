@@ -11,5 +11,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
   long countByMasterCategory_Id(Long id);
   boolean existsByNameIgnoreCase(String name);
   boolean existsByParent_Id(Long id);
+  List<Category> findByParentIsNotNull();
   List<Category> findByMasterCategory_IdAndParentIsNull(Long id);
 }

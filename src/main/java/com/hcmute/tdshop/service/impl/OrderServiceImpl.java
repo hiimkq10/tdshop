@@ -28,6 +28,7 @@ import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
 import com.hcmute.tdshop.enums.ShipEnum;
 import com.hcmute.tdshop.mapper.OrderMapper;
+import com.hcmute.tdshop.mapper.ProductMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.AddressRepository;
 import com.hcmute.tdshop.repository.CartItemRepository;
@@ -121,6 +122,9 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   private UserNotificationRepository userNotificationRepository;
+
+  @Autowired
+  private ProductMapper productMapper;
 
   @Autowired
   @Qualifier("GHNShipService")
@@ -240,30 +244,39 @@ public class OrderServiceImpl implements OrderService {
       }
     }
 
+    // Check product quantity
+    List<Product> productOutOfStock = new ArrayList<>();
+    for (OrderDetail orderDetail : setOfOrderDetails) {
+      Product product = orderDetail.getProduct();
+      if (product.getTotal() < orderDetail.getQuantity()) {
+        productOutOfStock.add(product);
+      }
+    }
+    if (productOutOfStock.size() > 0) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_QUANTITY_NOT_ENOUGH,
+          productOutOfStock.stream().map(item -> productMapper.ProductToSimpleProductDto(item)),
+          ApplicationConstants.PRODUCT_QUANTITY_NOT_ENOUGH_CODE);
+    }
+
     for (OrderDetail orderDetail : setOfOrderDetails) {
       Product product = orderDetail.getProduct();
       List<Subscription> subscriptions = subscriptionRepository.findByProduct_Id(product.getId());
-      if (product.getTotal() >= orderDetail.getQuantity()) {
-        product.setTotal(product.getTotal() - orderDetail.getQuantity());
-        product.setSelAmount(product.getSelAmount() + orderDetail.getQuantity());
+      product.setTotal(product.getTotal() - orderDetail.getQuantity());
+      product.setSelAmount(product.getSelAmount() + orderDetail.getQuantity());
 
-        if (product.getTotal() == 0) {
-          Notification notification = notificationHelper.buildProductOutOfStockNotification(product);
-          notification = notificationRepository.save(notification);
-          Notification finalNotification = notification;
-          userNotifications.addAll(
-              subscriptions.stream()
-                  .filter(item -> item.getProduct().getId() == product.getId() && item.getUser().getId() != userId)
-                  .map(item -> new UserNotification(null, false, false, item.getUser(), finalNotification))
-                  .collect(
-                      Collectors.toList()));
-        }
-
-        listOfProducts.add(product);
-      } else {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_QUANTITY_NOT_ENOUGH,
-            ApplicationConstants.PRODUCT_QUANTITY_NOT_ENOUGH_CODE);
+      if (product.getTotal() == 0) {
+        Notification notification = notificationHelper.buildProductOutOfStockNotification(product);
+        notification = notificationRepository.save(notification);
+        Notification finalNotification = notification;
+        userNotifications.addAll(
+            subscriptions.stream()
+                .filter(item -> item.getProduct().getId() == product.getId() && item.getUser().getId() != userId)
+                .map(item -> new UserNotification(null, false, false, item.getUser(), finalNotification))
+                .collect(
+                    Collectors.toList()));
       }
+
+      listOfProducts.add(product);
     }
     productRepository.saveAllAndFlush(listOfProducts);
 

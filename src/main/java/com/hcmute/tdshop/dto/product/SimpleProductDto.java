@@ -25,6 +25,9 @@ public class SimpleProductDto {
   @JsonProperty("Brand")
   private Brand brand;
 
+  @JsonProperty("Total")
+  private int total;
+
   @JsonProperty("SelAmount")
   private int selAmount;
 
