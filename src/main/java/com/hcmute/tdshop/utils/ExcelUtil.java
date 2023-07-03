@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.utils;
 
+import com.hcmute.tdshop.entity.AccountRole;
 import com.hcmute.tdshop.entity.Attribute;
 import com.hcmute.tdshop.entity.Brand;
 import com.hcmute.tdshop.entity.Category;
@@ -9,12 +10,16 @@ import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductAttribute;
 import com.hcmute.tdshop.entity.ProductStatus;
 import com.hcmute.tdshop.entity.Province;
+import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.entity.VariationOption;
 import com.hcmute.tdshop.entity.Wards;
+import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.enums.AdministrativeTypeEnum;
 import com.hcmute.tdshop.enums.ProductStatusEnum;
 import com.hcmute.tdshop.model.AdministrativeArea;
 import com.hcmute.tdshop.model.ProductExcel;
+import com.hcmute.tdshop.model.UserExcel;
+import com.hcmute.tdshop.repository.AccountRoleRepository;
 import com.hcmute.tdshop.repository.AttributeRepository;
 import com.hcmute.tdshop.repository.BrandRepository;
 import com.hcmute.tdshop.repository.CategoryRepository;
@@ -22,6 +27,7 @@ import com.hcmute.tdshop.repository.DistrictRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ProductStatusRepository;
 import com.hcmute.tdshop.repository.ProvinceRepository;
+import com.hcmute.tdshop.repository.UserRepository;
 import com.hcmute.tdshop.repository.VariationOptionRepository;
 import com.hcmute.tdshop.repository.VariationRepository;
 import com.hcmute.tdshop.repository.WardsRepository;
@@ -33,6 +39,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -86,6 +93,12 @@ public class ExcelUtil {
   @Autowired
   ProductRepository productRepository;
 
+  @Autowired
+  AccountRoleRepository accountRoleRepository;
+
+  @Autowired
+  UserRepository userRepository;
+
   public Workbook getWorkbook(InputStream inputStream) throws IOException {
     return new XSSFWorkbook(inputStream);
   }
@@ -95,6 +108,40 @@ public class ExcelUtil {
       InstantiationException, IllegalAccessException, ParseException {
     Workbook workbook = getWorkbook(listObjectFile.getInputStream());
     return GetDataFromSheetAndMapToList(objectClass, sheetName, workbook);
+  }
+
+  @Transactional
+  public boolean insertUsersToDatabase() throws IOException, NoSuchFieldException, InvocationTargetException,
+      NoSuchMethodException, InstantiationException, IllegalAccessException, ParseException {
+    InputStream inputStream = ExcelUtil.class.getResourceAsStream(ApplicationConstants.USERS_FILE);
+    Workbook workbook = getWorkbook(inputStream);
+    List<UserExcel> userExcels =
+        GetDataFromSheetAndMapToList(UserExcel.class, ApplicationConstants.USERS_SHEET_NAME, workbook);
+    AccountRole role = accountRoleRepository.findById(AccountRoleEnum.ROLE_USER.getId()).get();
+    UserExcel userExcel;
+    List<User> users = new ArrayList<>();
+    User user;
+    LocalDateTime now = LocalDateTime.now();
+    int size = userExcels.size();
+    for (int i = 0; i < size; i++) {
+      userExcel = userExcels.get(i);
+      user = new User();
+      user.setFirstName(userExcel.getFirstName());
+      user.setLastName(userExcel.getLastName());
+      user.setEmail(userExcel.getEmail());
+      user.setPhone(userExcel.getPhone());
+      user.setBirthdate(userExcel.getBirthdate());
+      user.setGender(userExcel.getGender());
+      user.setUsername(userExcel.getUsername());
+      user.setPassword(userExcel.getPassword());
+      user.setRole(role);
+      user.setIsActive(true);
+      user.setIsVerified(true);
+      user.setCreatedAt(now);
+      users.add(user);
+    }
+    userRepository.saveAll(users);
+    return true;
   }
 
   @Transactional
@@ -163,14 +210,14 @@ public class ExcelUtil {
       Long id = product.getSetOfCategories().stream().findFirst().get().getMasterCategory().getId();
       product.setSetOfProductAttributes(new HashSet<>());
       if (id == 1) {
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(1), product));
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(2), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(1L), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(2L), product));
       } else if (id == 2) {
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(47), product));
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(48), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(47L), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(48L), product));
       } else if (id == 4) {
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(39), product));
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(37), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(39L), product));
+        product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(37L), product));
       }
 
       product.setSetOfVariationOptions(new HashSet<>());
@@ -259,6 +306,7 @@ public class ExcelUtil {
     DataFormatter dataFormatter = new DataFormatter();
     DateTimeFormatter dateTimeFormatter =
         new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd HH:mm:ss").toFormatter();
+    DateTimeFormatter dateFormatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd").toFormatter();
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     String value;
     Field[] objectFields = objectClass.getDeclaredFields();
@@ -298,6 +346,11 @@ public class ExcelUtil {
         } else if (objectFieldType.equals(Date.class)) {
           // java.util.Date
           objectField.set(object, simpleDateFormat.parse(value));
+        } else if (objectFieldType.equals(LocalDate.class)) {
+          // java.util.LocalDate
+          objectField.set(object, LocalDate.parse(value, dateFormatter));
+        } else if (objectFieldType.equals(Boolean.class)) {
+          objectField.set(object, Boolean.valueOf(value));
         }
       }
       listOfObjects.add(object);

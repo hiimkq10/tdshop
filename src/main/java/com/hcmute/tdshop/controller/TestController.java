@@ -91,12 +91,19 @@ public class TestController {
     return new DataResponse(notification);
   }
 
-  @GetMapping("/test-product-excel")
-  public DataResponse testProductExcel()
-      throws IOException, ParseException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-    excelUtil.insertProductToDatabase();
-    return DataResponse.SUCCESSFUL;
-  }
+//  @GetMapping("/test-user-excel")
+//  public DataResponse testUserExcel()
+//      throws IOException, ParseException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+//    excelUtil.insertUsersToDatabase();
+//    return DataResponse.SUCCESSFUL;
+//  }
+//
+//  @GetMapping("/test-product-excel")
+//  public DataResponse testProductExcel()
+//      throws IOException, ParseException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+//    excelUtil.insertProductToDatabase();
+//    return DataResponse.SUCCESSFUL;
+//  }
 
 //  @GetMapping("/test-excel")
 //  public DataResponse testExcel()

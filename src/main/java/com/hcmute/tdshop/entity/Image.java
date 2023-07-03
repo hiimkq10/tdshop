@@ -24,7 +24,7 @@ public class Image {
   @Column(name = "id", columnDefinition = "BIGINT")
   private Long id;
 
-  @Column(name = "logo", nullable = false, unique = true)
+  @Column(name = "logo", nullable = false)
   private String url;
 
   @Column(name = "label", columnDefinition = "VARCHAR(100)")

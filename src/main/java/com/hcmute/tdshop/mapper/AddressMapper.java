@@ -26,11 +26,11 @@ public abstract class AddressMapper {
     addressResponse.setAddressDetail(address.getAddressDetail());
     addressResponse.setIsDefault(address.getIsDefault());
     addressResponse.setProvinceId(address.getWards().getDistrict().getProvince().getId());
-    addressResponse.setProvinceName(String.format("%s %s", address.getWards().getDistrict().getProvince().getType(), address.getWards().getDistrict().getProvince().getName()));
+    addressResponse.setProvinceName(address.getWards().getDistrict().getProvince().getName());
     addressResponse.setDistrictId(address.getWards().getDistrict().getId());
-    addressResponse.setDistrictName(String.format("%s %s", address.getWards().getDistrict().getType(), address.getWards().getDistrict().getName()));
+    addressResponse.setDistrictName(address.getWards().getDistrict().getName());
     addressResponse.setWardsId(address.getWards().getId());
-    addressResponse.setWardsName(String.format("%s %s", address.getWards().getType(), address.getWards().getName()));
+    addressResponse.setWardsName(address.getWards().getName());
     addressResponse.setLat(address.getLat());
     addressResponse.setLng(address.getLng());
 

@@ -38,7 +38,7 @@ public class Product {
   @Column(name = "sku", columnDefinition = "VARCHAR(100)", nullable = false, unique = true)
   private String sku;
 
-  @Column(name = "name", columnDefinition = "VARCHAR(100)", nullable = false, unique = true)
+  @Column(name = "name", columnDefinition = "VARCHAR(255)", nullable = false, unique = true)
   private String name;
 
   @Column(name = "image_url", nullable = false)
