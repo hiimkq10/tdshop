@@ -2,9 +2,11 @@ package com.hcmute.tdshop.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.google.gson.Gson;
 import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.ProductInfoDto;
+import com.hcmute.tdshop.dto.product.RecommendProductResponse;
 import com.hcmute.tdshop.dto.product.SimpleProductDto;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.entity.Attribute;
@@ -15,8 +17,8 @@ import com.hcmute.tdshop.entity.Notification;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ProductAttribute;
 import com.hcmute.tdshop.entity.ProductStatus;
+import com.hcmute.tdshop.entity.UserClick;
 import com.hcmute.tdshop.entity.VariationOption;
-import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.enums.ProductStatusEnum;
 import com.hcmute.tdshop.mapper.ProductMapper;
 import com.hcmute.tdshop.model.DataResponse;
@@ -28,6 +30,7 @@ import com.hcmute.tdshop.repository.NotificationRepository;
 import com.hcmute.tdshop.repository.ProductAttributeRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ProductStatusRepository;
+import com.hcmute.tdshop.repository.UserClickRepository;
 import com.hcmute.tdshop.repository.VariationOptionRepository;
 import com.hcmute.tdshop.service.ProductService;
 import com.hcmute.tdshop.specification.ProductSpecification;
@@ -39,34 +42,48 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
+import org.springframework.web.reactive.function.client.WebClient.UriSpec;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
-//  @Value("${CLOUDINARY_URL}")
+  Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+
+  //  @Value("${CLOUDINARY_URL}")
   private String cloudinaryURL = "cloudinary://484587933643945:LZyMCt-jqVo9hbKSkH3JT2tn0oo@dd4dftliy";
 
-//  @Value("${cloudinaryProductImagePath}")
+  //  @Value("${cloudinaryProductImagePath}")
   private String imagePath = "tdshop/product/images";
+
+  @Value("${app.click-history.allowed-range-in-day}")
+  private int clickRangeInDay;
 
   private Cloudinary cloudinary;
 
@@ -102,6 +119,9 @@ public class ProductServiceImpl implements ProductService {
 
   @Autowired
   private NotificationHelper notificationHelper;
+
+  @Autowired
+  private UserClickRepository userClickRepository;
 
   @Override
   public DataResponse getAllProducts(Pageable page) {
@@ -233,7 +253,8 @@ public class ProductServiceImpl implements ProductService {
   @Override
   public DataResponse searchProductsByFilterForAdmin(String keyword, long categoryId, double maxPrice, double minPrice,
       String brand, Long brandId, Set<Long> variationOptionIds, Pageable page) {
-    Specification<Product> conditions = buildCriteria(keyword, categoryId, maxPrice, minPrice, brand, brandId, variationOptionIds);
+    Specification<Product> conditions = buildCriteria(keyword, categoryId, maxPrice, minPrice, brand, brandId,
+        variationOptionIds);
     Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
     List<Product> listOfProducts = pageOfProducts.getContent();
 
@@ -248,7 +269,8 @@ public class ProductServiceImpl implements ProductService {
   @Override
   public DataResponse getProductsByFilterForAdmin(String keyword, long categoryId, double maxPrice, double minPrice,
       String brand, Long brandId, Set<Long> variationOptionIds, Pageable page) {
-    Specification<Product> conditions = buildCriteria(keyword, categoryId, maxPrice, minPrice, brand, brandId, variationOptionIds);
+    Specification<Product> conditions = buildCriteria(keyword, categoryId, maxPrice, minPrice, brand, brandId,
+        variationOptionIds);
     Page<Product> pageOfProducts = productRepository.findAll(conditions, page);
     List<Product> listOfProducts = pageOfProducts.getContent();
 
@@ -486,7 +508,8 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional
-  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage, List<MultipartFile> images) {
+  public DataResponse updateProduct(long id, UpdateProductRequest request, MultipartFile mainImage,
+      List<MultipartFile> images) {
     Product productToUpdate = productMapper.UpdateProductRequestToProduct(request);
     Optional<Product> optionalProduct = productRepository.findById(id);
     if (optionalProduct.isPresent()) {
@@ -807,6 +830,27 @@ public class ProductServiceImpl implements ProductService {
     return new DataResponse(ApplicationConstants.BAD_REQUEST, message, ApplicationConstants.BAD_REQUEST_CODE);
   }
 
+  @Override
+  public DataResponse recommendProducts() {
+    long userId = AuthenticationHelper.getCurrentLoggedInUserId();
+    List<String> productIds = new ArrayList<>();
+    if (userId > 0) {
+      List<UserClick> clicks = userClickRepository.findFirst15ByUser_IdIsOrderByCreatedAtDesc(userId);
+      if (clicks.size() > 0) {
+        LocalDateTime maxDate = clicks.get(clicks.size() - 1).getCreatedAt();
+        LocalDateTime minDate = maxDate.minusDays(clickRangeInDay);
+        List<UserClick> olderClicks = userClickRepository.findByUser_IdIsAndCreatedAtBetween(userId, minDate, maxDate);
+        clicks.addAll(olderClicks);
+      }
+      productIds.addAll(clicks.stream().map(c -> c.getProduct().getId().toString()).collect(Collectors.toList()));
+    }
+    List<String> recommendedProductIds = getRecommendedProducts(productIds);
+    List<Product> products = productRepository.findByIdInAndStatus_IdInAndDeletedAtNull(
+        recommendedProductIds.stream().map(Long::valueOf).collect(
+            Collectors.toList()), Arrays.asList(ProductStatusEnum.ONSALE.getId()));
+    return new DataResponse(products.stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()));
+  }
+
   private String uploadProductImage(MultipartFile image) {
     this.cloudinary = new Cloudinary(cloudinaryURL);
     this.cloudinary.config.secure = true;
@@ -953,5 +997,34 @@ public class ProductServiceImpl implements ProductService {
       digits[i] = (char) (random.nextInt(10) + '0');
     }
     return String.valueOf(digits);
+  }
+
+  public List<String> getRecommendedProducts(List<String> productIds) {
+    try {
+      Gson gsonObj = new Gson();
+      WebClient client = WebClient.builder().baseUrl("https://airecomendation-2bd712ac5d3b.herokuapp.com/")
+          .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
+      UriSpec<RequestBodySpec> uriSpec = (UriSpec<RequestBodySpec>) client.post();
+      RequestBodySpec bodySpec = uriSpec.uri(
+          uriBuilder -> uriBuilder.path("/recommend").build());
+
+      Map<String, Object> data = new HashMap<>();
+      data.put("ids", productIds);
+      String json = gsonObj.toJson(data);
+
+      bodySpec.body(BodyInserters.fromValue(json));
+
+      Mono<RecommendProductResponse> response = bodySpec.retrieve().bodyToMono(RecommendProductResponse.class);
+      RecommendProductResponse productResponse = response.block();
+      if (productResponse.getStatus() != 200 || productResponse.getIds() == null
+          || productResponse.getIds().size() <= 0) {
+        logger.error(productResponse.getMessage());
+        throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
+      }
+      return productResponse.getIds();
+    } catch (Exception e) {
+      logger.error(e.getMessage());
+      throw new RuntimeException(ApplicationConstants.UNEXPECTED_ERROR);
+    }
   }
 }

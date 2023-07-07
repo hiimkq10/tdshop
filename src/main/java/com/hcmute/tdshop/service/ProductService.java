@@ -36,4 +36,6 @@ public interface ProductService {
   public DataResponse deleteProduct(long id);
 
   public DataResponse changeProductStatus(ChangeProductStatusRequest request);
+
+  public DataResponse recommendProducts();
 }

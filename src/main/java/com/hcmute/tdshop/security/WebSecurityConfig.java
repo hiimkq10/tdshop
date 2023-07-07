@@ -42,7 +42,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       "/promotion/get**", "/promotion/get**/**", "/promotion/search",
       "/payment/success**", "/payment-method/**",
       "/review/get-all", "/review/search", "/review/product-avg",
-      "/token/refresh", "/", "/order/register-client/**", "/order/send-message", "/test/posttest", "/order/send-dummy-message/**"};
+      "/token/refresh", "/", "/order/register-client/**",
+      "/order/send-message", "/test/posttest", "/order/send-dummy-message/**"
+  };
   @Autowired
   CustomUserDetailsService customUserDetailsService;
 

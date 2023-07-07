@@ -3,11 +3,13 @@ package com.hcmute.tdshop.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
+import com.hcmute.tdshop.dto.product.AddClickRequest;
 import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
 import com.hcmute.tdshop.dto.subscription.FollowDto;
 import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.service.ClickService;
 import com.hcmute.tdshop.service.ProductService;
 import com.hcmute.tdshop.service.SubscriptionService;
 import java.util.List;
@@ -37,6 +39,9 @@ public class ProductController {
 
   @Autowired
   private SubscriptionService subscriptionService;
+
+  @Autowired
+  private ClickService clickService;
 
   @GetMapping("/get-all")
   public DataResponse getAllProducts(Pageable pageable) {
@@ -165,5 +170,15 @@ public class ProductController {
   @GetMapping("/check-follow/{product-id}")
   public DataResponse checkFollow(@PathVariable(name = "product-id") long id) {
     return subscriptionService.checkFollow(id);
+  }
+
+  @PostMapping("/click")
+  public DataResponse clickProduct(@RequestBody AddClickRequest request) {
+    return clickService.addClick(request);
+  }
+
+  @GetMapping("/recommend")
+  public DataResponse recommendProducts() {
+    return productService.recommendProducts();
   }
 }

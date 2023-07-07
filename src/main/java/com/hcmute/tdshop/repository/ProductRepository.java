@@ -22,7 +22,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
   boolean existsByIdAndStatus_IdInAndDeletedAtNull(Long id, Long[] ids);
   Set<Product> findByIdIn(Set<Long> ids);
   long countByBrand_Id(Long id);
+  Optional<Product> findByIdAndDeletedAtNull(Long id);
   boolean existsBySetOfCategoriesContains(Category category);
+  List<Product> findByIdInAndStatus_IdInAndDeletedAtNull(List<Long> ids, List<Long> sids);
 //  boolean existsByAttribute_AttributeSet_Id(Long id);
 
   @Query(

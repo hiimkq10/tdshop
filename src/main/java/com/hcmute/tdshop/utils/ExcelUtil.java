@@ -16,6 +16,7 @@ import com.hcmute.tdshop.entity.Wards;
 import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.enums.AdministrativeTypeEnum;
 import com.hcmute.tdshop.enums.ProductStatusEnum;
+import com.hcmute.tdshop.enums.ProductUserInteractExcel;
 import com.hcmute.tdshop.model.AdministrativeArea;
 import com.hcmute.tdshop.model.ProductExcel;
 import com.hcmute.tdshop.model.UserExcel;
@@ -29,7 +30,6 @@ import com.hcmute.tdshop.repository.ProductStatusRepository;
 import com.hcmute.tdshop.repository.ProvinceRepository;
 import com.hcmute.tdshop.repository.UserRepository;
 import com.hcmute.tdshop.repository.VariationOptionRepository;
-import com.hcmute.tdshop.repository.VariationRepository;
 import com.hcmute.tdshop.repository.WardsRepository;
 import com.hcmute.tdshop.utils.annotations.ExcelColumnIndex;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
@@ -44,15 +44,19 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -66,6 +70,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public class ExcelUtil {
+
   @Autowired
   ProvinceRepository provinceRepository;
 
@@ -108,6 +113,168 @@ public class ExcelUtil {
       InstantiationException, IllegalAccessException, ParseException {
     Workbook workbook = getWorkbook(listObjectFile.getInputStream());
     return GetDataFromSheetAndMapToList(objectClass, sheetName, workbook);
+  }
+
+  public List<ProductUserInteractExcel> generateDataForRecomendationSystem() {
+    List<Long> allowedMasterCategory = Arrays.asList(1L, 2L);
+    List<Category> laptopCategory = categoryRepository.findByMasterCategory_IdAndParentIsNotNull(1L);
+    List<Category> phoneCategory = categoryRepository.findByMasterCategory_IdAndParentIsNotNull(2L);
+    Map<Long, List<Category>> mCategoryMap = new HashMap<>();
+    mCategoryMap.put(1L, laptopCategory);
+    mCategoryMap.put(2L, phoneCategory);
+    List<Category> categories = new ArrayList<>();
+    List<User> users = userRepository.findAll();
+
+    DistributedRandomNumberGenerator choosenCategoryGenerator;
+    DistributedRandomNumberGenerator choosenProductGenerator;
+    DistributedRandomNumberGenerator boughtProductGenerator;
+    DistributedRandomNumberGenerator ratedProductGenerator;
+
+    // 5* 40% 4* 20% 3* 15% 2* 15% 1* 10%
+    DistributedRandomNumberGenerator ratingGenerator = new DistributedRandomNumberGenerator();
+    ratingGenerator.addNumber(5, 0.4);
+    ratingGenerator.addNumber(4, 0.2);
+    ratingGenerator.addNumber(3, 0.15);
+    ratingGenerator.addNumber(2, 0.15);
+    ratingGenerator.addNumber(1, 0.1);
+
+    Map<Integer, Category> categoryMap = new HashMap<>();
+    List<ProductUserInteractExcel> data = new ArrayList<>();
+    List<Category> choosenCategories = new ArrayList<>();
+    Set<Product> products = new HashSet<>();
+    Map<Integer, Product> productMap = new HashMap<>();
+    List<Product> choosenProducts = new ArrayList<>();
+    Map<Integer, Product> choosenProductMap = new HashMap<>();
+    List<Product> boughtProducts = new ArrayList<>();
+    Map<Integer, Product> boughtProductMap = new HashMap<>();
+    List<Product> ratedProducts = new ArrayList<>();
+
+    int mCateSize = 0;
+    int productSize = 0;
+    int pickedCategories = 0;
+    int pickedProducts = 0;
+    int randNum = 0;
+    int i = 1;
+    int limit = 0;
+    Long orderId = 1L;
+    int numOrder;
+    for (User user : users) {
+//      numOrder = getRandomNumber(5, 9);
+      numOrder = 8;
+      while (numOrder != 0) {
+        // Pick master category
+        choosenCategoryGenerator = new DistributedRandomNumberGenerator();
+        categoryMap.clear();
+        categories = mCategoryMap.get((long) getRandomNumber(1, 3));
+        mCateSize = categories.size();
+        for (i = 1; i <= mCateSize; i++) {
+          categoryMap.put(i, categories.get(i - 1));
+          choosenCategoryGenerator.addNumber(i, 1.0 / mCateSize);
+        }
+
+        // reset generators
+        choosenProductGenerator = new DistributedRandomNumberGenerator();
+        boughtProductGenerator = new DistributedRandomNumberGenerator();
+        ratedProductGenerator = new DistributedRandomNumberGenerator();
+
+        // Clear all product
+        choosenCategories.clear();
+        products.clear();
+        productMap.clear();
+        choosenProducts.clear();
+        choosenProductMap.clear();
+        boughtProducts.clear();
+        boughtProductMap.clear();
+        ratedProducts.clear();
+
+        // Choose 2 - 4 category
+        limit = getRandomNumber(2, 5);
+        pickedCategories = 0;
+        while (pickedCategories != limit) {
+          randNum = choosenCategoryGenerator.getDistributedRandomNumber();
+          if (randNum != 0) {
+            choosenCategories.add(categoryMap.get(randNum));
+            pickedCategories++;
+          }
+        }
+
+        // Choose 25 - 40 product
+        for (Category category : choosenCategories) {
+          products.addAll(category.getSetOfProducts());
+        }
+        productSize = products.size();
+        i = 1;
+        for (Product product : products) {
+          productMap.put(i, product);
+          choosenProductGenerator.addNumber(i, 1.0 / productSize);
+          i++;
+        }
+        limit = getRandomNumber(20, 41);
+        while (pickedProducts != limit) {
+          randNum = choosenProductGenerator.getDistributedRandomNumber();
+          if (randNum != 0) {
+            choosenProducts.add(productMap.get(randNum));
+            pickedProducts++;
+          }
+        }
+
+        // Choose 5 bought product
+        i = 1;
+        productSize = choosenProducts.size();
+        for (Product product : choosenProducts) {
+          choosenProductMap.put(i, product);
+          boughtProductGenerator.addNumber(i, 1.0 / productSize);
+          i++;
+        }
+        pickedProducts = 0;
+        while (pickedProducts != 5) {
+          randNum = boughtProductGenerator.getDistributedRandomNumber();
+          if (randNum != 0) {
+            boughtProducts.add(choosenProductMap.get(randNum));
+            pickedProducts++;
+          }
+        }
+
+        // Choose 2 rated product
+        i = 1;
+        productSize = boughtProducts.size();
+        for (Product product : boughtProducts) {
+          boughtProductMap.put(i, product);
+          ratedProductGenerator.addNumber(i, 1.0 / productSize);
+          i++;
+        }
+        pickedProducts = 0;
+        while (pickedProducts != 2) {
+          randNum = ratedProductGenerator.getDistributedRandomNumber();
+          if (randNum != 0) {
+            ratedProducts.add(boughtProductMap.get(randNum));
+            pickedProducts++;
+          }
+        }
+
+        for (Product product : choosenProducts) {
+          data.add(
+              new ProductUserInteractExcel
+                  (
+                      orderId,
+                      user.getId(),
+                      product.getId(),
+                      StringUtils.join(choosenCategories.stream().map(Category::getId).collect(Collectors.toList()), ", "),
+                      boughtProducts.contains(product) ? 1 : 0,
+                      ratedProducts.contains(product) ? ratingGenerator.getDistributedRandomNumber() : 0
+                  )
+          );
+        }
+        numOrder--;
+        orderId++;
+      }
+    }
+    System.out.println(data.size());
+    return data;
+  }
+
+  public int getRandomNumber(int min, int max) {
+    return (int) ((Math.random() * (max - min)) + min);
   }
 
   @Transactional
@@ -210,13 +377,16 @@ public class ExcelUtil {
       Long id = product.getSetOfCategories().stream().findFirst().get().getMasterCategory().getId();
       product.setSetOfProductAttributes(new HashSet<>());
       if (id == 1) {
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(1L), product));
+        product.getSetOfProductAttributes()
+            .add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(1L), product));
         product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(2L), product));
       } else if (id == 2) {
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(47L), product));
+        product.getSetOfProductAttributes()
+            .add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(47L), product));
         product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(48L), product));
       } else if (id == 4) {
-        product.getSetOfProductAttributes().add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(39L), product));
+        product.getSetOfProductAttributes()
+            .add(new ProductAttribute(null, product.getBrand().getName(), attributeMap.get(39L), product));
         product.getSetOfProductAttributes().add(new ProductAttribute(null, "12 tháng", attributeMap.get(37L), product));
       }
 
@@ -254,7 +424,9 @@ public class ExcelUtil {
       }
       if (!provinceMap.containsKey(area.getProvinceId())) {
         tempArea = generateArea(area.getProvinceName());
-        provinceMap.put(area.getProvinceId(), new Province(area.getProvinceId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(), tempArea.getPriority(), null));
+        provinceMap.put(area.getProvinceId(),
+            new Province(area.getProvinceId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(),
+                tempArea.getPriority(), null));
       }
 
       if (area.getDistrictId() == 0) {
@@ -262,14 +434,17 @@ public class ExcelUtil {
       }
       if (!districtMap.containsKey(area.getDistrictId())) {
         tempArea = generateArea(area.getDistrictName());
-        districtMap.put(area.getDistrictId(), new District(area.getDistrictId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(), tempArea.getPriority(), provinceMap.get(area.getProvinceId()), null));
+        districtMap.put(area.getDistrictId(),
+            new District(area.getDistrictId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(),
+                tempArea.getPriority(), provinceMap.get(area.getProvinceId()), null));
       }
 
       if (area.getWardId() == 0) {
         continue;
       }
       tempArea = generateArea(area.getWardName());
-      wards.add(new Wards(area.getWardId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(), tempArea.getPriority(), districtMap.get(area.getDistrictId())));
+      wards.add(new Wards(area.getWardId(), tempArea.getName(), tempArea.getShortName(), tempArea.getType(),
+          tempArea.getPriority(), districtMap.get(area.getDistrictId())));
     }
     provinceRepository.saveAll(provinceMap.values());
     districtRepository.saveAll(districtMap.values());
@@ -362,6 +537,7 @@ public class ExcelUtil {
   @AllArgsConstructor
   @NoArgsConstructor
   class Area {
+
     private String type;
     private String name;
     private String shortName;
