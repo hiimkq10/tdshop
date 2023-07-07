@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserClickRepository extends JpaRepository<UserClick, Long> {
+  List<UserClick> findByUser_IdAndOrder_IdIsNull(long id);
   List<UserClick> findFirst15ByUser_IdIsOrderByCreatedAtDesc(long id);
   List<UserClick> findByUser_IdIsAndCreatedAtBetween(long id, LocalDateTime minDate, LocalDateTime maxDate);
 }

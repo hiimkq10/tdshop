@@ -23,6 +23,7 @@ import com.hcmute.tdshop.entity.OrderStatus;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.entity.Subscription;
+import com.hcmute.tdshop.entity.UserClick;
 import com.hcmute.tdshop.entity.UserNotification;
 import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
@@ -39,6 +40,7 @@ import com.hcmute.tdshop.repository.OrderStatusRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShopOrderRepository;
 import com.hcmute.tdshop.repository.SubscriptionRepository;
+import com.hcmute.tdshop.repository.UserClickRepository;
 import com.hcmute.tdshop.repository.UserNotificationRepository;
 import com.hcmute.tdshop.service.OrderService;
 import com.hcmute.tdshop.service.payment.PaymentServiceImpl;
@@ -113,6 +115,9 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   private NotificationRepository notificationRepository;
+
+  @Autowired
+  private UserClickRepository userClickRepository;
 
   @Autowired
   private NotificationHelper notificationHelper;
@@ -309,12 +314,20 @@ public class OrderServiceImpl implements OrderService {
     cart.getSetOfCartItems().removeAll(setOfCartItems);
     cartItemRepository.deleteAll(setOfCartItems);
 
+    // Handle user click for this new order
+    List<UserClick> clicks = userClickRepository.findByUser_IdAndOrder_IdIsNull(userId);
+
     if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
       order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.PROCCESSING.getId()).get());
     } else {
       order.setOrderStatus(orderStatusRepository.findById(OrderStatusEnum.AWAITINGPAYMENT.getId()).get());
       order = orderRepository.save(order);
       orderDetailRepository.saveAll(order.getSetOfOrderDetails());
+
+      for (UserClick click : clicks) {
+        click.setOrder(order);
+      }
+      userClickRepository.saveAll(clicks);
 
       MomoPaymentResponse momoResponse = paymentService.execute(order);
 
@@ -325,6 +338,11 @@ public class OrderServiceImpl implements OrderService {
     }
     order = orderRepository.save(order);
     orderDetailRepository.saveAll(order.getSetOfOrderDetails());
+
+    for (UserClick click : clicks) {
+      click.setOrder(order);
+    }
+    userClickRepository.saveAll(clicks);
 
     // Save user notification
     userNotificationRepository.saveAll(userNotifications);
