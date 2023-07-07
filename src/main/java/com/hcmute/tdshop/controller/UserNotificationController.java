@@ -3,6 +3,7 @@ package com.hcmute.tdshop.controller;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.UserNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,8 +22,9 @@ public class UserNotificationController {
   @GetMapping("/search")
   public DataResponse search(
       @RequestParam(name = "user-id", required = false) Long userId,
-      @RequestParam(name = "noti-id", required = false) Long notiId) {
-    return userNotificationService.search(userId, notiId);
+      @RequestParam(name = "noti-id", required = false) Long notiId,
+      Pageable pageable) {
+    return userNotificationService.search(userId, notiId, pageable);
   }
 
   @PostMapping("/mark-as-read/{id}")

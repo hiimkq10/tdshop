@@ -13,10 +13,13 @@ import com.hcmute.tdshop.specification.UserNotificationSpecification;
 import com.hcmute.tdshop.utils.SpecificationHelper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +35,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
   private UserRepository userRepository;
 
   @Override
-  public DataResponse search(Long userId, Long notiId) {
+  public DataResponse search(Long userId, Long notiId, Pageable pageable) {
     Optional<User> optionalUser = userRepository.findById(userId);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
@@ -49,6 +52,19 @@ public class UserNotificationServiceImpl implements UserNotificationService {
           userNotification = userNotificationRepository.save(userNotification);
 //          n.getListOfUserNotifications().add(userNotification);
           userNotifications.add(userNotification);
+        }
+      });
+      Collections.sort(userNotifications, new Comparator<UserNotification>() {
+        @Override
+        public int compare(UserNotification o1, UserNotification o2) {
+          long sub = o2.getId() - o1.getId();
+          if (sub > 0) {
+            return 1;
+          }
+          if (sub < 0) {
+            return -1;
+          }
+          return 0;
         }
       });
       return new DataResponse(userNotifications);
