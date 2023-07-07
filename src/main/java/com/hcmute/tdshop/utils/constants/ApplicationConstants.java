@@ -138,6 +138,8 @@ public class ApplicationConstants {
 
   public static final String PRODUCT_STATUS_INVALID = "Product status invalid";
   public static final String PRODUCT_STATUS_NOT_FOUND = "Product status not found";
+  public static final String PRODUCT_BUY_INVALID = "Product invalid";
+  public static final int PRODUCT_BUY_INVALID_CODE = 90001;
 
   // ------------------------------ CART -------------------------------------
   public static final String IMAGE_UPLOAD_FAILED = "Failed to save image!! Please check your network and try again";

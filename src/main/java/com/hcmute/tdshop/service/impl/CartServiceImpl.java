@@ -2,13 +2,16 @@ package com.hcmute.tdshop.service.impl;
 
 import com.hcmute.tdshop.dto.cart.AddProductToCartRequest;
 import com.hcmute.tdshop.dto.cart.ChangeProductQuantityRequest;
+import com.hcmute.tdshop.dto.cart.CheckCartProductValidRequest;
 import com.hcmute.tdshop.dto.cart.RemoveProductFromCartRequest;
+import com.hcmute.tdshop.dto.order.OrderProductDto;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.enums.ProductStatusEnum;
 import com.hcmute.tdshop.mapper.CartMapper;
+import com.hcmute.tdshop.mapper.ProductMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.CartItemRepository;
 import com.hcmute.tdshop.repository.CartRepository;
@@ -18,9 +21,14 @@ import com.hcmute.tdshop.service.CartService;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.Helper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +52,9 @@ public class CartServiceImpl implements CartService {
 
   @Autowired
   private Helper helper;
+
+  @Autowired
+  private ProductMapper productMapper;
 
   @Override
   public DataResponse getCartByUserId() {
@@ -172,5 +183,29 @@ public class CartServiceImpl implements CartService {
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND,
         ApplicationConstants.BAD_REQUEST_CODE);
+  }
+
+  @Override
+  public DataResponse checkCartProductValid(CheckCartProductValidRequest request) {
+    List<Product> products = productRepository.findAllById(
+        request.getProducts().stream().map(OrderProductDto::getProductId).collect(Collectors.toList()));
+    Map<Long, Integer> quantityMap = new HashMap<>();
+    for (OrderProductDto dto : request.getProducts()) {
+      quantityMap.put(dto.getProductId(), dto.getQuantity());
+    }
+    List<Product> invalidProducts = new ArrayList<>();
+    for (Product product : products) {
+      if (product.getDeletedAt() != null
+          || product.getStatus().getId() != (ProductStatusEnum.ONSALE.getId())
+          || product.getTotal() < quantityMap.get(product.getId())) {
+        invalidProducts.add(product);
+      }
+    }
+    if (invalidProducts.size() > 0) {
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_BUY_INVALID,
+          invalidProducts.stream().map(productMapper::ProductToSimpleProductDto),
+          ApplicationConstants.PRODUCT_BUY_INVALID_CODE);
+    }
+    return DataResponse.SUCCESSFUL;
   }
 }

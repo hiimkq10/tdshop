@@ -19,6 +19,7 @@ import com.hcmute.tdshop.entity.VariationOption;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -27,9 +28,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring")
 public abstract class ProductMapper {
+  @Autowired
+  CategoryMapper categoryMapper;
 
   public SimpleProductDto ProductToSimpleProductDto(Product product) {
     if ( product == null ) {
@@ -47,6 +51,15 @@ public abstract class ProductMapper {
     simpleProductDto.setTotal(product.getTotal());
     simpleProductDto.setSelAmount(product.getSelAmount());
     simpleProductDto.setProductPromotion( ProductPromotionToProductPromotionDto( getCurrentPromotion(product) ) );
+    simpleProductDto.setSetOfVariationOptions( variationOptionSetToProductVariationOptionDtoSet( product.getSetOfVariationOptions() ) );;
+    simpleProductDto.setCategories(new ArrayList<>());
+
+    if (product.getSetOfCategories() != null && product.getSetOfCategories().size() > 0) {
+      simpleProductDto.setMCategory(product.getSetOfCategories().stream().findFirst().get().getMasterCategory());
+      for (Category category : product.getSetOfCategories()) {
+        simpleProductDto.getCategories().add(categoryMapper.CategoryToCategoryDto(category));
+      }
+    }
 
     return simpleProductDto;
   }

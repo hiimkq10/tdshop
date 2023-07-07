@@ -1,7 +1,13 @@
 package com.hcmute.tdshop.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hcmute.tdshop.dto.category.CategoryDto;
+import com.hcmute.tdshop.dto.variationoption.VariationOptionDto;
 import com.hcmute.tdshop.entity.Brand;
+import com.hcmute.tdshop.entity.MasterCategory;
+import com.hcmute.tdshop.entity.VariationOption;
+import java.util.List;
+import java.util.Set;
 import lombok.Data;
 
 @Data
@@ -33,4 +39,13 @@ public class SimpleProductDto {
 
   @JsonProperty("Discount")
   private ProductPromotionDto productPromotion;
+
+  @JsonProperty("MCategory")
+  private MasterCategory mCategory;
+
+  @JsonProperty("Categories")
+  private List<CategoryDto> categories;
+
+  @JsonProperty("Variations")
+  private Set<ProductVariationOptionDto> setOfVariationOptions;
 }

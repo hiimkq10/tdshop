@@ -2,6 +2,7 @@ package com.hcmute.tdshop.controller;
 
 import com.hcmute.tdshop.dto.cart.AddProductToCartRequest;
 import com.hcmute.tdshop.dto.cart.ChangeProductQuantityRequest;
+import com.hcmute.tdshop.dto.cart.CheckCartProductValidRequest;
 import com.hcmute.tdshop.dto.cart.RemoveProductFromCartRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.CartService;
@@ -38,5 +39,10 @@ public class CartController {
   @PostMapping("/remove")
   public DataResponse removeProductFromCart(@RequestBody @Valid RemoveProductFromCartRequest request) {
     return cartService.removeProductFromCart(request);
+  }
+
+  @PostMapping("/check-product")
+  public DataResponse checkCartProductValid(@RequestBody @Valid CheckCartProductValidRequest request) {
+    return cartService.checkCartProductValid(request);
   }
 }
