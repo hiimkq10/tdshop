@@ -67,7 +67,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
           return 0;
         }
       });
-      return new DataResponse(userNotifications);
+      return new DataResponse(userNotifications.stream().filter(item -> item.getIsDeleted() == null || !item.getIsDeleted()));
     }
     throw new RuntimeException(ApplicationConstants.USER_NOT_FOUND);
   }
