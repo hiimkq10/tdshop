@@ -58,6 +58,7 @@ import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -523,6 +524,9 @@ public class OrderServiceImpl implements OrderService {
       order.setOrderStatus(cancelStatus);
       List<Product> listOfProducts = new ArrayList<>();
       Iterator<OrderDetail> orderDetailIterator = order.getSetOfOrderDetails().iterator();
+
+      Cart cart = cartRepository.findByUser_Id(order.getUser().getId()).orElse(null);
+      CartItem cartItem = null;
       int selAmount;
       while (orderDetailIterator.hasNext()) {
         OrderDetail orderDetail = orderDetailIterator.next();
@@ -530,9 +534,22 @@ public class OrderServiceImpl implements OrderService {
         selAmount = orderDetail.getProduct().getSelAmount() - orderDetail.getQuantity();
         orderDetail.getProduct().setSelAmount(Math.max(selAmount, 0));
         listOfProducts.add(orderDetail.getProduct());
+
+        if (cart != null) {
+          cartItem = cart.getSetOfCartItems().stream().filter(item -> Objects.equals(item.getProduct().getId(),
+              orderDetail.getProduct().getId())).findFirst().orElse(null);
+          if (cartItem != null) {
+            cartItem.setQuantity(cartItem.getQuantity() + orderDetail.getQuantity());
+          } else {
+            cart.getSetOfCartItems().add(new CartItem(null, orderDetail.getQuantity(), cart, orderDetail.getProduct()));
+          }
+        }
       }
       orderRepository.saveAndFlush(order);
       productRepository.saveAllAndFlush(listOfProducts);
+      if (cart != null) {
+        cartRepository.saveAndFlush(cart);
+      }
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_PAYMENT_EXPIRED,
           orderMapper.OrderToOrderResponse(order), ApplicationConstants.ORDER_PAYMENT_EXPIRED_CODE);
     }

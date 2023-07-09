@@ -1,24 +1,29 @@
 package com.hcmute.tdshop.scheduledtask;
 
 import com.hcmute.tdshop.config.AppProperties;
+import com.hcmute.tdshop.entity.Cart;
+import com.hcmute.tdshop.entity.CartItem;
 import com.hcmute.tdshop.entity.OrderDetail;
 import com.hcmute.tdshop.entity.OrderStatus;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.ShipEnum;
-import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.repository.CartRepository;
 import com.hcmute.tdshop.repository.OrderStatusRepository;
 import com.hcmute.tdshop.repository.ProductRepository;
 import com.hcmute.tdshop.repository.ShopOrderRepository;
 import com.hcmute.tdshop.service.shipservices.ShipServices;
-import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +46,9 @@ public class ProductScheduledTask {
 
   @Autowired
   ProductRepository productRepository;
+
+  @Autowired
+  CartRepository cartRepository;
 
   @Autowired
   @Qualifier("GHNShipService")
@@ -70,6 +78,16 @@ public class ProductScheduledTask {
     List<ShopOrder> orders = shopOrderRepository.findAllByOrderedAtLessThanEqualAndOrderStatus_IdIsAndDeletedAtIsNull(
         end,
         OrderStatusEnum.AWAITINGPAYMENT.getId());
+
+    List<Long> userIds = orders.stream().map(item -> item.getUser().getId()).collect(Collectors.toList());
+    List<Cart> carts = cartRepository.findByUser_IdIn(userIds);
+    Map<Long, Cart> cartMap = new HashMap<>();
+    for (Cart cart : carts) {
+      cartMap.put(cart.getUser().getId(), cart);
+    }
+
+    Cart cart = null;
+    CartItem cartItem = null;
     Iterator<ShopOrder> iterator = orders.iterator();
     while (iterator.hasNext()) {
       ShopOrder order = iterator.next();
@@ -81,11 +99,25 @@ public class ProductScheduledTask {
         selAmount = orderDetail.getProduct().getSelAmount() - orderDetail.getQuantity();
         orderDetail.getProduct().setSelAmount(Math.max(selAmount, 0));
         listOfProducts.add(orderDetail.getProduct());
+
+        if (cartMap.get(order.getUser().getId()) != null) {
+          cart = cartMap.get(order.getUser().getId());
+          cartItem = cart.getSetOfCartItems().stream().filter(item -> Objects.equals(item.getProduct().getId(),
+              orderDetail.getProduct().getId())).findFirst().orElse(null);
+          if (cartItem != null) {
+            cartItem.setQuantity(cartItem.getQuantity() + orderDetail.getQuantity());
+          } else {
+            cartMap.get(order.getUser().getId()).getSetOfCartItems().add(
+                new CartItem(null, orderDetail.getQuantity(), cartMap.get(order.getUser().getId()),
+                    orderDetail.getProduct()));
+          }
+        }
       }
       order.setOrderStatus(status);
     }
     shopOrderRepository.saveAllAndFlush(orders);
     productRepository.saveAllAndFlush(listOfProducts);
+    cartRepository.saveAllAndFlush(cartMap.values());
   }
 
   @Scheduled(fixedRate = 2700000, initialDelay = 1000)
