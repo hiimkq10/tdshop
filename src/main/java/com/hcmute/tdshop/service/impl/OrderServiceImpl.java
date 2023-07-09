@@ -13,7 +13,6 @@ import com.hcmute.tdshop.dto.payment.momo.MomoPaymentResultDto;
 import com.hcmute.tdshop.dto.serversentevent.Clients;
 import com.hcmute.tdshop.dto.shipservices.CheckShipConditionDto;
 import com.hcmute.tdshop.dto.shipservices.ShipOrderDto;
-import com.hcmute.tdshop.dto.shipservices.ghn.GetOrderData;
 import com.hcmute.tdshop.entity.Address;
 import com.hcmute.tdshop.entity.Cart;
 import com.hcmute.tdshop.entity.CartItem;
@@ -23,6 +22,7 @@ import com.hcmute.tdshop.entity.OrderStatus;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.entity.Subscription;
+import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.entity.UserClick;
 import com.hcmute.tdshop.entity.UserNotification;
 import com.hcmute.tdshop.enums.OrderStatusEnum;
@@ -78,6 +78,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Service
 @Slf4j
 public class OrderServiceImpl implements OrderService {
+
   private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
 
   @Autowired
@@ -176,13 +177,14 @@ public class OrderServiceImpl implements OrderService {
       if (shipServices != null) {
         shipOrderDto = shipServices.getShipOrder(order);
       }
-      if (order.getOrderStatus().getId() !=  OrderStatusEnum.CANCELED.getId()) {
+      if (order.getOrderStatus().getId() != OrderStatusEnum.CANCELED.getId()) {
         OrderStatusEnum orderStatusEnum = shipServices.getShopOrderStatus(order);
         if (orderStatusEnum.getId() != order.getOrderStatus().getId()) {
           OrderStatus status = orderStatusRepository.findById(orderStatusEnum.getId()).orElse(null);
           if (status == null) {
             logger.error("Order status config is incorrect");
-            return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+            return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+                ApplicationConstants.BAD_REQUEST_CODE);
           }
           order.setOrderStatus(status);
           orderRepository.saveAndFlush(order);
@@ -245,7 +247,8 @@ public class OrderServiceImpl implements OrderService {
     if (shipServices != null) {
       CheckShipConditionDto checkShipConditionDto = shipServices.checkShipCondition(order, false);
       if (!checkShipConditionDto.isResult()) {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(), checkShipConditionDto.getMessageCode());
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, checkShipConditionDto.getMessage(),
+            checkShipConditionDto.getMessageCode());
       }
     }
 
@@ -269,14 +272,26 @@ public class OrderServiceImpl implements OrderService {
       product.setTotal(product.getTotal() - orderDetail.getQuantity());
       product.setSelAmount(product.getSelAmount() + orderDetail.getQuantity());
 
+      List<User> users = cartItemRepository.getUserByCartProductId(product.getId(), userId);
+      List<Long> userIds = users.stream().map(item -> item.getId()).collect(Collectors.toList());
+      users.addAll(subscriptions.stream()
+          .filter(item -> item.getProduct().getId() == product.getId() && item.getUser().getId() != userId)
+          .map(s -> s.getUser()).filter(u -> !userIds.contains(u.getId())).collect(
+              Collectors.toList()));
+
       if (product.getTotal() == 0) {
         Notification notification = notificationHelper.buildProductOutOfStockNotification(product);
         notification = notificationRepository.save(notification);
         Notification finalNotification = notification;
+//        userNotifications.addAll(
+//            subscriptions.stream()
+//                .filter(item -> item.getProduct().getId() == product.getId() && item.getUser().getId() != userId)
+//                .map(item -> new UserNotification(null, false, false, item.getUser(), finalNotification))
+//                .collect(
+//                    Collectors.toList()));
         userNotifications.addAll(
-            subscriptions.stream()
-                .filter(item -> item.getProduct().getId() == product.getId() && item.getUser().getId() != userId)
-                .map(item -> new UserNotification(null, false, false, item.getUser(), finalNotification))
+            users.stream()
+                .map(item -> new UserNotification(null, false, false, item, finalNotification))
                 .collect(
                     Collectors.toList()));
       }
@@ -481,17 +496,20 @@ public class OrderServiceImpl implements OrderService {
     long userId = AuthenticationHelper.getCurrentLoggedInUserId();
     Optional<ShopOrder> optionalData = orderRepository.findByIdAndUser_IdAndDeletedAtIsNull(orderId, userId);
     if (!optionalData.isPresent()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND, ApplicationConstants.ORDER_NOT_FOUND_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
+          ApplicationConstants.ORDER_NOT_FOUND_CODE);
     }
     ShopOrder order = optionalData.get();
     if (order.getOrderStatus().getId() != OrderStatusEnum.AWAITINGPAYMENT.getId()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_PAID, ApplicationConstants.ORDER_PAID_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_PAID,
+          ApplicationConstants.ORDER_PAID_CODE);
     }
     final Long awaitingPaymentTimeout = appProperties.getOrderAwaitingPaymentTimeOut();
     final Long paymentTimeout = appProperties.getOrderPaymentTimeOut();
     if (awaitingPaymentTimeout < paymentTimeout) {
       logger.error("Payment timeout config is incorrect");
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     final LocalDateTime now = LocalDateTime.now();
     LocalDateTime end = now.minusSeconds((awaitingPaymentTimeout - paymentTimeout) / 1000);
@@ -499,7 +517,8 @@ public class OrderServiceImpl implements OrderService {
       OrderStatus cancelStatus = orderStatusRepository.findById(OrderStatusEnum.CANCELED.getId()).orElse(null);
       if (cancelStatus == null) {
         logger.error("Order status config is incorrect");
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+            ApplicationConstants.BAD_REQUEST_CODE);
       }
       order.setOrderStatus(cancelStatus);
       List<Product> listOfProducts = new ArrayList<>();
@@ -514,7 +533,8 @@ public class OrderServiceImpl implements OrderService {
       }
       orderRepository.saveAndFlush(order);
       productRepository.saveAllAndFlush(listOfProducts);
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_PAYMENT_EXPIRED, orderMapper.OrderToOrderResponse(order), ApplicationConstants.ORDER_PAYMENT_EXPIRED_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_PAYMENT_EXPIRED,
+          orderMapper.OrderToOrderResponse(order), ApplicationConstants.ORDER_PAYMENT_EXPIRED_CODE);
     }
     MomoPaymentResponse momoResponse = paymentService.execute(order);
     return new DataResponse(momoResponse);
@@ -524,7 +544,8 @@ public class OrderServiceImpl implements OrderService {
   public DataResponse adminCancelOrder(long orderId) {
     Optional<ShopOrder> optionalData = orderRepository.findByIdAndDeletedAtIsNull(orderId);
     if (!optionalData.isPresent()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND, ApplicationConstants.ORDER_NOT_FOUND_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_NOT_FOUND,
+          ApplicationConstants.ORDER_NOT_FOUND_CODE);
     }
     ShopOrder order = optionalData.get();
     if (order.getOrderStatus().getId() == OrderStatusEnum.CANCELED.getId()) {
@@ -540,7 +561,8 @@ public class OrderServiceImpl implements OrderService {
     OrderStatus cancelStatus = orderStatusRepository.findById(OrderStatusEnum.CANCELED.getId()).orElse(null);
     if (cancelStatus == null) {
       logger.error("Order status config is incorrect");
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     order.setOrderStatus(cancelStatus);
     List<Product> listOfProducts = new ArrayList<>();
