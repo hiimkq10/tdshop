@@ -34,7 +34,6 @@ public class PaymentServiceImpl {
       Execute execute = new Execute();
       HttpResponse response = execute.sendToMoMo(momoPaymentDto.getEndpoint(), payload);
 
-      System.out.println(response);
       if (response.getStatus() != 200) {
         throw new MoMoException("[PaymentResponse] [" + momoPaymentDto.getOrderId() + "] -> Error API");
       }

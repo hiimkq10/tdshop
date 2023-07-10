@@ -54,12 +54,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   private CustomOAuth2UserService customOAuth2UserService;
 
-//  @Autowired
-//  private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-//
-//  @Autowired
-//  private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
-
   @Autowired
   private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
