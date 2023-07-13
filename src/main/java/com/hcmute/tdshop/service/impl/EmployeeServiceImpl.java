@@ -3,20 +3,16 @@ package com.hcmute.tdshop.service.impl;
 import com.hcmute.tdshop.dto.user.AddEmployeeRequest;
 import com.hcmute.tdshop.dto.user.EmployeeDto;
 import com.hcmute.tdshop.dto.user.UpdateEmployeeRequest;
-import com.hcmute.tdshop.dto.user.UserResponse;
 import com.hcmute.tdshop.entity.Employee;
-import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.mapper.UserMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.EmployeeRepository;
 import com.hcmute.tdshop.service.EmployeeService;
-import com.hcmute.tdshop.utils.AuthenticationHelper;
 import com.hcmute.tdshop.utils.Helper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.Optional;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -67,7 +63,8 @@ public class EmployeeServiceImpl implements EmployeeService {
       employee = employeeRepository.save(employee);
       return new DataResponse(ApplicationConstants.USER_ADD_SUCCESSFULLY, userMapper.EmployeeToEmployeeDto(employee));
     }
-    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_ADD_FAILED, ApplicationConstants.BAD_REQUEST_CODE);
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_ADD_FAILED,
+        ApplicationConstants.BAD_REQUEST_CODE);
   }
 
   @Override

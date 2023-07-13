@@ -24,8 +24,9 @@ public class ProvinceServiceImpl implements ProvinceService {
   @Override
   public DataResponse getAllProvince(Pageable pageable) {
     return new DataResponse(
-        provinceRepository.findAll(pageable.getSort()).stream().map(item -> addressMapper.ProvinceToProvinceResponse(item)).collect(
-            Collectors.toList()));
+        provinceRepository.findAll(pageable.getSort()).stream()
+            .map(item -> addressMapper.ProvinceToProvinceResponse(item)).collect(
+                Collectors.toList()));
   }
 
   @Override

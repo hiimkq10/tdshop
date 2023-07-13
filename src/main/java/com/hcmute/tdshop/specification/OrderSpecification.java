@@ -4,6 +4,7 @@ import com.hcmute.tdshop.entity.ShopOrder;
 import org.springframework.data.jpa.domain.Specification;
 
 public class OrderSpecification {
+
   public static Specification<ShopOrder> hasId(Long id) {
     return (((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id)));
   }

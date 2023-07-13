@@ -285,7 +285,8 @@ public class LalamoveShipService extends ShipServices {
       OrderStatus deliveringStatus = orderStatusRepository.findById(OrderStatusEnum.DELIVERING.getId()).orElse(null);
       if (deliveringStatus == null) {
         logger.error("Order status config is incorrect");
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+            ApplicationConstants.BAD_REQUEST_CODE);
       }
       order.setOrderStatus(deliveringStatus);
       shopOrderRepository.saveAndFlush(order);
@@ -308,7 +309,8 @@ public class LalamoveShipService extends ShipServices {
     ShopOrder order = optionalOrderData.get();
     ResultDto result = checkCancelShipOrderCondition(order);
     if (!result.isResult()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, order, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, order,
+          ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
     }
     try {
       GetOrderData getOrderData = getOrder(order);
@@ -339,7 +341,8 @@ public class LalamoveShipService extends ShipServices {
       OrderStatus proccessingStatus = orderStatusRepository.findById(OrderStatusEnum.PROCCESSING.getId()).orElse(null);
       if (proccessingStatus == null) {
         logger.error("Order status config is incorrect");
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+            ApplicationConstants.BAD_REQUEST_CODE);
       }
       order.setOrderStatus(proccessingStatus);
       shopOrderRepository.saveAndFlush(order);
@@ -374,7 +377,8 @@ public class LalamoveShipService extends ShipServices {
   @Override
   public CheckShipConditionDto checkShipCondition(ShopOrder order, boolean statusCheck) {
     if (statusCheck && order.getOrderStatus().getId() != OrderStatusEnum.PROCCESSING.getId()) {
-      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING_CODE);
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING,
+          ApplicationConstants.ORDER_STATUS_NOT_PROCESSING_CODE);
     }
     if (order.getPaymentMethod().getId() == PaymentMethodEnum.COD.getId()) {
       return new CheckShipConditionDto(false, ApplicationConstants.ORDER_LALAMOVE_COD_NOT_SUPPORT,
@@ -420,7 +424,8 @@ public class LalamoveShipService extends ShipServices {
   @Override
   public ResultDto checkCancelShipOrderCondition(ShopOrder order) {
     if (order.getOrderStatus().getId() != OrderStatusEnum.DELIVERING.getId()) {
-      return new ResultDto(false, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
+      return new ResultDto(false, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING,
+          ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
     }
     return ResultDto.SUCCESS;
   }

@@ -4,7 +4,6 @@ import com.hcmute.tdshop.dto.address.AddressToLatAndLngDto;
 import com.hcmute.tdshop.dto.address.CheckCoordinateValidDto;
 import com.hcmute.tdshop.dto.address.CheckCoordinateValidResponse;
 import com.hcmute.tdshop.dto.address.Coordinate;
-import com.hcmute.tdshop.dto.address.Geojson;
 import com.hcmute.tdshop.dto.address.Polygon;
 import com.hcmute.tdshop.dto.address.RawPolygon;
 import com.hcmute.tdshop.dto.address.ReverseAddressDto;

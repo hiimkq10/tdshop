@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/address")
 public class AddressController {
+
   @Autowired
   private AddressService addressService;
 
@@ -32,7 +33,8 @@ public class AddressController {
   }
 
   @PutMapping("/update/{id}")
-  public DataResponse updateAddress(@PathVariable(name = "id") long id, @RequestBody @Valid UpdateAddressRequest request) {
+  public DataResponse updateAddress(@PathVariable(name = "id") long id,
+      @RequestBody @Valid UpdateAddressRequest request) {
     return addressService.updateAddress(id, request);
   }
 

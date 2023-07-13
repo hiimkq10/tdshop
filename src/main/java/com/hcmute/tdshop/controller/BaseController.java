@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class BaseController {
+
   @GetMapping
   public DataResponse base() {
     return DataResponse.SUCCESSFUL;

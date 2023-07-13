@@ -3,7 +3,6 @@ package com.hcmute.tdshop.security.oauth2;
 import static com.hcmute.tdshop.security.repository.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
 
 import com.hcmute.tdshop.config.AppProperties;
-import com.hcmute.tdshop.exception.BadRequestException;
 import com.hcmute.tdshop.security.jwt.JwtTokenProvider;
 import com.hcmute.tdshop.security.model.CustomUserDetails;
 import com.hcmute.tdshop.security.repository.HttpCookieOAuth2AuthorizationRequestRepository;
@@ -27,6 +26,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
   @Autowired
   private AppProperties appProperties;
 
+  @Autowired
+  private JwtTokenProvider jwtTokenProvider;
+
   private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
 
@@ -42,7 +44,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
   }
 
   @Override
-  public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+  public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+      Authentication authentication)
       throws IOException, ServletException, IOException {
     String targetUrl = determineTargetUrl(request, response, authentication);
 
@@ -55,18 +58,19 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     getRedirectStrategy().sendRedirect(request, response, targetUrl);
   }
 
-  protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+  protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
+      Authentication authentication) {
     Optional<String> redirectUri = CookieUtils.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
         .map(Cookie::getValue);
 
     String targetUrl;
-    if(redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
+    if (redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
       redirectUri = Optional.empty();
     }
     targetUrl = redirectUri.orElse(appProperties.getFeBaseUrl());
-  
+
     CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-    String token = JwtTokenProvider.generateAccessToken(user, request);
+    String token = jwtTokenProvider.generateAccessToken(user, request);
 
     return UriComponentsBuilder.fromUriString(targetUrl)
         .queryParam("token", token)
@@ -86,7 +90,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         .anyMatch(authorizedRedirectUri -> {
           // Only validate host and port. Let the clients use different paths if they want to
           URI authorizedURI = URI.create(authorizedRedirectUri);
-          if(authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost())
+          if (authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost())
               && authorizedURI.getPort() == clientRedirectUri.getPort()) {
             return true;
           }

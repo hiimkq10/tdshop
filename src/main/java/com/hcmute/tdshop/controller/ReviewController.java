@@ -3,8 +3,6 @@ package com.hcmute.tdshop.controller;
 import com.hcmute.tdshop.dto.review.AddReviewRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.ReviewService;
-import com.hcmute.tdshop.utils.annotations.ValueOfLocalDateTime;
-import java.time.LocalDateTime;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -77,11 +75,6 @@ public class ReviewController {
   public DataResponse denyReview(@PathVariable(name = "id") long id) {
     return reviewService.denyReview(id);
   }
-
-//  @GetMapping("/check-buy")
-//  public DataResponse checkBuy(@RequestParam(name = "user-id") long userId, @RequestParam(name = "product-id") long productId) {
-//    return reviewService.checkUserBoughtProduct(productId, userId);
-//  }
 
   @GetMapping("/check-buy")
   public DataResponse checkBuy(@RequestParam(name = "product-id") long productId) {

@@ -7,7 +7,6 @@ import com.hcmute.tdshop.dto.product.AddClickRequest;
 import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.UpdateProductRequest;
-import com.hcmute.tdshop.dto.subscription.FollowDto;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.ClickService;
 import com.hcmute.tdshop.service.ProductService;
@@ -48,6 +47,11 @@ public class ProductController {
     return productService.getAllProducts(pageable);
   }
 
+  @GetMapping("/get/{id}")
+  public DataResponse getProductById(@PathVariable(name = "id") Long id) {
+    return productService.getProductById(id);
+  }
+
   @GetMapping("/search")
   public DataResponse searchProductsByFilter(
       @RequestParam(name = "keyword", required = false) String keyword,
@@ -59,7 +63,8 @@ public class ProductController {
       @RequestParam(name = "variations", required = false) Set<Long> ids,
       @RequestParam(name = "master-category-id", required = false, defaultValue = "0") long masterCategoryId,
       Pageable pageable) {
-    return productService.searchProductsByFilter(keyword, categoryId, maxPrice, minPrice, brand, brandId, ids, masterCategoryId,
+    return productService.searchProductsByFilter(keyword, categoryId, maxPrice, minPrice, brand, brandId, ids,
+        masterCategoryId,
         pageable);
   }
 
@@ -93,22 +98,10 @@ public class ProductController {
         pageable);
   }
 
-//  @GetMapping("/search")
-//  public DataResponse searchProductsByKeyword(
-//      @RequestParam(name = "keyword", required = false) String keyword,
-//      Pageable pageable) {
-//    return productService.searchProductsByKeyword(keyword, pageable);
-//  }
-
   @GetMapping("/admin/get/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse getProductByIdForAdmin(@PathVariable(name = "id") Long id) {
     return productService.getProductByIdForAdmin(id);
-  }
-
-  @GetMapping("/get/{id}")
-  public DataResponse getProductById(@PathVariable(name = "id") Long id) {
-    return productService.getProductById(id);
   }
 
   @PostMapping(value = "/add", consumes = {APPLICATION_JSON_VALUE, MULTIPART_FORM_DATA_VALUE})
@@ -120,13 +113,6 @@ public class ProductController {
     return productService.insertProduct(request, mainImage, images);
   }
 
-//  @PostMapping("/add")
-//  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
-//  public DataResponse insertProduct(
-//      @RequestBody @Valid AddProductRequest request) {
-//    return productService.insertProduct(request);
-//  }
-
   @PutMapping("/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse updateProduct(
@@ -136,14 +122,6 @@ public class ProductController {
       @RequestPart(value = "OtherImage", required = false) List<MultipartFile> images) {
     return productService.updateProduct(id, request, mainImage, images);
   }
-
-//  @PutMapping("/update/{id}")
-//  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
-//  public DataResponse updateProduct(
-//      @PathVariable(name = "id") long id,
-//      @RequestBody @Valid UpdateProductRequest request) {
-//    return productService.updateProduct(id, request);
-//  }
 
   @DeleteMapping("/delete/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")

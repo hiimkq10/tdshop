@@ -848,7 +848,8 @@ public class ProductServiceImpl implements ProductService {
     List<Product> products = productRepository.findByIdInAndStatus_IdInAndDeletedAtNull(
         recommendedProductIds.stream().map(Long::valueOf).collect(
             Collectors.toList()), Arrays.asList(ProductStatusEnum.ONSALE.getId()));
-    return new DataResponse(products.stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()));
+    return new DataResponse(
+        products.stream().map(productMapper::ProductToSimpleProductDto).collect(Collectors.toList()));
   }
 
   private String uploadProductImage(MultipartFile image) {

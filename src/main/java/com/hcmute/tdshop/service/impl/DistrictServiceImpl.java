@@ -21,14 +21,16 @@ public class DistrictServiceImpl implements DistrictService {
   @Override
   public DataResponse getAllDistrict(Pageable pageable) {
     return new DataResponse(
-        districtRepository.findAll(pageable.getSort()).stream().map(item -> addressMapper.DistrictToDistrictResponse(item)).collect(
-            Collectors.toList()));
+        districtRepository.findAll(pageable.getSort()).stream()
+            .map(item -> addressMapper.DistrictToDistrictResponse(item)).collect(
+                Collectors.toList()));
   }
 
   @Override
   public DataResponse getDistrictByProvinceId(long id, Pageable pageable) {
     return new DataResponse(
-        districtRepository.findByProvince_Id(id, pageable.getSort()).stream().map(item -> addressMapper.DistrictToDistrictResponse(item))
+        districtRepository.findByProvince_Id(id, pageable.getSort()).stream()
+            .map(item -> addressMapper.DistrictToDistrictResponse(item))
             .collect(
                 Collectors.toList()));
   }

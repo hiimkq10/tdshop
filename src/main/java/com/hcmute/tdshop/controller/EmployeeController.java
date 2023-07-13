@@ -2,7 +2,6 @@ package com.hcmute.tdshop.controller;
 
 import com.hcmute.tdshop.dto.user.AddEmployeeRequest;
 import com.hcmute.tdshop.dto.user.UpdateEmployeeRequest;
-import com.hcmute.tdshop.dto.user.UpdateUserInfoRequest;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.service.EmployeeService;
 import javax.validation.Valid;
@@ -15,18 +14,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/employee")
 public class EmployeeController {
+
   @Autowired
   EmployeeService employeeService;
 
   @GetMapping("/get/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public DataResponse getUsers(
+  public DataResponse getEmployees(
       @PathVariable(name = "id") Long id,
       Pageable pageable
   ) {
@@ -41,7 +40,8 @@ public class EmployeeController {
 
   @PutMapping("/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public DataResponse updateUserInfo(@PathVariable(name = "id") Long id, @RequestBody @Valid UpdateEmployeeRequest request) {
+  public DataResponse updateUserInfo(@PathVariable(name = "id") Long id,
+      @RequestBody @Valid UpdateEmployeeRequest request) {
     return employeeService.updateEmployee(id, request);
   }
 }

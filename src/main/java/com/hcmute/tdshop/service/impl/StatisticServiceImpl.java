@@ -4,10 +4,8 @@ import com.hcmute.tdshop.dto.review.ReviewDto;
 import com.hcmute.tdshop.dto.statistic.AccountStatisticDto;
 import com.hcmute.tdshop.dto.statistic.OrderDto;
 import com.hcmute.tdshop.dto.statistic.RatingByStarDto;
-import com.hcmute.tdshop.dto.statistic.RatingWithStarDto;
 import com.hcmute.tdshop.dto.statistic.RevenueStatisticDto;
 import com.hcmute.tdshop.entity.Product;
-import com.hcmute.tdshop.entity.Review;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.enums.AccountRoleEnum;
 import com.hcmute.tdshop.enums.OrderStatusEnum;
@@ -72,7 +70,8 @@ public class StatisticServiceImpl implements StatisticService {
       orderDtos.get(i).setPercent(String.format("%,.2f", (double) (orderDtos.get(i).getAmount() * 100 / total)));
     }
     for (OrderStatusEnum orderStatusEnum : OrderStatusEnum.values()) {
-      if (!orderDtos.stream().map(item -> item.getId()).collect(Collectors.toList()).contains(orderStatusEnum.getId())) {
+      if (!orderDtos.stream().map(item -> item.getId()).collect(Collectors.toList())
+          .contains(orderStatusEnum.getId())) {
         orderDtos.add(new OrderDto(orderStatusEnum.getId(), orderStatusEnum.getName(), 0, String.format("%,.2f", 0.0)));
       }
     }
@@ -183,7 +182,8 @@ public class StatisticServiceImpl implements StatisticService {
     if (toDate == null) {
       toDate = maxDate;
     }
-    List<ReviewDto> reviews = reviewService.searchAllList(0, 0, fromDate.toString().replace("T", " "), toDate.toString().replace("T", " ").substring(0, 16), true, true);
+    List<ReviewDto> reviews = reviewService.searchAllList(0, 0, fromDate.toString().replace("T", " "),
+        toDate.toString().replace("T", " ").substring(0, 16), true, true);
     List<RatingByStarDto> ratingByStarDtoList = new ArrayList<>();
     RatingByStarDto rating;
     double total = 0;
@@ -197,17 +197,13 @@ public class StatisticServiceImpl implements StatisticService {
       total = total + reviews.get(i).getRatingValue();
       if (reviews.get(i).getRatingValue() < 1.5) {
         star1 += 1;
-      }
-      else if (reviews.get(i).getRatingValue() >= 1.5 && reviews.get(i).getRatingValue() < 2.5) {
+      } else if (reviews.get(i).getRatingValue() >= 1.5 && reviews.get(i).getRatingValue() < 2.5) {
         star2 += 1;
-      }
-      else if (reviews.get(i).getRatingValue() >= 2.5 && reviews.get(i).getRatingValue() < 3.5) {
+      } else if (reviews.get(i).getRatingValue() >= 2.5 && reviews.get(i).getRatingValue() < 3.5) {
         star3 += 1;
-      }
-      else if (reviews.get(i).getRatingValue() >= 3.5 && reviews.get(i).getRatingValue() < 4.5) {
+      } else if (reviews.get(i).getRatingValue() >= 3.5 && reviews.get(i).getRatingValue() < 4.5) {
         star4 += 1;
-      }
-      else if (reviews.get(i).getRatingValue() >= 4.5) {
+      } else if (reviews.get(i).getRatingValue() >= 4.5) {
         star5 += 1;
       }
     }

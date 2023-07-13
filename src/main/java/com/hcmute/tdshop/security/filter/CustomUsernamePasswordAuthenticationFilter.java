@@ -36,9 +36,12 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
   private final AuthenticationManager authenticationManager;
   private final CustomUserDetailsService customUserDetailsService;
 
-  public CustomUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager, CustomUserDetailsService customUserDetailsService) {
+  private final JwtTokenProvider jwtTokenProvider;
+
+  public CustomUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager, CustomUserDetailsService customUserDetailsService, JwtTokenProvider jwtTokenProvider) {
     this.authenticationManager = authenticationManager;
     this.customUserDetailsService = customUserDetailsService;
+    this.jwtTokenProvider = jwtTokenProvider;
   }
 
   @Override
@@ -94,8 +97,8 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
       Authentication authResult) throws IOException, ServletException {
     try {
       CustomUserDetails user = (CustomUserDetails) authResult.getPrincipal();
-      String accessToken = JwtTokenProvider.generateAccessToken(user, request);
-      String refreshToken = JwtTokenProvider.generateRefreshToken(user, request);
+      String accessToken = jwtTokenProvider.generateAccessToken(user, request);
+      String refreshToken = jwtTokenProvider.generateRefreshToken(user, request);
       UserInfo userInfo = CustomUserDetailsToUserInfo(user);
       LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, userInfo);
       new ObjectMapper().writeValue(response.getOutputStream(), new DataResponse(loginResponse));

@@ -26,7 +26,8 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
 
   @Override
   public DataResponse getNotificationType(String id) {
-    Optional<NotificationType> optionalData = notificationTypeRepository.findByIdAndDeletedAtIsNull(UUID.fromString(id));
+    Optional<NotificationType> optionalData = notificationTypeRepository.findByIdAndDeletedAtIsNull(
+        UUID.fromString(id));
     return optionalData.map(DataResponse::new).orElseGet(
         () -> new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.NOTIFICATION_TYPE_NOT_FOUND,
             ApplicationConstants.BAD_REQUEST_CODE));
@@ -43,9 +44,11 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
   @Override
   public DataResponse updateNotificationType(String id, UpdateNotificationTypeDto dto) {
     NotificationType dataToUpdate = notificationTypeMapper.UpdateNotificationTypeDtoToNotificationType(dto);
-    Optional<NotificationType> optionalData = notificationTypeRepository.findByIdAndDeletedAtIsNull(UUID.fromString(id));
+    Optional<NotificationType> optionalData = notificationTypeRepository.findByIdAndDeletedAtIsNull(
+        UUID.fromString(id));
     if (!optionalData.isPresent()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.NOTIFICATION_TYPE_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.NOTIFICATION_TYPE_NOT_FOUND,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     NotificationType currentData = optionalData.get();
     if (Strings.isNotBlank(dataToUpdate.getName())) {
@@ -66,9 +69,11 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
 
   @Override
   public DataResponse deleteNotificationType(String id) {
-    Optional<NotificationType> optionalData = notificationTypeRepository.findByIdAndDeletedAtIsNull(UUID.fromString(id));
+    Optional<NotificationType> optionalData = notificationTypeRepository.findByIdAndDeletedAtIsNull(
+        UUID.fromString(id));
     if (!optionalData.isPresent()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.NOTIFICATION_TYPE_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.NOTIFICATION_TYPE_NOT_FOUND,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     NotificationType data = optionalData.get();
     data.setDeletedAt(LocalDateTime.now());

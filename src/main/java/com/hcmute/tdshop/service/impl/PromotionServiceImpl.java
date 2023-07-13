@@ -61,7 +61,8 @@ public class PromotionServiceImpl implements PromotionService {
     Specification<Promotion> conditions = Specification.where(PromotionSpecification.isNotDeleted());
     Page<Promotion> pageOfPromotions = promotionRepository.findAll(conditions, pageable);
     Page<PromotionResponse> pageOfPromotionResponse = new PageImpl<>(
-        pageOfPromotions.getContent().stream().map(promotionMapper::PromotionToPromotionResponse).collect(Collectors.toList()),
+        pageOfPromotions.getContent().stream().map(promotionMapper::PromotionToPromotionResponse)
+            .collect(Collectors.toList()),
         pageable,
         pageOfPromotions.getTotalElements()
     );
@@ -69,10 +70,11 @@ public class PromotionServiceImpl implements PromotionService {
   }
 
   @Override
-  public DataResponse getPromotion(Long id, String keyword, Double fromRate, Double toRate, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+  public DataResponse getPromotion(Long id, String keyword, Double fromRate, Double toRate, LocalDateTime startDate,
+      LocalDateTime endDate, Pageable pageable) {
     List<Specification<Promotion>> listOfSpecifications = new ArrayList<>();
     listOfSpecifications.add(PromotionSpecification.isNotDeleted());
-    if (id > 0 ) {
+    if (id > 0) {
       listOfSpecifications.add(PromotionSpecification.hasId(id));
     }
     if (keyword != null) {
@@ -96,7 +98,8 @@ public class PromotionServiceImpl implements PromotionService {
     Specification<Promotion> conditions = SpecificationHelper.and(listOfSpecifications);
     Page<Promotion> pageOfPromotions = promotionRepository.findAll(conditions, pageable);
     Page<PromotionResponse> pageOfPromotionResponse = new PageImpl<>(
-        pageOfPromotions.getContent().stream().map(promotionMapper::PromotionToPromotionResponse).collect(Collectors.toList()),
+        pageOfPromotions.getContent().stream().map(promotionMapper::PromotionToPromotionResponse)
+            .collect(Collectors.toList()),
         pageable,
         pageOfPromotions.getTotalElements()
     );
@@ -109,7 +112,8 @@ public class PromotionServiceImpl implements PromotionService {
     if (optionalPromotion.isPresent()) {
       return new DataResponse(promotionMapper.PromotionToPromotionResponse(optionalPromotion.get()));
     }
-    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PROMOTION_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PROMOTION_NOT_FOUND,
+        ApplicationConstants.BAD_REQUEST_CODE);
   }
 
   @Override
@@ -147,17 +151,20 @@ public class PromotionServiceImpl implements PromotionService {
         currentPromotion.setName(promotionToUpdate.getName());
       }
       currentPromotion.setDescription(promotionToUpdate.getDescription());
-      if (promotionToUpdate.getDiscountRate() > 0 && promotionToUpdate.getDiscountRate() != currentPromotion.getDiscountRate()) {
+      if (promotionToUpdate.getDiscountRate() > 0
+          && promotionToUpdate.getDiscountRate() != currentPromotion.getDiscountRate()) {
         currentPromotion.setDiscountRate(promotionToUpdate.getDiscountRate());
         updateRequire = true;
       }
-      if (promotionToUpdate.getStartDate() != null && !(promotionToUpdate.getStartDate().isEqual(currentPromotion.getStartDate()))) {
+      if (promotionToUpdate.getStartDate() != null && !(promotionToUpdate.getStartDate()
+          .isEqual(currentPromotion.getStartDate()))) {
         if (isStartDateBeforEndDate(promotionToUpdate.getStartDate(), currentPromotion.getEndDate())) {
           currentPromotion.setStartDate(promotionToUpdate.getStartDate());
           updateRequire = true;
         }
       }
-      if (promotionToUpdate.getEndDate() != null && !(promotionToUpdate.getEndDate().isEqual(currentPromotion.getEndDate()))) {
+      if (promotionToUpdate.getEndDate() != null && !(promotionToUpdate.getEndDate()
+          .isEqual(currentPromotion.getEndDate()))) {
         if (isStartDateBeforEndDate(currentPromotion.getStartDate(), promotionToUpdate.getEndDate())) {
           currentPromotion.setStartDate(promotionToUpdate.getStartDate());
           updateRequire = true;
@@ -169,7 +176,8 @@ public class PromotionServiceImpl implements PromotionService {
       }
       return new DataResponse(ApplicationConstants.PROMOTION_UPDATE_SUCCESSFULLY, Boolean.valueOf(true));
     }
-    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PROMOTION_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PROMOTION_NOT_FOUND,
+        ApplicationConstants.BAD_REQUEST_CODE);
   }
 
   @Override
@@ -236,7 +244,8 @@ public class PromotionServiceImpl implements PromotionService {
         if (listOfDiscountRate.size() > 0 && max != 0) {
           listOfDiscountRate.remove(max);
           double totalDiscount = max + listOfDiscountRate.size() * 0.05;
-          ProductPromotion productPromotion = new ProductPromotion(null, "", "", Math.floor(totalDiscount * 100) / 100, start, end, null, product);
+          ProductPromotion productPromotion = new ProductPromotion(null, "", "", Math.floor(totalDiscount * 100) / 100,
+              start, end, null, product);
           product.getSetOfProductPromotions().add(productPromotion);
           productPromotions.add(productPromotion);
         }
@@ -245,11 +254,11 @@ public class PromotionServiceImpl implements PromotionService {
     }
   }
 
-  private boolean isBeforeOrEqual(LocalDateTime date1, LocalDateTime date2){
+  private boolean isBeforeOrEqual(LocalDateTime date1, LocalDateTime date2) {
     return date1.isBefore(date2) || date1.isEqual(date2);
   }
 
-  private boolean isAfterOrEqual(LocalDateTime date1, LocalDateTime date2){
+  private boolean isAfterOrEqual(LocalDateTime date1, LocalDateTime date2) {
     return date1.isAfter(date2) || date1.isEqual(date2);
   }
 

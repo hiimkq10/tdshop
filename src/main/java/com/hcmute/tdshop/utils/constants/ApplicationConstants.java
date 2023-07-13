@@ -1,15 +1,15 @@
 package com.hcmute.tdshop.utils.constants;
 
 public class ApplicationConstants {
+
   public static final String USERS_FILE = "/data/users.xlsx";
   public static final String USERS_SHEET_NAME = "Sheet1";
   public static final String PRODUCTS_FILE = "/data/products.xlsx";
   public static final String PRODUCTS_SHEET_NAME = "Sheet17";
-//  public static final String AREAS_FILE = "src\\main\\resources\\data\\areas.xlsx";
   public static final String AREAS_FILE = "/data/areas.xlsx";
   public static final String AREAS_SHEET_NAME = "Sheet1";
   // BE Endpoint
-  public static final String activateAccountEndpoint= "/api/v1/auth/activate";
+  public static final String activateAccountEndpoint = "/api/v1/auth/activate";
 
   // FE Endpoint
   public static final String activateAccountSuccessEndpoint = "/";
@@ -278,7 +278,7 @@ public class ApplicationConstants {
   public static final String PROMOTION_DELETE_SUCCESSFULLY = "Delete promotion successfully";
 
   // ------------------------------ REVIEW -------------------------------------
-  public static final String REVIEW_NOT_FOUND= "Review not found";
+  public static final String REVIEW_NOT_FOUND = "Review not found";
   public static final String REVIEW_ADD_SUCCESSFULLY = "Add review successfully";
   public static final String REVIEW_DELETE_SUCCESSFULLY = "Delete review successfully";
   public static final String REVIEW_VERIFY_SUCCESSFULLY = "Verify review successfully";

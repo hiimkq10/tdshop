@@ -16,19 +16,36 @@ package com.hcmute.tdshop.utils.location;
  * limitations under the License.
  */
 
-import java.util.List;
-import java.util.ArrayList;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.EARTH_RADIUS;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.clamp;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.hav;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.havDistance;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.havFromSin;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.inverseMercator;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.mercator;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.sinFromHav;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.sinSumFromHav;
+import static com.hcmute.tdshop.utils.location.MyMathUtil.wrap;
+import static java.lang.Math.PI;
+import static java.lang.Math.cos;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
+import static java.lang.Math.toRadians;
 
-import static java.lang.Math.*;
-import static com.hcmute.tdshop.utils.location.MyMathUtil.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PolyUtil {
 
-  private PolyUtil() {}
+  private PolyUtil() {
+  }
 
   /**
-   * Returns tan(latitude-at-lng3) on the great circle (lat1, lng1) to (lat2, lng2). lng1==0.
-   * See http://williams.best.vwh.net/avform.htm .
+   * Returns tan(latitude-at-lng3) on the great circle (lat1, lng1) to (lat2, lng2). lng1==0. See
+   * http://williams.best.vwh.net/avform.htm .
    */
   private static double tanLatGC(double lat1, double lat2, double lng2, double lng3) {
     return (tan(lat1) * sin(lng2 - lng3) + tan(lat2) * sin(lng3)) / sin(lng2);
@@ -42,9 +59,8 @@ public class PolyUtil {
   }
 
   /**
-   * Computes whether the vertical segment (lat3, lng3) to South Pole intersects the segment
-   * (lat1, lng1) to (lat2, lng2).
-   * Longitudes are offset by -lng1; the implicit lng1 becomes 0.
+   * Computes whether the vertical segment (lat3, lng3) to South Pole intersects the segment (lat1, lng1) to (lat2,
+   * lng2). Longitudes are offset by -lng1; the implicit lng1 becomes 0.
    */
   private static boolean intersects(double lat1, double lat2, double lng2,
       double lat3, double lng3, boolean geodesic) {
@@ -53,11 +69,11 @@ public class PolyUtil {
       return false;
     }
     // Point is South Pole.
-    if (lat3 <= -PI/2) {
+    if (lat3 <= -PI / 2) {
       return false;
     }
     // Any segment end is a pole.
-    if (lat1 <= -PI/2 || lat2 <= -PI/2 || lat1 >= PI/2 || lat2 >= PI/2) {
+    if (lat1 <= -PI / 2 || lat2 <= -PI / 2 || lat1 >= PI / 2 || lat2 >= PI / 2) {
       return false;
     }
     if (lng2 <= -PI) {
@@ -73,7 +89,7 @@ public class PolyUtil {
       return true;
     }
     // North Pole.
-    if (lat3 >= PI/2) {
+    if (lat3 >= PI / 2) {
       return true;
     }
     // Compare lat3 with latitude on the GC/Rhumb segment corresponding to lng3.
@@ -84,11 +100,9 @@ public class PolyUtil {
   }
 
   /**
-   * Computes whether the given point lies inside the specified polygon.
-   * The polygon is always cosidered closed, regardless of whether the last point equals
-   * the first or not.
-   * Inside is defined as not containing the South Pole -- the South Pole is always outside.
-   * The polygon is formed of great circle segments if geodesic is true, and of rhumb
+   * Computes whether the given point lies inside the specified polygon. The polygon is always cosidered closed,
+   * regardless of whether the last point equals the first or not. Inside is defined as not containing the South Pole --
+   * the South Pole is always outside. The polygon is formed of great circle segments if geodesic is true, and of rhumb
    * (loxodromic) segments otherwise.
    */
   public static boolean containsLocation(LatLng point, List<LatLng> polygon, boolean geodesic) {
@@ -123,10 +137,9 @@ public class PolyUtil {
   private static final double DEFAULT_TOLERANCE = 0.1;  // meters.
 
   /**
-   * Computes whether the given point lies on or near the edge of a polygon, within a specified
-   * tolerance in meters. The polygon edge is composed of great circle segments if geodesic
-   * is true, and of Rhumb segments otherwise. The polygon edge is implicitly closed -- the
-   * closing segment between the first point and the last point is included.
+   * Computes whether the given point lies on or near the edge of a polygon, within a specified tolerance in meters. The
+   * polygon edge is composed of great circle segments if geodesic is true, and of Rhumb segments otherwise. The polygon
+   * edge is implicitly closed -- the closing segment between the first point and the last point is included.
    */
   public static boolean isLocationOnEdge(LatLng point, List<LatLng> polygon, boolean geodesic,
       double tolerance) {
@@ -134,18 +147,16 @@ public class PolyUtil {
   }
 
   /**
-   * Same as {@link #isLocationOnEdge(LatLng, List, boolean, double)}
-   * with a default tolerance of 0.1 meters.
+   * Same as {@link #isLocationOnEdge(LatLng, List, boolean, double)} with a default tolerance of 0.1 meters.
    */
   public static boolean isLocationOnEdge(LatLng point, List<LatLng> polygon, boolean geodesic) {
     return isLocationOnEdge(point, polygon, geodesic, DEFAULT_TOLERANCE);
   }
 
   /**
-   * Computes whether the given point lies on or near a polyline, within a specified
-   * tolerance in meters. The polyline is composed of great circle segments if geodesic
-   * is true, and of Rhumb segments otherwise. The polyline is not closed -- the closing
-   * segment between the first point and the last point is not included.
+   * Computes whether the given point lies on or near a polyline, within a specified tolerance in meters. The polyline
+   * is composed of great circle segments if geodesic is true, and of Rhumb segments otherwise. The polyline is not
+   * closed -- the closing segment between the first point and the last point is not included.
    */
   public static boolean isLocationOnPath(LatLng point, List<LatLng> polyline,
       boolean geodesic, double tolerance) {
@@ -154,7 +165,7 @@ public class PolyUtil {
 
   /**
    * Same as {@link #isLocationOnPath(LatLng, List, boolean, double)}
-   *
+   * <p>
    * with a default tolerance of 0.1 meters.
    */
   public static boolean isLocationOnPath(LatLng point, List<LatLng> polyline,
@@ -230,8 +241,8 @@ public class PolyUtil {
   }
 
   /**
-   * Returns sin(initial bearing from (lat1,lng1) to (lat3,lng3) minus initial bearing
-   * from (lat1, lng1) to (lat2,lng2)).
+   * Returns sin(initial bearing from (lat1,lng1) to (lat3,lng3) minus initial bearing from (lat1, lng1) to
+   * (lat2,lng2)).
    */
   private static double sinDeltaBearing(double lat1, double lng1, double lat2, double lng2,
       double lat3, double lng3) {

@@ -7,8 +7,10 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hcmute.tdshop.config.AppProperties;
 import com.hcmute.tdshop.dto.security.UserInfo;
 import com.hcmute.tdshop.model.DataResponse;
+import com.hcmute.tdshop.security.jwt.JwtTokenProvider;
 import com.hcmute.tdshop.utils.Helper;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.io.IOException;
@@ -21,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +32,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 @Data
 public class CustomAuthorizationFilter extends OncePerRequestFilter {
+
+  private final JwtTokenProvider jwtTokenProvider;
+
+  public CustomAuthorizationFilter(JwtTokenProvider jwtTokenProvider) {
+    this.jwtTokenProvider = jwtTokenProvider;
+  }
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -42,7 +51,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
       if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
         try {
           String token = authorizationHeader.substring("Bearer ".length());
-          JWTVerifier verifier = JWT.require(Helper.JWT_ALGORITHM).build();
+          JWTVerifier verifier = JWT.require(jwtTokenProvider.getJWTAlgorithm()).build();
           DecodedJWT decodedJWT = verifier.verify(token);
           String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
           Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();

@@ -15,7 +15,6 @@ import com.hcmute.tdshop.service.VariationService;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -62,11 +61,12 @@ public class VariationServiceImpl implements VariationService {
     if (optionalMasterCategory.isPresent()) {
       variation.setMasterCategory(optionalMasterCategory.get());
       if (!checkIfNameExisted(variation.getName(), variation.getMasterCategory().getId())) {
-        Set<String> names = variation.getSetOfVariationOptions().stream().map(variationOption -> variationOption.getValue().toLowerCase().trim()).collect(
-            Collectors.toSet());
+        Set<String> names = variation.getSetOfVariationOptions().stream()
+            .map(variationOption -> variationOption.getValue().toLowerCase().trim()).collect(
+                Collectors.toSet());
         if (names.size() < variation.getSetOfVariationOptions().size()) {
-            return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.VARIATION_OPTION_NAME_EXISTED,
-                ApplicationConstants.VARIATION_OPTION_NAME_EXISTED_CODE);
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.VARIATION_OPTION_NAME_EXISTED,
+              ApplicationConstants.VARIATION_OPTION_NAME_EXISTED_CODE);
         }
 
         variation = variationRepository.save(variation);
@@ -85,7 +85,8 @@ public class VariationServiceImpl implements VariationService {
     Optional<Variation> optionalVariation = variationRepository.findById(id);
     if (optionalVariation.isPresent()) {
       Variation currentVariation = optionalVariation.get();
-      if (Strings.isNotBlank(variationToUpdate.getName()) && (!variationToUpdate.getName().equals(currentVariation.getName()))) {
+      if (Strings.isNotBlank(variationToUpdate.getName()) && (!variationToUpdate.getName()
+          .equals(currentVariation.getName()))) {
         if (checkIfNameExisted(variationToUpdate.getName(), currentVariation.getMasterCategory().getId())) {
           return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.VARIATION_NAME_EXISTED,
               ApplicationConstants.BAD_REQUEST_CODE);
@@ -95,8 +96,9 @@ public class VariationServiceImpl implements VariationService {
 
       if (request.getSetOfVarirationOptionValues() != null) {
         Set<VariationOptionDto> variationOptionSet = request.getSetOfVarirationOptionValues();
-        Set<String> names = variationOptionSet.stream().map(variationOption -> variationOption.getValue().toLowerCase().trim()).collect(
-            Collectors.toSet());
+        Set<String> names = variationOptionSet.stream()
+            .map(variationOption -> variationOption.getValue().toLowerCase().trim()).collect(
+                Collectors.toSet());
         if (names.size() < variationOptionSet.size()) {
           return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.VARIATION_OPTION_NAME_EXISTED,
               ApplicationConstants.VARIATION_OPTION_NAME_EXISTED_CODE);
@@ -106,8 +108,7 @@ public class VariationServiceImpl implements VariationService {
         variationOptionSet.forEach(variationOptionDto -> {
           if (variationOptionDto.getId() == null || variationOptionDto.getId() == 0) {
             variationOptionWithOutId.add(variationOptionDto);
-          }
-          else {
+          } else {
             variationOptionWithId.put(variationOptionDto.getId(), variationOptionDto);
           }
         });
@@ -121,8 +122,7 @@ public class VariationServiceImpl implements VariationService {
           if (variationOptionDto == null) {
             deletedVariationOption.add(variationOption);
             iterator.remove();
-          }
-          else {
+          } else {
             if (Strings.isNotBlank(variationOptionDto.getValue())) {
               variationOption.setValue(variationOptionDto.getValue());
             }
@@ -130,7 +130,8 @@ public class VariationServiceImpl implements VariationService {
         }
         int size = variationOptionWithOutId.size();
         for (int i = 0; i < size; i++) {
-          currentVariation.getSetOfVariationOptions().add(new VariationOption(null, variationOptionWithOutId.get(i).getValue(), currentVariation, null));
+          currentVariation.getSetOfVariationOptions()
+              .add(new VariationOption(null, variationOptionWithOutId.get(i).getValue(), currentVariation, null));
         }
         variationOptionRepository.deleteAll(deletedVariationOption);
       }

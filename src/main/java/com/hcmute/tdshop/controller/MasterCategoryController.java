@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/master-category")
 public class MasterCategoryController {
+
   @Autowired
   MasterCategoryService masterCategoryService;
 
@@ -41,7 +42,8 @@ public class MasterCategoryController {
 
   @PutMapping("/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
-  public DataResponse updateMasterCategory(@PathVariable(name = "id") long id, @RequestBody @Valid UpdateMasterCategoryRequest request) {
+  public DataResponse updateMasterCategory(@PathVariable(name = "id") long id,
+      @RequestBody @Valid UpdateMasterCategoryRequest request) {
     return masterCategoryService.updateMasterCategory(id, request);
   }
 

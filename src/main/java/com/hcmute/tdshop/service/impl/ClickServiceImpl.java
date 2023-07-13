@@ -33,11 +33,13 @@ public class ClickServiceImpl implements ClickService {
     long id = AuthenticationHelper.getCurrentLoggedInUserId();
     Optional<Product> productOptional = productRepository.findByIdAndDeletedAtNull(dto.getProductId());
     if (!productOptional.isPresent()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PRODUCT_NOT_FOUND,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     Optional<User> userOptional = userRepository.findByIdAndDeletedAtIsNull(id);
     if (!userOptional.isPresent()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     LocalDateTime now = LocalDateTime.now();
     UserClick userClick = new UserClick(null, productOptional.get(), userOptional.get(), null, now);

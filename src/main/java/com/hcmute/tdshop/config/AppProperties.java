@@ -1,14 +1,17 @@
 package com.hcmute.tdshop.config;
 
+import com.auth0.jwt.algorithms.Algorithm;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 //@ConfigurationProperties()
 @Component
+@Getter
 public class AppProperties {
+
   @Value("${app.authorizedRedirectUris}")
   private List<String> authorizedRedirectUris = new ArrayList<>();
 
@@ -21,19 +24,27 @@ public class AppProperties {
   @Value("${order.awaiting-payment.time-out}")
   private Long orderAwaitingPaymentTimeOut;
 
-  public List<String> getAuthorizedRedirectUris() {
-    return authorizedRedirectUris;
-  }
+  @Value("${spring.mail.username}")
+  private String sender;
 
-  public String getFeBaseUrl() {
-    return feBaseUrl;
-  }
+  @Value("${app.notification.new-product}")
+  private String newProductAddedNotificationTypeId;
 
-  public Long getOrderPaymentTimeOut() {
-    return orderPaymentTimeOut;
-  }
+  @Value("${app.notification.product-out-of-stock}")
+  private String productOutOfStockNotificationTypeId;
 
-  public Long getOrderAwaitingPaymentTimeOut() {
-    return orderAwaitingPaymentTimeOut;
-  }
+  @Value("${app.email.confirm-token.duration}")
+  private int confirmTokenDuration = 5;
+
+  @Value("${app.email.reset-password.duration}")
+  private int resetPasswordDuration = 5;
+
+  @Value("${app.jwt-token.secret}")
+  private String jwtSecret;
+
+  @Value("${app.jwt-token.access-token-expiration}")
+  private Long jwtAccessTokenExpiration;
+
+  @Value("${app.jwt-token.refresh-token-expiration}")
+  private Long jwtRefreshTokenExpiration;
 }

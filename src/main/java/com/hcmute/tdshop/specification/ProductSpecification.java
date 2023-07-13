@@ -117,7 +117,8 @@ public class ProductSpecification {
       LocalDateTime now = LocalDateTime.now();
       selectedProductIdsSubquery
           .select(selectedProductIds.get("id"))
-          .where(criteriaBuilder.and(criteriaBuilder.lessThanOrEqualTo(selectedProductIds.get("startDate"), now), criteriaBuilder.greaterThanOrEqualTo(selectedProductIds.get("endDate"), now)));
+          .where(criteriaBuilder.and(criteriaBuilder.lessThanOrEqualTo(selectedProductIds.get("startDate"), now),
+              criteriaBuilder.greaterThanOrEqualTo(selectedProductIds.get("endDate"), now)));
 
       selectedProductIdsSubquery.distinct(true);
       Order promotionOrder = direction == Direction.ASC

@@ -1,6 +1,5 @@
 package com.hcmute.tdshop.service.impl;
 
-import com.hcmute.tdshop.dto.attribute.AttributeDto;
 import com.hcmute.tdshop.dto.attribute.SimpleAttribute;
 import com.hcmute.tdshop.dto.attributeset.AddAttributeSetRequest;
 import com.hcmute.tdshop.dto.attributeset.UpdateAttributeSetRequest;
@@ -14,11 +13,9 @@ import com.hcmute.tdshop.service.AttributeSetService;
 import com.hcmute.tdshop.utils.constants.ApplicationConstants;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,10 +55,12 @@ public class AttributeSetServiceImpl implements AttributeSetService {
   public DataResponse insertAttributeSet(AddAttributeSetRequest request) {
     AttributeSet attributeSet = attributeSetMapper.AddAttributeSetRequestToAttributeSet(request);
     if (!checkIfNameExisted(attributeSet.getName())) {
-      Set<String> names = attributeSet.getSetOfAttributes().stream().map(attribute -> attribute.getName().toLowerCase().trim()).collect(
-          Collectors.toSet());
+      Set<String> names = attributeSet.getSetOfAttributes().stream()
+          .map(attribute -> attribute.getName().toLowerCase().trim()).collect(
+              Collectors.toSet());
       if (names.size() < attributeSet.getSetOfAttributes().size()) {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ATTRIBUTE_NAME_EXISTED, ApplicationConstants.ATTRIBUTE_NAME_EXISTED_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ATTRIBUTE_NAME_EXISTED,
+            ApplicationConstants.ATTRIBUTE_NAME_EXISTED_CODE);
       }
       attributeSet = attributeSetRepository.save(attributeSet);
       return new DataResponse(ApplicationConstants.ATTRIBUTE_SET_ADD_SUCCESSFULLY, attributeSet);
@@ -76,7 +75,8 @@ public class AttributeSetServiceImpl implements AttributeSetService {
     Optional<AttributeSet> optionalAttributeSet = attributeSetRepository.findById(id);
     if (optionalAttributeSet.isPresent()) {
       AttributeSet currentAttributeSet = optionalAttributeSet.get();
-      if (attributeSetToUpdate.getName() != null && (!attributeSetToUpdate.getName().equals(currentAttributeSet.getName()))) {
+      if (attributeSetToUpdate.getName() != null && (!attributeSetToUpdate.getName()
+          .equals(currentAttributeSet.getName()))) {
         if (checkIfNameExisted(attributeSetToUpdate.getName())) {
           return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ATTRIBUTE_SET_NAME_EXISTED,
               ApplicationConstants.ATTRIBUTE_SET_NAME_EXISTED_CODE);
@@ -90,7 +90,8 @@ public class AttributeSetServiceImpl implements AttributeSetService {
         Set<String> names = attributeSet.stream().map(attribute -> attribute.getName().toLowerCase().trim()).collect(
             Collectors.toSet());
         if (names.size() < attributeSet.size()) {
-          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ATTRIBUTE_NAME_EXISTED, ApplicationConstants.ATTRIBUTE_NAME_EXISTED_CODE);
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ATTRIBUTE_NAME_EXISTED,
+              ApplicationConstants.ATTRIBUTE_NAME_EXISTED_CODE);
         }
         Map<Long, SimpleAttribute> attributesWithId = new HashMap<>();
         List<SimpleAttribute> attributesWithOutId = new ArrayList<>();
@@ -98,8 +99,7 @@ public class AttributeSetServiceImpl implements AttributeSetService {
           if (attribute.getId() == null || attribute.getId() == 0) {
 //            attributesWithOutId.add(new Attribute(null, attribute.getName(), attribute.getPriority(), currentAttributeSet, null));
             attributesWithOutId.add(attribute);
-          }
-          else {
+          } else {
             attributesWithId.put(attribute.getId(), attribute);
           }
         });
@@ -113,8 +113,7 @@ public class AttributeSetServiceImpl implements AttributeSetService {
           if (simpleAttribute == null) {
             deletedAttributes.add(attribute);
             iterator.remove();
-          }
-          else {
+          } else {
             if (Strings.isNotBlank(simpleAttribute.getName())) {
               attribute.setName(simpleAttribute.getName());
             }
@@ -123,7 +122,9 @@ public class AttributeSetServiceImpl implements AttributeSetService {
         }
         int size = attributesWithOutId.size();
         for (int i = 0; i < size; i++) {
-          currentAttributeSet.getSetOfAttributes().add(new Attribute(null, attributesWithOutId.get(i).getName(), attributesWithOutId.get(i).getPriority(), currentAttributeSet, null));
+          currentAttributeSet.getSetOfAttributes().add(
+              new Attribute(null, attributesWithOutId.get(i).getName(), attributesWithOutId.get(i).getPriority(),
+                  currentAttributeSet, null));
         }
         attributeRepository.deleteAll(deletedAttributes);
       }

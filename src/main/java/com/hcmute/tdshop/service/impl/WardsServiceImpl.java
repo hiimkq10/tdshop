@@ -20,14 +20,16 @@ public class WardsServiceImpl implements WardsService {
 
   public DataResponse getAllWards(Pageable pageable) {
     return new DataResponse(
-        wardsRepository.findAll(pageable.getSort()).stream().map(item -> addressMapper.WardsToWardsResponse(item)).collect(
-            Collectors.toList()));
+        wardsRepository.findAll(pageable.getSort()).stream().map(item -> addressMapper.WardsToWardsResponse(item))
+            .collect(
+                Collectors.toList()));
   }
 
   @Override
   public DataResponse getWardsByDistrictId(long id, Pageable pageable) {
     return new DataResponse(
-        wardsRepository.findByDistrict_Id(id, pageable.getSort()).stream().map(item -> addressMapper.WardsToWardsResponse(item)).collect(
-            Collectors.toList()));
+        wardsRepository.findByDistrict_Id(id, pageable.getSort()).stream()
+            .map(item -> addressMapper.WardsToWardsResponse(item)).collect(
+                Collectors.toList()));
   }
 }

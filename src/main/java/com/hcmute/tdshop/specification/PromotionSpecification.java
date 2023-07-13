@@ -10,6 +10,7 @@ import javax.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 public class PromotionSpecification {
+
   public static Specification<Promotion> hasName(String name) {
     return (((root, query, criteriaBuilder) -> {
       return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%");
@@ -18,7 +19,8 @@ public class PromotionSpecification {
 
   public static Specification<Promotion> hasDescription(String description) {
     return (((root, query, criteriaBuilder) -> {
-      return criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + description.toLowerCase() + "%");
+      return criteriaBuilder.like(criteriaBuilder.lower(root.get("description")),
+          "%" + description.toLowerCase() + "%");
     }));
   }
 

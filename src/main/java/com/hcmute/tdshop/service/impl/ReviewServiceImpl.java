@@ -3,7 +3,6 @@ package com.hcmute.tdshop.service.impl;
 import com.hcmute.tdshop.dto.review.AddReviewRequest;
 import com.hcmute.tdshop.dto.review.ReviewDto;
 import com.hcmute.tdshop.dto.security.UserInfo;
-import com.hcmute.tdshop.dto.statistic.RatingDto;
 import com.hcmute.tdshop.dto.statistic.RatingWithStarDto;
 import com.hcmute.tdshop.entity.Review;
 import com.hcmute.tdshop.entity.User;
@@ -12,7 +11,6 @@ import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.OrderDetailRepository;
 import com.hcmute.tdshop.repository.ReviewRepository;
 import com.hcmute.tdshop.repository.UserRepository;
-import com.hcmute.tdshop.security.model.CustomUserDetails;
 import com.hcmute.tdshop.service.ReviewService;
 import com.hcmute.tdshop.specification.ReviewSpecification;
 import com.hcmute.tdshop.utils.AuthenticationHelper;
@@ -52,7 +50,8 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public DataResponse searchReview(long userId, long productId, String fromDate, String toDate, Boolean isVerified, Boolean isValid,
+  public DataResponse searchReview(long userId, long productId, String fromDate, String toDate, Boolean isVerified,
+      Boolean isValid,
       Pageable page) {
     List<Specification<Review>> specifications = new ArrayList<>();
     if (userId > 0) {
@@ -83,7 +82,7 @@ public class ReviewServiceImpl implements ReviewService {
       Boolean isValid) {
     return new DataResponse(searchAllList(userId, productId, fromDate, toDate, isVerified, isValid));
   }
-  
+
   public List<ReviewDto> searchAllList(long userId, long productId, String fromDate, String toDate, Boolean isVerified,
       Boolean isValid) {
     List<Specification<Review>> specifications = new ArrayList<>();
@@ -181,17 +180,13 @@ public class ReviewServiceImpl implements ReviewService {
       total = total + reviews.get(i).getRatingValue();
       if (reviews.get(i).getRatingValue() < 1.5) {
         star1 += 1;
-      }
-      else if (reviews.get(i).getRatingValue() >= 1.5 && reviews.get(i).getRatingValue() < 2.5) {
+      } else if (reviews.get(i).getRatingValue() >= 1.5 && reviews.get(i).getRatingValue() < 2.5) {
         star2 += 1;
-      }
-      else if (reviews.get(i).getRatingValue() >= 2.5 && reviews.get(i).getRatingValue() < 3.5) {
+      } else if (reviews.get(i).getRatingValue() >= 2.5 && reviews.get(i).getRatingValue() < 3.5) {
         star3 += 1;
-      }
-      else if (reviews.get(i).getRatingValue() >= 3.5 && reviews.get(i).getRatingValue() < 4.5) {
+      } else if (reviews.get(i).getRatingValue() >= 3.5 && reviews.get(i).getRatingValue() < 4.5) {
         star4 += 1;
-      }
-      else if (reviews.get(i).getRatingValue() >= 4.5) {
+      } else if (reviews.get(i).getRatingValue() >= 4.5) {
         star5 += 1;
       }
     }

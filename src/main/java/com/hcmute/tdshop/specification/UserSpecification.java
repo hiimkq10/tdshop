@@ -6,6 +6,7 @@ import javax.persistence.criteria.Expression;
 import org.springframework.data.jpa.domain.Specification;
 
 public class UserSpecification {
+
   public static Specification<User> hasId(long id) {
     return ((root, query, criteriaBuilder) -> {
       return criteriaBuilder.equal(root.get("id"), id);

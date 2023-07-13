@@ -35,7 +35,6 @@ import com.hcmute.tdshop.entity.ShipData;
 import com.hcmute.tdshop.entity.ShopOrder;
 import com.hcmute.tdshop.entity.Wards;
 import com.hcmute.tdshop.enums.GHNShipStatusEnum;
-import com.hcmute.tdshop.enums.LalamoveShipStatusEnum;
 import com.hcmute.tdshop.enums.OrderStatusEnum;
 import com.hcmute.tdshop.enums.PaymentMethodEnum;
 import com.hcmute.tdshop.model.DataResponse;
@@ -389,7 +388,8 @@ public class GHNShipService extends ShipServices {
       OrderStatus deliveringStatus = orderStatusRepository.findById(OrderStatusEnum.DELIVERING.getId()).orElse(null);
       if (deliveringStatus == null) {
         logger.error("Order status config is incorrect");
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+            ApplicationConstants.BAD_REQUEST_CODE);
       }
       order.setOrderStatus(deliveringStatus);
       shopOrderRepository.saveAndFlush(order);
@@ -412,7 +412,8 @@ public class GHNShipService extends ShipServices {
     ShopOrder order = optionalOrderData.get();
     ResultDto result = checkCancelShipOrderCondition(order);
     if (!result.isResult()) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, order, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, order,
+          ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
     }
     try {
       GetOrderData getOrderData = getOrder(order);
@@ -447,7 +448,8 @@ public class GHNShipService extends ShipServices {
       OrderStatus proccessingStatus = orderStatusRepository.findById(OrderStatusEnum.PROCCESSING.getId()).orElse(null);
       if (proccessingStatus == null) {
         logger.error("Order status config is incorrect");
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR, ApplicationConstants.BAD_REQUEST_CODE);
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
+            ApplicationConstants.BAD_REQUEST_CODE);
       }
       order.setOrderStatus(proccessingStatus);
       shopOrderRepository.saveAndFlush(order);
@@ -523,7 +525,8 @@ public class GHNShipService extends ShipServices {
   @Override
   public CheckShipConditionDto checkShipCondition(ShopOrder order, boolean statusCheck) {
     if (statusCheck && order.getOrderStatus().getId() != OrderStatusEnum.PROCCESSING.getId()) {
-      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING_CODE);
+      return new CheckShipConditionDto(false, ApplicationConstants.ORDER_STATUS_NOT_PROCESSING,
+          ApplicationConstants.ORDER_STATUS_NOT_PROCESSING_CODE);
     }
     if (!checkSize(order)) {
       return new CheckShipConditionDto(false, ApplicationConstants.ORDER_SIZE_EXCEED_SUPPORT_SIZE,
@@ -570,7 +573,8 @@ public class GHNShipService extends ShipServices {
   @Override
   public ResultDto checkCancelShipOrderCondition(ShopOrder order) {
     if (order.getOrderStatus().getId() != OrderStatusEnum.DELIVERING.getId()) {
-      return new ResultDto(false, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
+      return new ResultDto(false, ApplicationConstants.ORDER_STATUS_NOT_DILIVERING,
+          ApplicationConstants.ORDER_STATUS_NOT_DILIVERING_CODE);
     }
     return ResultDto.SUCCESS;
   }

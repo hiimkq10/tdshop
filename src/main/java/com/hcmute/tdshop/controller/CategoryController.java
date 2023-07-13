@@ -21,12 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/category")
 public class CategoryController {
+
   @Autowired
   private CategoryService categoryService;
 
   @GetMapping("/get-all")
   public DataResponse getAll(Pageable pageable) {
-    return  categoryService.getAll(pageable);
+    return categoryService.getAll(pageable);
   }
 
   @GetMapping("/get/{id}")
@@ -47,7 +48,8 @@ public class CategoryController {
 
   @PutMapping("/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
-  public DataResponse updateCategory(@PathVariable(name = "id") long id, @RequestBody @Valid UpdateCategoryRequest request) {
+  public DataResponse updateCategory(@PathVariable(name = "id") long id,
+      @RequestBody @Valid UpdateCategoryRequest request) {
     return categoryService.updateCategory(id, request);
   }
 

@@ -1,5 +1,6 @@
 package com.hcmute.tdshop.service.impl;
 
+import com.hcmute.tdshop.config.AppProperties;
 import com.hcmute.tdshop.dto.auth.ForgotPasswordRequest;
 import com.hcmute.tdshop.entity.Token;
 import com.hcmute.tdshop.entity.User;
@@ -23,7 +24,6 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -36,8 +36,7 @@ public class EmailServiceImpl implements EmailService {
   private JavaMailSender javaMailSender;
 
   @Autowired
-  @Value("${spring.mail.username}")
-  private String sender;
+  AppProperties appProperties;
 
   @Autowired
   private Configuration configuration;
@@ -73,11 +72,12 @@ public class EmailServiceImpl implements EmailService {
       if (!user.getIsVerified()) {
         String code = getRandomString();
         createToken(user, code);
-        return sendEmail(user, String.format(baseUrl + ApplicationConstants.activateAccountEndpoint + "/%d?token=%s", id, code),
+        return sendEmail(user,
+            String.format(baseUrl + ApplicationConstants.activateAccountEndpoint + "/%d?token=%s", id, code),
             "activate_account_email_template.ftl");
-      }
-      else {
-        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ACCOUNT_ACTIVATED, ApplicationConstants.ACCOUNT_ACTIVATED_CODE);
+      } else {
+        return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ACCOUNT_ACTIVATED,
+            ApplicationConstants.ACCOUNT_ACTIVATED_CODE);
       }
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND,
@@ -90,7 +90,7 @@ public class EmailServiceImpl implements EmailService {
 
     try {
       MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "utf-8");
-      mimeMessageHelper.setFrom(sender);
+      mimeMessageHelper.setFrom(appProperties.getSender());
       mimeMessageHelper.setTo(user.getEmail());
       mimeMessageHelper.setText(getEmailContent(user, code, template), true);
       mimeMessageHelper.setSubject(ApplicationConstants.VERIFICATION_EMAIL_SUBJECT);
@@ -121,7 +121,7 @@ public class EmailServiceImpl implements EmailService {
   private void createToken(User user, String code) {
     Token token = tokenRepository.findByUser_Id(user.getId()).orElse(new Token());
     LocalDateTime created_at = LocalDateTime.now();
-    LocalDateTime expired_at = created_at.plusMinutes(Helper.CONFIRM_TOKEN_DURATION);
+    LocalDateTime expired_at = created_at.plusMinutes(appProperties.getConfirmTokenDuration());
     token.setCode(code);
     token.setCreatedAt(created_at);
     token.setExpiredAt(expired_at);

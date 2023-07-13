@@ -9,6 +9,7 @@ import com.hcmute.tdshop.service.ShipService;
 import com.hcmute.tdshop.service.shipservices.ShipServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,11 +37,13 @@ public class GHNController {
   }
 
   @PostMapping("/create-order")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse createOrder(@RequestBody CreateOrderRequest dto) {
     return ghnShipServices.createOrder(dto);
   }
 
   @PostMapping("/cancel-order")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse cancleOrder(@RequestBody CancelOrderRequest dto) {
     return ghnShipServices.cancelOrder(dto);
   }

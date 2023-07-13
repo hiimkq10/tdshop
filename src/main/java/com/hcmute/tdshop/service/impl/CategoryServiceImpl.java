@@ -5,7 +5,6 @@ import com.hcmute.tdshop.dto.category.CategoryResponse;
 import com.hcmute.tdshop.dto.category.UpdateCategoryRequest;
 import com.hcmute.tdshop.entity.Category;
 import com.hcmute.tdshop.entity.MasterCategory;
-import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.mapper.CategoryMapper;
 import com.hcmute.tdshop.model.DataResponse;
 import com.hcmute.tdshop.repository.CategoryRepository;
@@ -55,13 +54,15 @@ public class CategoryServiceImpl implements CategoryService {
       Category category = optionalCategory.get();
       return new DataResponse(categoryMapper.CategoryToCategoryResponse(category));
     }
-    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.CATEGORY_NOT_FOUND,
+        ApplicationConstants.BAD_REQUEST_CODE);
   }
 
   @Override
   public DataResponse getByMasterCategoryId(long id) {
     List<Category> listOfCategories = categoryRepository.findByMasterCategory_IdAndParentIsNull(id);
-    List<CategoryResponse> listOfCategoryResponses = listOfCategories.stream().map(categoryMapper::CategoryToCategoryResponse).collect(Collectors.toList());
+    List<CategoryResponse> listOfCategoryResponses = listOfCategories.stream()
+        .map(categoryMapper::CategoryToCategoryResponse).collect(Collectors.toList());
     return new DataResponse(listOfCategoryResponses);
   }
 
@@ -111,16 +112,18 @@ public class CategoryServiceImpl implements CategoryService {
 //        }
         currentCategory.setName(categoryToUpdate.getName());
       }
-      if (request.getParentCategoryId() > 0 && request.getParentCategoryId() != id && (currentCategory.getParent() == null || request.getParentCategoryId() != currentCategory.getParent().getId())) {
+      if (request.getParentCategoryId() > 0 && request.getParentCategoryId() != id && (
+          currentCategory.getParent() == null || request.getParentCategoryId() != currentCategory.getParent()
+              .getId())) {
         Optional<Category> optionalParentCategory = categoryRepository.findById(request.getParentCategoryId());
         if (optionalParentCategory.isPresent()) {
           Category parentCategory = optionalParentCategory.get();
           if (parentCategory.getParent() == null) {
             if (parentCategory.getMasterCategory().getId() == currentCategory.getMasterCategory().getId()) {
               currentCategory.setParent(optionalParentCategory.get());
-            }
-            else {
-              return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.PARENT_MASTER_CATEGORY_SAME_ERROR,
+            } else {
+              return new DataResponse(ApplicationConstants.BAD_REQUEST,
+                  ApplicationConstants.PARENT_MASTER_CATEGORY_SAME_ERROR,
                   ApplicationConstants.BAD_REQUEST_CODE);
             }
           } else {

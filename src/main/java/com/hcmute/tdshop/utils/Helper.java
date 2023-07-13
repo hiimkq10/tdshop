@@ -1,7 +1,6 @@
 package com.hcmute.tdshop.utils;
 
 import com.auth0.jwt.algorithms.Algorithm;
-import com.hcmute.tdshop.entity.User;
 import com.hcmute.tdshop.enums.AdministrativeTypeEnum;
 import com.hcmute.tdshop.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -14,12 +13,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Component
 public class Helper {
-  public static final String JWT_SECRET = "secretttttt";
-  public static final Long JWT_ACCESS_TOKEN_EXPIRATION = 3600000L; // 1 hour in milliseconds
-  public static final Long JWT_REFRESH_TOKEN_EXPIRATION = 7200000L; // 2 hourss in milliseconds
-  public static final int CONFIRM_TOKEN_DURATION = 5;
-  public static final int RESET_PASSWORD_DURATION = 5;
-  public static final Algorithm JWT_ALGORITHM = Algorithm.HMAC256(JWT_SECRET.getBytes());
+
+//  public static final String JWT_SECRET = "secretttttt";
+//  public static final Long JWT_ACCESS_TOKEN_EXPIRATION = 3600000L; // 1 hour in milliseconds
+//  public static final Long JWT_REFRESH_TOKEN_EXPIRATION = 7200000L; // 2 hourss in milliseconds
+//  public static final int CONFIRM_TOKEN_DURATION = 5;
+//  public static final int RESET_PASSWORD_DURATION = 5;
+//  public static final Algorithm JWT_ALGORITHM = Algorithm.HMAC256(JWT_SECRET.getBytes());
   public static final String dateTimePattern = "yyyy-MM-dd HH:mm";
   public static final String datePattern = "yyyy-MM-dd";
   public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);

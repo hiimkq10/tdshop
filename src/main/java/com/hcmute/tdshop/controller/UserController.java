@@ -2,7 +2,6 @@ package com.hcmute.tdshop.controller;
 
 import com.hcmute.tdshop.dto.user.UpdateUserInfoRequest;
 import com.hcmute.tdshop.model.DataResponse;
-import com.hcmute.tdshop.repository.ProvinceRepository;
 import com.hcmute.tdshop.service.UserService;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/user")
 public class UserController {
-
-  @Autowired
-  private ProvinceRepository provinceRepository;
 
   @Autowired
   private UserService userService;
@@ -49,13 +45,13 @@ public class UserController {
   }
 
   @PostMapping("/admin/ban/{id}")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse banUser(@PathVariable(name = "id") long id) {
     return userService.banUser(id);
   }
 
   @PostMapping("/admin/unban/{id}")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
   public DataResponse unBanUser(@PathVariable(name = "id") long id) {
     return userService.unBanUser(id);
   }

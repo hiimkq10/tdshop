@@ -13,11 +13,11 @@ import javax.validation.Payload;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValueOfEnum {
 
-	Class<? extends Enum<?>> enumClass();
+  Class<? extends Enum<?>> enumClass();
 
-	String message();
+  String message();
 
-	Class<?>[] groups() default {};
+  Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payload() default {};
+  Class<? extends Payload>[] payload() default {};
 }

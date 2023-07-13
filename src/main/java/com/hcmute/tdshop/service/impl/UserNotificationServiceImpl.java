@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserNotificationServiceImpl implements UserNotificationService {
+
   @Autowired
   private NotificationRepository notificationRepository;
 
@@ -45,7 +46,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
       specifications.add(UserNotificationSpecification.hasUserId(userId));
       Specification<UserNotification> conditions = SpecificationHelper.and(specifications);
       List<UserNotification> userNotifications = userNotificationRepository.findAll(conditions);
-      List<Long> notiIds = userNotifications.stream().map(n -> n.getNotification().getId()).collect(Collectors.toList());
+      List<Long> notiIds = userNotifications.stream().map(n -> n.getNotification().getId())
+          .collect(Collectors.toList());
       notifications.forEach(n -> {
         if (!notiIds.contains(n.getId())) {
           UserNotification userNotification = new UserNotification(null, false, false, user, n);
@@ -67,7 +69,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
           return 0;
         }
       });
-      return new DataResponse(userNotifications.stream().filter(item -> item.getIsDeleted() == null || !item.getIsDeleted()));
+      return new DataResponse(
+          userNotifications.stream().filter(item -> item.getIsDeleted() == null || !item.getIsDeleted()));
     }
     throw new RuntimeException(ApplicationConstants.USER_NOT_FOUND);
   }

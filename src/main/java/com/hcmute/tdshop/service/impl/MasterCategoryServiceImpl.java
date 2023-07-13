@@ -52,7 +52,8 @@ public class MasterCategoryServiceImpl implements MasterCategoryService {
   public DataResponse insertMasterCategory(AddMasterCategoryRequest request) {
     MasterCategory masterCategory = masterCategoryMapper.AddMasterCategoryRequestToMasterCategory(request);
     if (checkIfNameExisted(masterCategory.getName())) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.MASTER_CATEGORY_NAME_EXISTED, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.MASTER_CATEGORY_NAME_EXISTED,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     masterCategory.setCreatedAt(LocalDateTime.now());
     masterCategory = masterCategoryRepository.save(masterCategory);
@@ -65,12 +66,13 @@ public class MasterCategoryServiceImpl implements MasterCategoryService {
     Optional<MasterCategory> optionalMasterCategory = masterCategoryRepository.findById(id);
     if (optionalMasterCategory.isPresent()) {
       MasterCategory currentMasterCategory = optionalMasterCategory.get();
-      if (masterCategoryToUpdate.getName() != null && !(masterCategoryToUpdate.getName().equals(currentMasterCategory.getName()))) {
+      if (masterCategoryToUpdate.getName() != null && !(masterCategoryToUpdate.getName()
+          .equals(currentMasterCategory.getName()))) {
         if (!checkIfNameExisted(masterCategoryToUpdate.getName())) {
           currentMasterCategory.setName(masterCategoryToUpdate.getName());
-        }
-        else {
-          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.MASTER_CATEGORY_NAME_EXISTED, ApplicationConstants.BAD_REQUEST_CODE);
+        } else {
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.MASTER_CATEGORY_NAME_EXISTED,
+              ApplicationConstants.BAD_REQUEST_CODE);
         }
       }
       currentMasterCategory = masterCategoryRepository.save(currentMasterCategory);

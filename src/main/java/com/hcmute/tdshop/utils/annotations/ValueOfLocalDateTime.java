@@ -15,7 +15,10 @@ import javax.validation.Payload;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValueOfLocalDateTime {
+
   String message() default ApplicationConstants.LOCAL_DATE_TIME_FORMAT_INVALID;
+
   Class<?>[] groups() default {};
+
   Class<? extends Payload>[] payload() default {};
 }

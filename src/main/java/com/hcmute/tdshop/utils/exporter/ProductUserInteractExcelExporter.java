@@ -17,7 +17,6 @@ public class ProductUserInteractExcelExporter {
   private XSSFWorkbook workbook;
   private XSSFSheet sheet;
   private List<ProductUserInteractExcel> listDatas;
-  final String excelFilePath = "src/main/resources/data/aidata.xlsx";
 
   public ProductUserInteractExcelExporter(List<ProductUserInteractExcel> listDatas) {
     this.listDatas = listDatas;
@@ -84,11 +83,6 @@ public class ProductUserInteractExcelExporter {
     writeHeaderLine();
     writeDataLines();
 
-//    ServletOutputStream outputStream = response.getOutputStream();
-//    workbook.write(outputStream);
-//    workbook.close();
-//
-//    outputStream.close();
     OutputStream os = new FileOutputStream(fileName);
     workbook.write(os);
 

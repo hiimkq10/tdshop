@@ -57,10 +57,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
-  @Bean
-  public JwtTokenProvider tokenAuthenticationFilter() {
-    return new JwtTokenProvider();
-  }
+  @Autowired
+  public JwtTokenProvider jwtTokenProvider;
 
   @Bean
   public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
@@ -105,8 +103,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .successHandler((AuthenticationSuccessHandler) new OAuth2AuthenticationSuccessHandler(appProperties, httpCookieOAuth2AuthorizationRequestRepository))
         .failureHandler((AuthenticationFailureHandler) new OAuth2AuthenticationFailureHandler(httpCookieOAuth2AuthorizationRequestRepository));
-    http.addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManagerBean(), customUserDetailsService));
-    http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+    http.addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManagerBean(), customUserDetailsService, jwtTokenProvider));
+    http.addFilterBefore(new CustomAuthorizationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
   }
 
   @Override

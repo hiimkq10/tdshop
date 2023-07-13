@@ -16,15 +16,23 @@ package com.hcmute.tdshop.utils.location;
  * limitations under the License.
  */
 
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan;
+import static java.lang.Math.cos;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
 
 /**
  * Utility functions that are used my both PolyUtil and SphericalUtil.
  */
 class MyMathUtil {
+
   /**
-   * The earth's radius, in meters.
-   * Mean radius as defined by IUGG.
+   * The earth's radius, in meters. Mean radius as defined by IUGG.
    */
   static final double EARTH_RADIUS = 6371009;
 
@@ -37,6 +45,7 @@ class MyMathUtil {
 
   /**
    * Wraps the given value into the inclusive-exclusive interval between min and max.
+   *
    * @param n   The value to wrap.
    * @param min The minimum.
    * @param max The maximum.
@@ -47,6 +56,7 @@ class MyMathUtil {
 
   /**
    * Returns the non-negative remainder of x / m.
+   *
    * @param x The operand.
    * @param m The modulus.
    */
@@ -55,11 +65,10 @@ class MyMathUtil {
   }
 
   /**
-   * Returns mercator Y corresponding to latitude.
-   * See http://en.wikipedia.org/wiki/Mercator_projection .
+   * Returns mercator Y corresponding to latitude. See http://en.wikipedia.org/wiki/Mercator_projection .
    */
   static double mercator(double lat) {
-    return log(tan(lat * 0.5 + PI/4));
+    return log(tan(lat * 0.5 + PI / 4));
   }
 
   /**
@@ -70,8 +79,7 @@ class MyMathUtil {
   }
 
   /**
-   * Returns haversine(angle-in-radians).
-   * hav(x) == (1 - cos(x)) / 2 == sin(x / 2)^2.
+   * Returns haversine(angle-in-radians). hav(x) == (1 - cos(x)) / 2 == sin(x / 2)^2.
    */
   static double hav(double x) {
     double sinHalf = sin(x * 0.5);
@@ -79,9 +87,8 @@ class MyMathUtil {
   }
 
   /**
-   * Computes inverse haversine. Has good numerical stability around 0.
-   * arcHav(x) == acos(1 - 2 * x) == 2 * asin(sqrt(x)).
-   * The argument must be in [0, 1], and the result is positive.
+   * Computes inverse haversine. Has good numerical stability around 0. arcHav(x) == acos(1 - 2 * x) == 2 *
+   * asin(sqrt(x)). The argument must be in [0, 1], and the result is positive.
    */
   static double arcHav(double x) {
     return 2 * asin(sqrt(x));

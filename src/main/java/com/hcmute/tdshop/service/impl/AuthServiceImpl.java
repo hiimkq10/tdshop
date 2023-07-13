@@ -5,6 +5,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.hcmute.tdshop.config.AppProperties;
 import com.hcmute.tdshop.dto.auth.ChangePasswordRequest;
 import com.hcmute.tdshop.dto.auth.RegisterRequest;
 import com.hcmute.tdshop.dto.auth.ResetPasswordRequest;
@@ -41,6 +42,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class AuthServiceImpl implements AuthService {
+  @Autowired
+  AppProperties appProperties;
 
   @Autowired
   private UserRepository userRepository;
@@ -66,8 +69,8 @@ public class AuthServiceImpl implements AuthService {
   @Autowired
   private EmailService emailService;
 
-  @Value("${fe.base.url}")
-  String feBaseUrl;
+  @Autowired
+  private JwtTokenProvider jwtTokenProvider;
 
   @Override
   public DataResponse register(HttpServletRequest servletRequest, RegisterRequest request) {
@@ -132,9 +135,8 @@ public class AuthServiceImpl implements AuthService {
       Token confirmToken = tokenRepository.findByUser_Id(user.getId()).orElse(null);
       if (confirmToken == null) {
         message = ApplicationConstants.UNEXPECTED_ERROR;
-      }
-      else if (confirmToken.getConfirmedAt() != null) {
-        if (now.isBefore(confirmToken.getConfirmedAt().plusMinutes(Helper.RESET_PASSWORD_DURATION))) {
+      } else if (confirmToken.getConfirmedAt() != null) {
+        if (now.isBefore(confirmToken.getConfirmedAt().plusMinutes(appProperties.getResetPasswordDuration()))) {
           String newPassword = request.getNewPassword();
           String confirmPassword = request.getConfirmPassword();
           if (newPassword.equals(confirmPassword)) {
@@ -142,8 +144,7 @@ public class AuthServiceImpl implements AuthService {
             tokenRepository.delete(confirmToken);
             userRepository.saveAndFlush(user);
             return new DataResponse(ApplicationConstants.RESET_PASSWORD_SUCCESSFULLY, true);
-          }
-          else {
+          } else {
             message = ApplicationConstants.CONFIRM_PASSWORD_NOT_MATCH;
           }
         } else {
@@ -152,8 +153,7 @@ public class AuthServiceImpl implements AuthService {
       } else {
         message = ApplicationConstants.TOKEN_NOT_CONFIRMED;
       }
-    }
-    else {
+    } else {
       message = ApplicationConstants.USER_NOT_FOUND;
     }
     return new DataResponse(ApplicationConstants.NOT_FOUND, message, ApplicationConstants.NOT_FOUND_CODE);
@@ -172,8 +172,7 @@ public class AuthServiceImpl implements AuthService {
       Token confirmToken = tokenRepository.findByUser_Id(user.getId()).orElse(null);
       if (confirmToken == null) {
         message = ApplicationConstants.TOKEN_WRONG;
-      }
-      else if (now.isBefore(confirmToken.getExpiredAt())) {
+      } else if (now.isBefore(confirmToken.getExpiredAt())) {
         if (confirmToken.getConfirmedAt() == null) {
           if (token.equals(confirmToken.getCode())) {
             confirmToken.setConfirmedAt(now);
@@ -182,15 +181,13 @@ public class AuthServiceImpl implements AuthService {
           } else {
             message = ApplicationConstants.TOKEN_WRONG;
           }
-        }
-        else {
+        } else {
           message = ApplicationConstants.TOKEN_USED;
         }
       } else {
         message = ApplicationConstants.TOKEN_EXPIRED;
       }
-    }
-    else {
+    } else {
       message = ApplicationConstants.USER_NOT_FOUND;
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, message, ApplicationConstants.BAD_REQUEST_CODE);
@@ -199,7 +196,8 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional
   public DataResponse activateAccount(Long id, String token, HttpServletRequest request, HttpServletResponse response) {
-    response.setHeader("Location", feBaseUrl + ApplicationConstants.activateAccountFailEndpoint + "?activate-success=false&user-id=" + id);
+    response.setHeader("Location",
+        appProperties.getFeBaseUrl() + ApplicationConstants.activateAccountFailEndpoint + "?activate-success=false&user-id=" + id);
     response.setStatus(302);
     Optional<User> optionalUser = userRepository.findById(id);
     String message = "";
@@ -211,37 +209,34 @@ public class AuthServiceImpl implements AuthService {
         Token confirmToken = tokenRepository.findByUser_Id(user.getId()).orElse(null);
         if (confirmToken == null) {
           message = ApplicationConstants.TOKEN_WRONG;
-        }
-        else if (now.isBefore(confirmToken.getExpiredAt())) {
+        } else if (now.isBefore(confirmToken.getExpiredAt())) {
           if (token.equals(confirmToken.getCode())) {
             if (confirmToken.getConfirmedAt() == null) {
               user.setIsVerified(true);
               tokenRepository.delete(confirmToken);
               userRepository.saveAndFlush(user);
               UserInfo userInfo = CustomUserDetailsToUserInfo(new CustomUserDetails(user));
-              String accessToken = JwtTokenProvider.generateAccessToken(new CustomUserDetails(user), request);
-              String refreshToken = JwtTokenProvider.generateRefreshToken(new CustomUserDetails(user), request);
-              response.setHeader("Location", feBaseUrl + ApplicationConstants.activateAccountSuccessEndpoint + "?activate-success=true");
+              String accessToken = jwtTokenProvider.generateAccessToken(new CustomUserDetails(user), request);
+              String refreshToken = jwtTokenProvider.generateRefreshToken(new CustomUserDetails(user), request);
+              response.setHeader("Location",
+                  appProperties.getFeBaseUrl() + ApplicationConstants.activateAccountSuccessEndpoint + "?activate-success=true");
               LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, userInfo);
               return new DataResponse(ApplicationConstants.ACCOUNT_ACTIVATED, loginResponse);
-            }
-            else {
+            } else {
               message = ApplicationConstants.TOKEN_USED;
             }
-          }
-          else {
+          } else {
             message = ApplicationConstants.TOKEN_WRONG;
           }
         } else {
           message = ApplicationConstants.TOKEN_EXPIRED;
         }
-      }
-      else {
-        response.setHeader("Location", feBaseUrl + ApplicationConstants.activateAccountSuccessEndpoint + "?status=10003");
+      } else {
+        response.setHeader("Location",
+            appProperties.getFeBaseUrl() + ApplicationConstants.activateAccountSuccessEndpoint + "?status=10003");
         message = ApplicationConstants.ACCOUNT_ACTIVATED;
       }
-    }
-    else {
+    } else {
       message = ApplicationConstants.USER_NOT_FOUND;
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, message, ApplicationConstants.BAD_REQUEST_CODE);
@@ -254,15 +249,15 @@ public class AuthServiceImpl implements AuthService {
     if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
       try {
         String token = authorizationHeader.substring("Bearer ".length());
-        JWTVerifier verifier = JWT.require(Helper.JWT_ALGORITHM).build();
+        JWTVerifier verifier = JWT.require(jwtTokenProvider.getJWTAlgorithm()).build();
         DecodedJWT decodedJWT = verifier.verify(token);
         User user = userRepository.findByUsername(decodedJWT.getSubject())
             .orElseThrow(() -> new RuntimeException(
                 ApplicationConstants.UNEXPECTED_ERROR));
         ;
         CustomUserDetails userDetails = new CustomUserDetails(user);
-        String accessToken = JwtTokenProvider.generateAccessToken(userDetails, request);
-        String refreshToken = JwtTokenProvider.generateRefreshToken(userDetails, request);
+        String accessToken = jwtTokenProvider.generateAccessToken(userDetails, request);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails, request);
         return new DataResponse(new TokenResponse(accessToken, refreshToken));
       } catch (Exception ex) {
         log.error("Error logging in: {}", ex.getMessage());
@@ -277,6 +272,7 @@ public class AuthServiceImpl implements AuthService {
   private boolean checkIfCurrentPasswordCorrect(String currentPassword, String encodedPassword) {
     return passwordEncoder.matches(currentPassword, encodedPassword);
   }
+
   private String encode(String str) {
     return passwordEncoder.encode(str);
   }

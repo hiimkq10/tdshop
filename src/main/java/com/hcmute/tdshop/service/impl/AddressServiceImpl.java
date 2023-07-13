@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -71,8 +70,7 @@ public class AddressServiceImpl implements AddressService {
           List<Address> listOfAddresses = addressRepository.findByIsDefaultAndUser_IdAndDeletedAtIsNull(true, userId);
           listOfAddresses.forEach(addressToUpdate -> addressToUpdate.setIsDefault(false));
           addressRepository.saveAllAndFlush(listOfAddresses);
-        }
-        else {
+        } else {
           if (!addressRepository.existsByIsDefaultAndUser_IdAndDeletedAtIsNull(true, userId)) {
             address.setIsDefault(true);
           }
@@ -135,7 +133,8 @@ public class AddressServiceImpl implements AddressService {
         currentAddress.setLng(addressToUpdate.getLng());
       }
       currentAddress = addressRepository.saveAndFlush(currentAddress);
-      return new DataResponse(ApplicationConstants.ADDRESS_UPDATE_SUCCESSFULLY, addressMapper.AddressToAddressResponse(currentAddress));
+      return new DataResponse(ApplicationConstants.ADDRESS_UPDATE_SUCCESSFULLY,
+          addressMapper.AddressToAddressResponse(currentAddress));
     }
     return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.ADDRESS_NOT_FOUND,
         ApplicationConstants.BAD_REQUEST_CODE);

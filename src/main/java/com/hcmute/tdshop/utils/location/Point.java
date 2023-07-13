@@ -1,6 +1,7 @@
 package com.hcmute.tdshop.utils.location;
 
 public class Point {
+
   public final double x;
   public final double y;
 

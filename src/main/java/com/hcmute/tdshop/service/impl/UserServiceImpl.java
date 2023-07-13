@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
+
   private static final Logger logger = LoggerFactory.getLogger(ProductScheduledTask.class);
 
   @Autowired
@@ -132,31 +133,37 @@ public class UserServiceImpl implements UserService {
   public DataResponse banUser(long id) {
     long adminId = AuthenticationHelper.getCurrentLoggedInUserId();
     if (adminId == id) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_BAN_THEMSELF, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_BAN_THEMSELF,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     Optional<User> optionalUser = userRepository.findByIdAndDeletedAtIsNull(id);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
       user.setIsActive(false);
       userRepository.saveAndFlush(user);
-      return new DataResponse(ApplicationConstants.SUCCESSFUL, ApplicationConstants.USER_BAN_SUCCESSFULLY, ApplicationConstants.SUCCESSFUL_CODE);
+      return new DataResponse(ApplicationConstants.SUCCESSFUL, ApplicationConstants.USER_BAN_SUCCESSFULLY,
+          ApplicationConstants.SUCCESSFUL_CODE);
     }
-    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND,
+        ApplicationConstants.BAD_REQUEST_CODE);
   }
 
   @Override
   public DataResponse unBanUser(long id) {
     long adminId = AuthenticationHelper.getCurrentLoggedInUserId();
     if (adminId == id) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_UN_BAN_THEMSELF, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_UN_BAN_THEMSELF,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     Optional<User> optionalUser = userRepository.findByIdAndDeletedAtIsNull(id);
     if (optionalUser.isPresent()) {
       User user = optionalUser.get();
       user.setIsActive(true);
       userRepository.saveAndFlush(user);
-      return new DataResponse(ApplicationConstants.SUCCESSFUL, ApplicationConstants.USER_UN_BAN_SUCCESSFULLY, ApplicationConstants.SUCCESSFUL_CODE);
+      return new DataResponse(ApplicationConstants.SUCCESSFUL, ApplicationConstants.USER_UN_BAN_SUCCESSFULLY,
+          ApplicationConstants.SUCCESSFUL_CODE);
     }
-    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND, ApplicationConstants.BAD_REQUEST_CODE);
+    return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.USER_NOT_FOUND,
+        ApplicationConstants.BAD_REQUEST_CODE);
   }
 }

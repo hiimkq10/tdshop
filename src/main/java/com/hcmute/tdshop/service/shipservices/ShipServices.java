@@ -79,6 +79,7 @@ public abstract class ShipServices {
   long shopWardsId;
 
   public abstract boolean checkSize(ShopOrder order);
+
   public abstract boolean checkProductSize(OrderSize orderSize);
 
   public abstract boolean checkAllowCancelOrder(String statusCode);
@@ -98,8 +99,11 @@ public abstract class ShipServices {
   public abstract DataResponse calculateExpectedDeliveryTime(CalculateDeliveryTimeRequest dto);
 
   public abstract CheckShipConditionDto checkShipCondition(ShopOrder order, boolean statusCheck);
+
   public abstract ResultDto checkAllowCancelShopOrder(ShopOrder order);
+
   public abstract OrderStatusEnum getShopOrderStatus(ShopOrder order);
+
   public abstract ResultDto checkCancelShipOrderCondition(ShopOrder order);
 
 //  @Autowired

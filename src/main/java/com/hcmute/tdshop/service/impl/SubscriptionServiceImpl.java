@@ -1,6 +1,5 @@
 package com.hcmute.tdshop.service.impl;
 
-import com.hcmute.tdshop.dto.subscription.FollowDto;
 import com.hcmute.tdshop.entity.Product;
 import com.hcmute.tdshop.entity.Subscription;
 import com.hcmute.tdshop.entity.User;
@@ -51,7 +50,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
   @Override
   public DataResponse subscribe(Long productId) {
-    Long userId = AuthenticationHelper.getCurrentLoggedInUserId();;
+    Long userId = AuthenticationHelper.getCurrentLoggedInUserId();
+    ;
     if (checkUserInvalid(userId) || checkProductInvalid(productId)) {
       return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.UNEXPECTED_ERROR,
           ApplicationConstants.BAD_REQUEST_CODE);

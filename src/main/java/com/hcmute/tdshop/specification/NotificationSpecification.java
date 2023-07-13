@@ -1,7 +1,6 @@
 package com.hcmute.tdshop.specification;
 
 import com.hcmute.tdshop.entity.Notification;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.springframework.data.jpa.domain.Specification;
 

@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 public class LatLng implements StringJoin.UrlValue, Serializable {
+
   private static final long serialVersionUID = 1L;
   public double latitude;
   public double longitude;
@@ -30,7 +31,7 @@ public class LatLng implements StringJoin.UrlValue, Serializable {
     if (this == o) {
       return true;
     } else if (o != null && this.getClass() == o.getClass()) {
-      com.google.maps.model.LatLng latLng = (com.google.maps.model.LatLng)o;
+      com.google.maps.model.LatLng latLng = (com.google.maps.model.LatLng) o;
       return Double.compare(latLng.lat, this.latitude) == 0 && Double.compare(latLng.lng, this.longitude) == 0;
     } else {
       return false;

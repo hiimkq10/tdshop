@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DistributedRandomNumberGenerator {
+
   private Map<Integer, Double> distribution;
   private double distSum;
 

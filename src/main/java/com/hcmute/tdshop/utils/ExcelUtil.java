@@ -259,7 +259,8 @@ public class ExcelUtil {
                       orderId,
                       user.getId(),
                       product.getId(),
-                      StringUtils.join(choosenCategories.stream().map(Category::getId).collect(Collectors.toList()), ", "),
+                      StringUtils.join(choosenCategories.stream().map(Category::getId).collect(Collectors.toList()),
+                          ", "),
                       boughtProducts.contains(product) ? 1 : 0,
                       ratedProducts.contains(product) ? ratingGenerator.getDistributedRandomNumber() : 0
                   )

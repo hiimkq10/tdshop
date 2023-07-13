@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/variation")
 public class VariationController {
+
   @Autowired
   VariationService variationService;
 
@@ -42,7 +43,8 @@ public class VariationController {
 
   @PutMapping("/update/{id}")
   @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
-  public DataResponse updateVariation(@PathVariable(name = "id") long id, @RequestBody @Valid UpdateVariationRequest request) {
+  public DataResponse updateVariation(@PathVariable(name = "id") long id,
+      @RequestBody @Valid UpdateVariationRequest request) {
     return variationService.updateVariation(id, request);
   }
 

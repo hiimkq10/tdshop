@@ -19,7 +19,6 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,10 +28,10 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class BrandServiceImpl implements BrandService {
 
-//  @Value("${CLOUDINARY_URL}")
+  //  @Value("${CLOUDINARY_URL}")
   private String cloudinaryURL = "cloudinary://484587933643945:LZyMCt-jqVo9hbKSkH3JT2tn0oo@dd4dftliy";
 
-//  @Value("${cloudinaryBrandImagePath}")
+  //  @Value("${cloudinaryBrandImagePath}")
   private String imagePath = "tdshop/brand/images";
 
   private Cloudinary cloudinary;
@@ -71,7 +70,8 @@ public class BrandServiceImpl implements BrandService {
   public DataResponse insertBrand(AddBrandRequest request, MultipartFile logo) {
     Brand brand = brandMapper.AddBrandRequestToBrand(request);
     if (checkIfNameExisted(brand.getName())) {
-      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.BRAND_NAME_EXISTED, ApplicationConstants.BAD_REQUEST_CODE);
+      return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.BRAND_NAME_EXISTED,
+          ApplicationConstants.BAD_REQUEST_CODE);
     }
     if (logo != null) {
       String url = uploadBrandImage(logo);
@@ -91,7 +91,8 @@ public class BrandServiceImpl implements BrandService {
       Brand currentBrand = optionalBrand.get();
       if (brandToUpdate.getName() != null && (!brandToUpdate.getName().equalsIgnoreCase(currentBrand.getName()))) {
         if (checkIfNameExisted(brandToUpdate.getName())) {
-          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.BRAND_NAME_EXISTED, ApplicationConstants.BAD_REQUEST_CODE);
+          return new DataResponse(ApplicationConstants.BAD_REQUEST, ApplicationConstants.BRAND_NAME_EXISTED,
+              ApplicationConstants.BAD_REQUEST_CODE);
         }
         currentBrand.setName(brandToUpdate.getName());
       }
@@ -103,8 +104,7 @@ public class BrandServiceImpl implements BrandService {
           url = uploadBrandImage(logo);
         }
         currentBrand.setLogoUrl(url);
-      }
-      else {
+      } else {
         if (currentBrand.getLogoUrl() != null) {
           deleteBrandImage(currentBrand.getLogoUrl());
           currentBrand.setLogoUrl(null);
