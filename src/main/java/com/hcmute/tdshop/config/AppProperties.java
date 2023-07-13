@@ -47,4 +47,7 @@ public class AppProperties {
 
   @Value("${app.jwt-token.refresh-token-expiration}")
   private Long jwtRefreshTokenExpiration;
+
+  @Value("${app.recommend-ai.base-url}")
+  private String recommendAIBaseUrl;
 }

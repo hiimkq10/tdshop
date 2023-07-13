@@ -23,10 +23,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-  @Autowired
   private AppProperties appProperties;
 
-  @Autowired
   private JwtTokenProvider jwtTokenProvider;
 
   private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
@@ -34,9 +32,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
   @Autowired
   public OAuth2AuthenticationSuccessHandler(AppProperties appProperties,
-      HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
+      HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository,
+      JwtTokenProvider jwtTokenProvider) {
     this.appProperties = appProperties;
     this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
+    this.jwtTokenProvider = jwtTokenProvider;
   }
 
   public OAuth2AuthenticationSuccessHandler() {

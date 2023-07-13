@@ -3,6 +3,7 @@ package com.hcmute.tdshop.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.google.gson.Gson;
+import com.hcmute.tdshop.config.AppProperties;
 import com.hcmute.tdshop.dto.product.AddProductRequest;
 import com.hcmute.tdshop.dto.product.ChangeProductStatusRequest;
 import com.hcmute.tdshop.dto.product.ProductInfoDto;
@@ -75,6 +76,9 @@ import reactor.core.publisher.Mono;
 public class ProductServiceImpl implements ProductService {
 
   Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+
+  @Autowired
+  AppProperties appProperties;
 
   //  @Value("${CLOUDINARY_URL}")
   private String cloudinaryURL = "cloudinary://484587933643945:LZyMCt-jqVo9hbKSkH3JT2tn0oo@dd4dftliy";
@@ -1003,7 +1007,7 @@ public class ProductServiceImpl implements ProductService {
   public List<String> getRecommendedProducts(List<String> productIds) {
     try {
       Gson gsonObj = new Gson();
-      WebClient client = WebClient.builder().baseUrl("https://airecomendation-2bd712ac5d3b.herokuapp.com/")
+      WebClient client = WebClient.builder().baseUrl(appProperties.getRecommendAIBaseUrl())
           .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
       UriSpec<RequestBodySpec> uriSpec = (UriSpec<RequestBodySpec>) client.post();
       RequestBodySpec bodySpec = uriSpec.uri(
