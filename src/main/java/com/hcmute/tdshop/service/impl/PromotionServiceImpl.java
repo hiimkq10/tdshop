@@ -143,7 +143,7 @@ public class PromotionServiceImpl implements PromotionService {
   @Transactional
   public DataResponse updatePromotion(Long id, UpdatePromotionRequest request) {
     Promotion promotionToUpdate = promotionMapper.UpdatePromotionRequestToPromotion(request);
-    Optional<Promotion> optionalPromotion = promotionRepository.findById(id);
+    Optional<Promotion> optionalPromotion = promotionRepository.findByIdAndDeletedAtIsNull(id);
     boolean updateRequire = false;
     if (optionalPromotion.isPresent()) {
       Promotion currentPromotion = optionalPromotion.get();
@@ -186,7 +186,8 @@ public class PromotionServiceImpl implements PromotionService {
     Optional<Promotion> optionalPromotion = promotionRepository.findById(id);
     if (optionalPromotion.isPresent()) {
       Promotion promotion = optionalPromotion.get();
-      promotionRepository.delete(promotion);
+      promotion.setDeletedAt(LocalDateTime.now());
+      promotionRepository.saveAndFlush(promotion);
       UpdateProductPromotion(promotion);
       return new DataResponse(ApplicationConstants.PROMOTION_DELETE_SUCCESSFULLY, Boolean.valueOf(true));
     }
@@ -201,7 +202,7 @@ public class PromotionServiceImpl implements PromotionService {
     for (Product product : listOfProducts) {
       List<Promotion> listOfPromotions = promotionRepository.findAll(
           PromotionSpecification.hasCategory(product.getSetOfCategories().stream().map(c -> c.getId())
-              .collect(Collectors.toSet())));
+              .collect(Collectors.toSet())).and(PromotionSpecification.isNotDeleted()));
 
       List<ProductPromotion> listOfProductPromotions = productPromotionRepository.findByProductId(product.getId());
       if (product.getSetOfProductPromotions() != null && product.getSetOfProductPromotions().size() > 0) {
